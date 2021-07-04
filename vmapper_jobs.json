@@ -47,7 +47,7 @@
         }
         ],
 
-        "VM update":
+        "VM update vmapper":
         [
         {
                 "TYPE": "jobType.PASSTHROUGH",
@@ -68,6 +68,14 @@
         {
                 "TYPE": "jobType.PASSTHROUGH",
                 "SYNTAX": "su -c '/system/bin/vmapper.sh -uv -up'"
+        }
+        ],
+        
+        "VM add script (only needed when vmapper install was done before repo was created)":
+        [
+        {
+                "TYPE": "jobType.PASSTHROUGH",
+                "SYNTAX": "su -c 'mount -o remount,rw /system && /system/bin/curl -L -o /sdcard/vmapper_conf -k -s LinkToYourSecretHideoutForDownloadFiles/vmapper_conf  && /system/bin/curl -L -o /system/bin/vmapper.sh -k -s https://raw.githubusercontent.com/dkmur/vmconf/master/vmapper.sh && chmod +x /system/bin/vmapper.sh'"
         }
         ]
 }

@@ -1,0 +1,7 @@
+download="LinkToYourSecretHideoutForDownloadFiles"
+vmtoken="YourSecretToken"
+bootdelay="0"
+daemon="true"
+gzip="true"
+selinux="true"
+betamode="false"

@@ -1,0 +1,73 @@
+{
+        "VM setting overview":
+        [
+        {
+                "TYPE": "jobType.PASSTHROUGH",
+                "SYNTAX": "echo \" mitm=$(ps | grep -e de.goldjpg.vmapper -e com.mad.pogodroid | awk -F. '{ print $NF }') | Vmapper=$(dumpsys package de.goldjpg.vmapper | grep versionName | head -n1 | sed 's/ *versionName=//') \" && awk -F'[\"]+' '/value/{print \"VM_\"$2 \"=\" $4}' /data/data/de.goldjpg.vmapper/shared_prefs/config.xml |tr '\n' ' ' && awk -F'[<>\"]+' '/string/{print \"VM_\"$3 \"=\" $4}' /data/data/de.goldjpg.vmapper/shared_prefs/config.xml |tr '\n' ' '"
+        }
+        ],
+
+        "VM install vmapper":
+        [
+        {
+                "TYPE": "jobType.PASSTHROUGH",
+                "SYNTAX": "su -c 'mount -o remount,rw /system && /system/bin/curl -L -o /sdcard/vmapper_conf -k -s LinkToYourSecretHideoutForDownloadFiles/vmapper_conf  && /system/bin/curl -L -o /system/bin/vmapper.sh -k -s https://raw.githubusercontent.com/dkmur/vmconf/master/vmapper.sh && chmod +x /system/bin/vmapper.sh && /system/bin/vmapper.sh -iv'"
+        }
+        ],
+
+        "VM install vmapper and pogo update":
+        [
+        {
+                "TYPE": "jobType.PASSTHROUGH",
+                "SYNTAX": "su -c 'mount -o remount,rw /system && /system/bin/curl -L -o /sdcard/vmapper_conf -k -s LinkToYourSecretHideoutForDownloadFiles/vmapper_conf  && /system/bin/curl -L -o /system/bin/vmapper.sh -k -s https://raw.githubusercontent.com/dkmur/vmconf/master/vmapper.sh && chmod +x /system/bin/vmapper.sh && /system/bin/vmapper.sh -iv -up'"
+        }
+        ],
+
+        "VM update configuration script":
+        [
+        {
+                "TYPE": "jobType.PASSTHROUGH",
+                "SYNTAX": "su -c '/system/bin/vmapper.sh -us'"
+        }
+        ],
+
+        "VM update script configuration file":
+        [
+        {
+                "TYPE": "jobType.PASSTHROUGH",
+                "SYNTAX": "su -c '/system/bin/vmapper.sh -uvc'"
+        }
+        ],
+
+        "VM update config.xml including configuration file update":
+        [
+        {
+                "TYPE": "jobType.PASSTHROUGH",
+                "SYNTAX": "su -c '/system/bin/vmapper.sh -uvx'"
+        }
+        ],
+
+        "VM update":
+        [
+        {
+                "TYPE": "jobType.PASSTHROUGH",
+                "SYNTAX": "su -c '/system/bin/vmapper.sh -uv'"
+        }
+        ],
+
+        "VM update pogo":
+        [
+        {
+                "TYPE": "jobType.PASSTHROUGH",
+                "SYNTAX": "su -c '/system/bin/vmapper.sh -up'"
+        }
+        ],
+
+        "VM update pogo and vmapper":
+        [
+        {
+                "TYPE": "jobType.PASSTHROUGH",
+                "SYNTAX": "su -c '/system/bin/vmapper.sh -uv -up'"
+        }
+        ]
+}

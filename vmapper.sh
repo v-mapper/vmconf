@@ -1,12 +1,19 @@
 #!/system/bin/sh
-# version 0.1
+# version 0.2
 
 source /sdcard/vmapper_conf
+
+pdconf="/data/data/com.mad.pogodroid/shared_prefs/com.mad.pogodroid_preferences.xml"
+puser=$(ls -la /data/data/com.mad.pogodroid/|head -n2|tail -n1|awk '{print $3}')
+authpassword=$(grep 'auth_password' $pdconf | sed -e 's/    <string name="auth_password">\(.*\)<\/string>/\1/')
+authuser=$(grep 'auth_username' $pdconf | sed -e 's/    <string name="auth_username">\(.*\)<\/string>/\1/')
+origin=$(grep 'post_origin' $pdconf | sed -e 's/    <string name="post_origin">\(.*\)<\/string>/\1/')
+postdest=$(grep -w 'post_destination' $pdconf | sed -e 's/    <string name="post_destination">\(.*\)<\/string>/\1/')
 
 reboot_device(){
 #if [[ "$USER" == "shell" ]] ;then
 # echo "Rebooting Device"
- /system/bin/reboot
+/system/bin/reboot
 #fi
 }
 
@@ -34,12 +41,6 @@ chown $vmuser:$vmuser $vmconf
 }
 
 install_vmapper(){
-pdconf="/data/data/com.mad.pogodroid/shared_prefs/com.mad.pogodroid_preferences.xml"
-puser=$(ls -la /data/data/com.mad.pogodroid/|head -n2|tail -n1|awk '{print $3}')
-authpassword=$(grep 'auth_password' $pdconf | sed -e 's/    <string name="auth_password">\(.*\)<\/string>/\1/')
-authuser=$(grep 'auth_username' $pdconf | sed -e 's/    <string name="auth_username">\(.*\)<\/string>/\1/')
-origin=$(grep 'post_origin' $pdconf | sed -e 's/    <string name="post_origin">\(.*\)<\/string>/\1/')
-postdest=$(grep -w 'post_destination' $pdconf | sed -e 's/    <string name="post_destination">\(.*\)<\/string>/\1/')
 
 ## pogodroid disable full daemon + stop pogodroid
 sed -i 's,\"full_daemon\" value=\"true\",\"full_daemon\" value=\"false\",g' $pdconf
@@ -97,7 +98,7 @@ update_vmapper_conf(){
 update_vmapper_xml(){
 /system/bin/curl -L -o /sdcard/vmapper_conf -k -s $download/vmapper_conf
 create_vmapper_config
-reboot = 1
+reboot=1
 }
 
 update_vmapper_script(){
@@ -123,7 +124,7 @@ fi
 
 /system/bin/pm install -r /sdcard/Download/pogo.apk
 /system/bin/rm -f /sdcard/Download/pogo.apk
-reboot = 1
+reboot=1
 }
 
 for i in "$@" ;do

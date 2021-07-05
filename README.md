@@ -10,5 +10,5 @@
 - pogo64.apk<BR>
 <BR>
 3 add job file from repo to MAD/personal_commands folder<BR>
-4 replace ``LinkToYourSecretHideoutForDownloadFiles`` in the 2 vmapper install job<BR>
+4 replace ``LinkToYourSecretHideoutForDownloadFiles`` in the 2 install jobs and if needed the job called ``VM add script``<BR>
 5 reload jobs in MADmin<BR>

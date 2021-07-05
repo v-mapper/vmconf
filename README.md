@@ -2,7 +2,7 @@
 # vmconf
 
 
-1 create folder for ``LinkToYourSecretHideoutForDownloadFiles`` like ``https://mydomain.com/dowloads``<BR>
+1 create folder for ``LinkToYourSecretHideoutForDownloadFiles`` like ``https://mydomain.com/downloads``<BR>
 2 In there store (use those exact filenames):<BR>
 - ``vmapper_conf`` from repo and fill out details
 - vmapper.apk

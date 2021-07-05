@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 0.2
+# version 0.3
 
 source /sdcard/vmapper_conf
 
@@ -102,8 +102,10 @@ reboot=1
 }
 
 update_vmapper_script(){
+mount -o remount,rw /system
 /system/bin/curl -L -o /system/bin/vmapper.sh -k -s https://raw.githubusercontent.com/dkmur/vmconf/master/vmapper.sh
 chmod +x /system/bin/vmapper.sh
+mount -o remount,ro /system
 }
 
 update_pogo(){

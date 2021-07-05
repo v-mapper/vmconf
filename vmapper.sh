@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 0.3
+# version 0.4
 
 source /sdcard/vmapper_conf
 
@@ -74,7 +74,11 @@ create_vmapper_config
 monkey -p de.goldjpg.vmapper 1
 sleep 5
 # Let try and push start, untested
+# portrait
 input tap 352 199
+sleep 2
+#landscape
+input tap 630 170
 sleep 5
 
 ## Set for reboot device
@@ -114,11 +118,11 @@ case "$(uname -m)" in
  armv8l)  arch="armeabi-v7a";;
 esac
 
-if [[ $arch == "arm64_v8a"  ]]
+if [ "$arch" = "arm64_v8a" ]
 then
 /system/bin/curl -L -o /sdcard/Download/pogo.apk -k -s $download/pogo64.apk
 else
-  if [[ $arch == "armeabi-v7a" ]]
+  if [ "$arch" = "armeabi-v7a" ]
   then
   /system/bin/curl -L -o /sdcard/Download/pogo.apk -k -s $download/pogo32.apk
   fi

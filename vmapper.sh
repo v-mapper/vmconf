@@ -118,7 +118,7 @@ input tap 630 170
 sleep 5
 
 ## add 55vmapper
-/system/bin/curl -L -o /system/etc/init.d/55vmapper -k -s https://raw.githubusercontent.com/dkmur/vmconf/master/55vmapper
+/system/bin/curl -L -o /system/etc/init.d/55vmapper -k -s https://raw.githubusercontent.com/dkmur/vmconf/main/55vmapper
 chmod +x /system/etc/init.d/55vmapper
 
 ## de-activate autoupdate by default as it requires vmad
@@ -171,7 +171,7 @@ reboot=1
 
 update_vmapper_script(){
 mount -o remount,rw /system
-/system/bin/curl -L -o /system/bin/vmapper.sh -k -s https://raw.githubusercontent.com/dkmur/vmconf/master/vmapper.sh
+/system/bin/curl -L -o /system/bin/vmapper.sh -k -s https://raw.githubusercontent.com/dkmur/vmconf/main/vmapper.sh
 chmod +x /system/bin/vmapper.sh
 mount -o remount,ro /system
 }

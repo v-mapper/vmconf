@@ -81,15 +81,23 @@
 
 	"VM vmapper auto-update: enable": [
 	{
-	"TYPE": "jobType.PASSTHROUGH",
-	"SYNTAX": "rm /sdcard/disableautovmapperupdate"
+		"TYPE": "jobType.PASSTHROUGH",
+		"SYNTAX": "su -c 'rm /sdcard/disableautovmapperupdate'"
 	}
 	],
 
         "VM vmapper auto-update: disable": [
         {
-        "TYPE": "jobType.PASSTHROUGH",
-        "SYNTAX": "touch /sdcard/disableautovmapperupdate"
+        	"TYPE": "jobType.PASSTHROUGH",
+        	"SYNTAX": "su -c 'touch /sdcard/disableautovmapperupdate'"
         }
-        ]
+        ],
+
+        "VM add vmapper autoupdate YET disabled (only needed when vmapper install was done before autoupdate was created)":
+        [
+        {
+                "TYPE": "jobType.PASSTHROUGH",
+                "SYNTAX": "su -c 'mount -o remount,rw /system && /system/bin/curl -L -o /system/etc/init.d/55vmapper -k -s https://raw.githubusercontent.com/dkmur/vmconf/main/55vmapper && chmod +x /system/etc/init.d/55vmapper && touch /sdcard/disableautovmapperupdate'"
+        }
+        ],
 }

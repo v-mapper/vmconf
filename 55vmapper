@@ -1,0 +1,4 @@
+#!/system/bin/sh
+# version="0.1"
+
+! [[ -f /sdcard/disableautovmapperupdate ]] && sh -x /system/bin/vmapper.sh -uvw

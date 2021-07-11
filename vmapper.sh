@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 0.4
+# version 0.5
 
 source /sdcard/vmapper_conf
 
@@ -15,6 +15,42 @@ reboot_device(){
 # echo "Rebooting Device"
 /system/bin/reboot
 #fi
+}
+
+checkpdconf(){
+if ! [[ -s "$pdconf" ]] ;then
+ echo "pogodroid not configured yet"
+ return 1
+fi
+}
+
+get_pd_user(){
+checkpdconf || return 1
+user=$(awk -F'>' '/auth_username/{print $2}' "$pdconf"|awk -F'<' '{print $1}')
+pass=$(awk -F'>' '/auth_password/{print $2}' "$pdconf"|awk -F'<' '{print $1}')
+if [[ "$user" ]] ;then
+ printf "-u $user:$pass"
+fi
+}
+
+checkupdate(){
+# $1 = new version
+# $2 = installed version
+! [[ "$2" ]] && return 0 # for first installs
+i=1
+#we start at 1 and go until number of . so we can use our counter as awk position
+places=$(awk -F. '{print NF+1}' <<< "$1")
+while (( "$i" < "$places" )) ;do
+ npos=$(awk -v pos=$i -F. '{print $pos}' <<< "$1")
+ ipos=$(awk -v pos=$i -F. '{print $pos}' <<< "$2")
+ case "$(( $npos - $ipos ))" in
+  -*) return 1 ;;
+   0) ;;
+   *) return 0 ;;
+ esac
+ i=$((i+1))
+ false
+done
 }
 
 create_vmapper_config(){
@@ -81,6 +117,13 @@ sleep 2
 input tap 630 170
 sleep 5
 
+## add 55vmapper
+/system/bin/curl -L -o /system/etc/init.d/55vmapper -k -s https://raw.githubusercontent.com/dkmur/vmconf/main/55vmapper
+chmod +x /system/etc/init.d/55vmapper
+
+## de-activate autoupdate by default as it requires vmad
+touch /sdcard/disableautovmapperupdate
+
 ## Set for reboot device
 reboot=1
 }
@@ -92,6 +135,27 @@ update_vmapper(){
 /system/bin/pm install -r /sdcard/Download/vmapper.apk
 /system/bin/rm /sdcard/Download/vmapper.apk
 am broadcast -a android.intent.action.BOOT_COMPLETED -p de.goldjpg.vmapper
+reboot=1
+}
+
+update_vmapper_wizzard(){
+#update vmapper using the vmad wizard
+checkpdconf || return 1
+pserver=$(grep -v raw "$pdconf"|awk -F'>' '/post_destination/{print $2}'|awk -F'<' '{print $1}')
+! [[ "$pserver" ]] && echo "pogodroid endpoint not configured yet, cannot contact the wizard" && return 1
+origin=$(awk -F'>' '/post_origin/{print $2}' "$pdconf"|awk -F'<' '{print $1}')
+newver="$(curl -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/noarch")"
+installedver="$(dumpsys package de.goldjpg.vmapper|awk -F'=' '/versionName/{print $2}'|head -n1)"
+if checkupdate "$newver" "$installedver" ;then
+ echo "updating vmapper..."
+ rm -f /sdcard/Download/vmapper.apk
+ until curl -o /sdcard/Download/vmapper.apk -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/download" ;do
+  rm -f /sdcard/Download/vmapper.apk
+  sleep
+ done
+ /system/bin/pm install -r /sdcard/Download/vmapper.apk
+ rm -f /sdcard/Download/vmapper.apk
+fi
 reboot=1
 }
 
@@ -107,7 +171,7 @@ reboot=1
 
 update_vmapper_script(){
 mount -o remount,rw /system
-/system/bin/curl -L -o /system/bin/vmapper.sh -k -s https://raw.githubusercontent.com/dkmur/vmconf/master/vmapper.sh
+/system/bin/curl -L -o /system/bin/vmapper.sh -k -s https://raw.githubusercontent.com/dkmur/vmconf/main/vmapper.sh
 chmod +x /system/bin/vmapper.sh
 mount -o remount,ro /system
 }
@@ -139,6 +203,7 @@ for i in "$@" ;do
  -us) update_vmapper_script ;;
  -up) update_pogo ;;
  -uv) update_vmapper ;;
+ -uvw update_vmapper_wizzard ;;
  -uvc) update_vmapper_conf ;;
  -uvx) update_vmapper_xml ;;
  esac

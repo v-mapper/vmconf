@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 0.5
+# version 0.6
 
 source /sdcard/vmapper_conf
 
@@ -203,7 +203,7 @@ for i in "$@" ;do
  -us) update_vmapper_script ;;
  -up) update_pogo ;;
  -uv) update_vmapper ;;
- -uvw update_vmapper_wizzard ;;
+ -uvw) update_vmapper_wizzard ;;
  -uvc) update_vmapper_conf ;;
  -uvx) update_vmapper_xml ;;
  esac

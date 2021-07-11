@@ -3,7 +3,7 @@
         [
         {
                 "TYPE": "jobType.PASSTHROUGH",
-                "SYNTAX": "echo \" mitm=$(ps | grep -e de.goldjpg.vmapper -e com.mad.pogodroid | awk -F. '{ print $NF }') | Vmapper=$(dumpsys package de.goldjpg.vmapper | grep versionName | head -n1 | sed 's/ *versionName=//') | VMscript=$(grep '# version' /system/bin/vmapper.sh | awk '{ print $NF }') \" && awk -F'[\"]+' '/value/{print \"VM_\"$2 \"=\" $4}' /data/data/de.goldjpg.vmapper/shared_prefs/config.xml |tr '\n' ' ' && awk -F'[<>\"]+' '/string/{print \"VM_\"$3 \"=\" $4}' /data/data/de.goldjpg.vmapper/shared_prefs/config.xml |tr '\n' ' '"
+                "SYNTAX": "echo \" mitm=$(ps | grep -e de.goldjpg.vmapper -e com.mad.pogodroid | awk -F. '{ print $NF }') | Vmapper=$(dumpsys package de.goldjpg.vmapper | grep versionName | head -n1 | sed 's/ *versionName=//') | VMscript=$(grep '# version' /system/bin/vmapper.sh | awk '{ print $NF }') VM_Autoupdate=$([ -f /sdcard/disableautovmapperupdate ] && echo disabled || echo enabled) \" && awk -F'[\"]+' '/value/{print \"VM_\"$2 \"=\" $4}' /data/data/de.goldjpg.vmapper/shared_prefs/config.xml |tr '\n' ' ' && awk -F'[<>\"]+' '/string/{print \"VM_\"$3 \"=\" $4}' /data/data/de.goldjpg.vmapper/shared_prefs/config.xml |tr '\n' ' '"
         }
         ],
 

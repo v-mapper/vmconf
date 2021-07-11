@@ -18,7 +18,7 @@ if [ -z "$MAD_path_1" ]; then
         echo ""
 	echo "No instance defined"
 else
-	cp vmapper_jobs.json $MAD_path_1/vmapper_jobs.json
+	cp vmapper_jobs.json $MAD_path_1/personal_commands/vmapper_jobs.json
 	sed "s|LinkToYourSecretHideoutForDownloadFiles|"$Download_link"|g" $MAD_path_1/vmapper_jobs.json
 	curl -u $MADmin_username_1:$MADmin_password_1 "$MAD_url_1/reload_jobs"
 fi
@@ -28,7 +28,7 @@ if [ -z "$MAD_path_2" ]; then
         echo ""
         echo "No 2nd instance defined"
 else
-        cp vmapper_jobs.json $MAD_path_2/vmapper_jobs.json
+        cp vmapper_jobs.json $MAD_path_2/personal_commands/vmapper_jobs.json
         sed "s|LinkToYourSecretHideoutForDownloadFiles|"$Download_link"|g" $MAD_path_2/vmapper_jobs.json
         curl -u $MADmin_username_2:$MADmin_password_2 "$MAD_url_2/reload_jobs"
 fi
@@ -38,7 +38,7 @@ if [ -z "$MAD_path_3" ]; then
         echo ""
         echo "No 3rd instance defined"
 else
-        cp vmapper_jobs.json $MAD_path_3/vmapper_jobs.json
+        cp vmapper_jobs.json $MAD_path_3/personal_commands/vmapper_jobs.json
         sed "s|LinkToYourSecretHideoutForDownloadFiles|"$Download_link"|g" $MAD_path_3/vmapper_jobs.json
         curl -u $MADmin_username_3:$MADmin_password_3 "$MAD_url_3/reload_jobs"
 fi
@@ -48,7 +48,7 @@ if [ -z "$MAD_path_4" ]; then
         echo ""
         echo "No 4th instance defined"
 else
-        cp vmapper_jobs.json $MAD_path_4/vmapper_jobs.json
+        cp vmapper_jobs.json $MAD_path_4/personal_commands/vmapper_jobs.json
         sed "s|LinkToYourSecretHideoutForDownloadFiles|"$Download_link"|g" $MAD_path_4/vmapper_jobs.json
         curl -u $MADmin_username_4:$MADmin_password_4 "$MAD_url_4/reload_jobs"
 fi
@@ -58,7 +58,7 @@ if [ -z "$MAD_path_5" ]; then
         echo ""
         echo "No 5th instance defined"
 else
-        cp vmapper_jobs.json $MAD_path_5/vmapper_jobs.json
+        cp vmapper_jobs.json $MAD_path_5/personal_commands/vmapper_jobs.json
         sed "s|LinkToYourSecretHideoutForDownloadFiles|"$Download_link"|g" $MAD_path_5/vmapper_jobs.json
         curl -u $MADmin_username_5:$MADmin_password_5 "$MAD_url_5/reload_jobs"
 fi

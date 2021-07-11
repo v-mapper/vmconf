@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 0.6
+# version 0.7
 
 source /sdcard/vmapper_conf
 
@@ -155,8 +155,8 @@ if checkupdate "$newver" "$installedver" ;then
  done
  /system/bin/pm install -r /sdcard/Download/vmapper.apk
  rm -f /sdcard/Download/vmapper.apk
+ reboot=1
 fi
-reboot=1
 }
 
 update_vmapper_conf(){

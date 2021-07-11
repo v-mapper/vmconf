@@ -5,7 +5,7 @@ source config.ini
 ## Generic
 cp vmapper_conf.example $Download_path/vmapper_conf
 sed -i "s|LinkToYourSecretHideoutForDownloadFiles|"$Download_link"|g" $Download_path/vmapper_conf
-sed -i "s/YourSecretToken/"$YourSecretToken"/g" $Download_path/vmapper_conf
+sed -i "s/YourSecretToken/"$vmtoken"/g" $Download_path/vmapper_conf
 sed -i "s/XAA/"$bootdelay"/g" $Download_path/vmapper_conf
 sed -i "s/XBB/"$daemon"/g" $Download_path/vmapper_conf
 sed -i "s/XCC/"$gzip"/g" $Download_path/vmapper_conf

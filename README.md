@@ -2,13 +2,8 @@
 # vmconf
 
 
-1 create folder for ``LinkToYourSecretHideoutForDownloadFiles`` like ``https://mydomain.com/downloads``<BR>
-2 In there store (use those exact filenames):<BR>
-- ``vmapper_conf`` from repo and fill out details
-- vmapper.apk
-- pogo32.apk
-- pogo64.apk<BR>
-<BR>
-3 add job file from repo to MAD/personal_commands folder<BR>
-4 replace ``LinkToYourSecretHideoutForDownloadFiles`` in the 2 install jobs and if needed the job called ``VM add script``<BR>
-5 reload jobs in MADmin<BR>
+1 clone repo and copy config.ini ``git clone https://github.com/dkmur/vmconf.git && cd vmconf && cp config.ini.example config.ini``<BR>
+2 fill out config.ini details<BR>
+3 execute ``./settings.run`` This will copy (and adjust) vm_conf file to download folder and add jobs to MADmin<BR>
+4 make sure to add, at least, ``vmapper.apk`` to download folder (wizzard is not yet supported for initial install, updated are untested via wizzard)<BR>
+5 optionally add ``pogo32.apk`` and/or ``pogo64.apk`` to download folder in case of mixed vmapper/pogodroid setup in order co controll pogo updates via jobs (make sure to disable autoupdate ??)<BR>

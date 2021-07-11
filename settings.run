@@ -4,13 +4,13 @@ source config.ini
 
 ## Generic
 cp vmapper_conf.example $Download_path/vmapper_conf
-sed -i "s/LinkToYourSecretHideoutForDownloadFiles/"$Download_link"/g" $Download_path/vmapper_conf
+sed -i "s|LinkToYourSecretHideoutForDownloadFiles|"$Download_link"|g" $Download_path/vmapper_conf
 sed -i "s/YourSecretToken/"$YourSecretToken"/g" $Download_path/vmapper_conf
-sed -i "s/bootdelay/"$bootdelay"/g" $Download_path/vmapper_conf
-sed -i "s/daemon/"$daemon"/g" $Download_path/vmapper_conf
-sed -i "s/gzip/"$gzip"/g" $Download_path/vmapper_conf
-sed -i "s/selinux/"$selinux"/g" $Download_path/vmapper_conf
-sed -i "s/betamode/"$betamode"/g" $Download_path/vmapper_conf
+sed -i "s/XAA/"$bootdelay"/g" $Download_path/vmapper_conf
+sed -i "s/XBB/"$daemon"/g" $Download_path/vmapper_conf
+sed -i "s/XCC/"$gzip"/g" $Download_path/vmapper_conf
+sed -i "s/XDD/"$selinux"/g" $Download_path/vmapper_conf
+sed -i "s/XEE/"$betamode"/g" $Download_path/vmapper_conf
 
 ## Instance specific
 ## instance 1
@@ -19,7 +19,7 @@ if [ -z "$MAD_path_1" ]; then
 	echo "No instance defined"
 else
 	cp vmapper_jobs.json $MAD_path_1/vmapper_jobs.json
-	sed "s/LinkToYourSecretHideoutForDownloadFiles/"$Download_link"/g" $MAD_path_1/vmapper_jobs.json
+	sed "s|LinkToYourSecretHideoutForDownloadFiles|"$Download_link"|g" $MAD_path_1/vmapper_jobs.json
 	curl -u $MADmin_username_1:$MADmin_password_1 "$MAD_url_1/reload_jobs"
 fi
 
@@ -29,7 +29,7 @@ if [ -z "$MAD_path_2" ]; then
         echo "No 2nd instance defined"
 else
         cp vmapper_jobs.json $MAD_path_2/vmapper_jobs.json
-        sed "s/LinkToYourSecretHideoutForDownloadFiles/"$Download_link"/g" $MAD_path_2/vmapper_jobs.json
+        sed "s|LinkToYourSecretHideoutForDownloadFiles|"$Download_link"|g" $MAD_path_2/vmapper_jobs.json
         curl -u $MADmin_username_2:$MADmin_password_2 "$MAD_url_2/reload_jobs"
 fi
 
@@ -39,7 +39,7 @@ if [ -z "$MAD_path_3" ]; then
         echo "No 3rd instance defined"
 else
         cp vmapper_jobs.json $MAD_path_3/vmapper_jobs.json
-        sed "s/LinkToYourSecretHideoutForDownloadFiles/"$Download_link"/g" $MAD_path_3/vmapper_jobs.json
+        sed "s|LinkToYourSecretHideoutForDownloadFiles|"$Download_link"|g" $MAD_path_3/vmapper_jobs.json
         curl -u $MADmin_username_3:$MADmin_password_3 "$MAD_url_3/reload_jobs"
 fi
 
@@ -49,7 +49,7 @@ if [ -z "$MAD_path_4" ]; then
         echo "No 4th instance defined"
 else
         cp vmapper_jobs.json $MAD_path_4/vmapper_jobs.json
-        sed "s/LinkToYourSecretHideoutForDownloadFiles/"$Download_link"/g" $MAD_path_4/vmapper_jobs.json
+        sed "s|LinkToYourSecretHideoutForDownloadFiles|"$Download_link"|g" $MAD_path_4/vmapper_jobs.json
         curl -u $MADmin_username_4:$MADmin_password_4 "$MAD_url_4/reload_jobs"
 fi
 
@@ -59,6 +59,8 @@ if [ -z "$MAD_path_5" ]; then
         echo "No 5th instance defined"
 else
         cp vmapper_jobs.json $MAD_path_5/vmapper_jobs.json
-        sed "s/LinkToYourSecretHideoutForDownloadFiles/"$Download_link"/g" $MAD_path_5/vmapper_jobs.json
+        sed "s|LinkToYourSecretHideoutForDownloadFiles|"$Download_link"|g" $MAD_path_5/vmapper_jobs.json
         curl -u $MADmin_username_5:$MADmin_password_5 "$MAD_url_5/reload_jobs"
 fi
+
+echo "All done !!"

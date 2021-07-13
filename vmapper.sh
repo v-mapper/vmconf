@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 0.8
+# version 0.9
 
 source /sdcard/vmapper_conf
 
@@ -9,6 +9,7 @@ authpassword=$(grep 'auth_password' $pdconf | sed -e 's/    <string name="auth_p
 authuser=$(grep 'auth_username' $pdconf | sed -e 's/    <string name="auth_username">\(.*\)<\/string>/\1/')
 origin=$(grep 'post_origin' $pdconf | sed -e 's/    <string name="post_origin">\(.*\)<\/string>/\1/')
 postdest=$(grep -w 'post_destination' $pdconf | sed -e 's/    <string name="post_destination">\(.*\)<\/string>/\1/')
+pserver=$(grep -v raw "$pdconf"|awk -F'>' '/post_destination/{print $2}'|awk -F'<' '{print $1}')
 
 reboot_device(){
 #if [[ "$USER" == "shell" ]] ;then
@@ -76,8 +77,7 @@ chmod 660 $vmconf
 chown $vmuser:$vmuser $vmconf
 }
 
-install_vmapper(){
-
+setup_vmapper(){
 ## pogodroid disable full daemon + stop pogodroid
 sed -i 's,\"full_daemon\" value=\"true\",\"full_daemon\" value=\"false\",g' $pdconf
 chmod 660 $pdconf
@@ -86,12 +86,11 @@ am force-stop com.mad.pogodroid
 # let us kill pogo as well
 am force-stop com.nianticlabs.pokemongo
 
-## Download and install vmapper
-/system/bin/curl -L -o /sdcard/Download/vmapper.apk -k -s $download/vmapper.apk
+## Install vmapper
 /system/bin/pm install -r /sdcard/Download/vmapper.apk
-/system/bin/rm /sdcard/Download/vmapper.apk
+/system/bin/rm -f /sdcard/Download/vmapper.apk
 
-## At this stage vmapper isn't in magisk db nor had it generated a config filefolder
+## At this stage vmapper isn't in magisk db nor had it generated a config folder
 #monkey -p de.goldjpg.vmapper -c android.intent.category.LAUNCHER 1
 am start -n de.goldjpg.vmapper/.MainActivity
 sleep 2
@@ -121,11 +120,29 @@ sleep 5
 /system/bin/curl -L -o /system/etc/init.d/55vmapper -k -s https://raw.githubusercontent.com/dkmur/vmconf/main/55vmapper
 chmod +x /system/etc/init.d/55vmapper
 
-## de-activate autoupdate by default as it requires vmad
-touch /sdcard/disableautovmapperupdate
-
 ## Set for reboot device
 reboot=1
+}
+
+install_vmapper(){
+# Dowload vmapper from folder
+/system/bin/rm -f /sdcard/Download/vmapper.apk
+/system/bin/curl -L -o /sdcard/Download/vmapper.apk -k -s $download/vmapper.apk
+
+# setup vmapper
+setup_vmapper
+
+## de-activate autoupdate by default as it requires vmad
+touch /sdcard/disableautovmapperupdate
+}
+
+install_vmapper_wizzard(){
+# Dowload vmapper from wizzard
+/system/bin/rm -f /sdcard/Download/vmapper.apk
+curl -o /sdcard/Download/vmapper.apk -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/download"
+
+# setup vmapper
+setup_vmapper
 }
 
 update_vmapper(){
@@ -141,7 +158,6 @@ reboot=1
 update_vmapper_wizzard(){
 #update vmapper using the vmad wizard
 checkpdconf || return 1
-pserver=$(grep -v raw "$pdconf"|awk -F'>' '/post_destination/{print $2}'|awk -F'<' '{print $1}')
 ! [[ "$pserver" ]] && echo "pogodroid endpoint not configured yet, cannot contact the wizard" && return 1
 origin=$(awk -F'>' '/post_origin/{print $2}' "$pdconf"|awk -F'<' '{print $1}')
 newver="$(curl -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/noarch" | awk '{print substr($1,2); }')"
@@ -197,15 +213,50 @@ fi
 reboot=1
 }
 
+pd_to_vm(){
+vmconf="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
+vmuser=$(ls -la /data/data/de.goldjpg.vmapper/|head -n2|tail -n1|awk '{print $3}')
+# disable pd daemon
+sed -i 's,\"full_daemon\" value=\"true\",\"full_daemon\" value=\"false\",g' $pdconf
+chmod 660 $pdconf
+chown $puser:$puser $pdconf
+
+# enable vm daemon
+sed -i 's,\"daemon\" value=\"false\",\"daemon\" value=\"true\",g' $vmconf
+chmod 660 $vmconf
+chown $vmuser:$vmuser $vmconf
+
+reboot=1
+}
+
+vm_to_pd(){
+vmconf="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
+vmuser=$(ls -la /data/data/de.goldjpg.vmapper/|head -n2|tail -n1|awk '{print $3}')
+# disable vm daemon
+sed -i 's,\"daemon\" value=\"true\",\"daemon\" value=\"false\",g' $vmconf
+chmod 660 $vmconf
+chown $vmuser:$vmuser $vmconf
+
+# enable pd daemon
+sed -i 's,\"full_daemon\" value=\"false\",\"full_daemon\" value=\"true\",g' $pdconf
+chmod 660 $pdconf
+chown $puser:$puser $pdconf
+
+reboot=1
+}
+
 for i in "$@" ;do
  case "$i" in
  -iv) install_vmapper ;;
+ -ivw) install_vmapper_wizzard ;;
  -us) update_vmapper_script ;;
  -up) update_pogo ;;
  -uv) update_vmapper ;;
  -uvw) update_vmapper_wizzard ;;
  -uvc) update_vmapper_conf ;;
  -uvx) update_vmapper_xml ;;
+ -spv) pd_to_vm ;;
+ -svp) vm_to_pd ;;
  esac
 done
 

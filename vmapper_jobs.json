@@ -7,11 +7,19 @@
         }
         ],
 
-        "VM install vmapper":
+        "VM install vmapper (autoupdate disabled)":
         [
         {
                 "TYPE": "jobType.PASSTHROUGH",
                 "SYNTAX": "su -c 'mount -o remount,rw /system && /system/bin/curl -L -o /sdcard/vmapper_conf -k -s LinkToYourSecretHideoutForDownloadFiles/vmapper_conf  && /system/bin/curl -L -o /system/bin/vmapper.sh -k -s https://raw.githubusercontent.com/dkmur/vmconf/main/vmapper.sh && chmod +x /system/bin/vmapper.sh && /system/bin/vmapper.sh -iv'"
+        }
+        ],
+
+        "VM install vmapper from wizzard (autoupdate enabled)":
+        [
+        {
+                "TYPE": "jobType.PASSTHROUGH",
+                "SYNTAX": "su -c 'mount -o remount,rw /system && /system/bin/curl -L -o /sdcard/vmapper_conf -k -s LinkToYourSecretHideoutForDownloadFiles/vmapper_conf  && /system/bin/curl -L -o /system/bin/vmapper.sh -k -s https://raw.githubusercontent.com/dkmur/vmconf/main/vmapper.sh && chmod +x /system/bin/vmapper.sh && /system/bin/vmapper.sh -ivw'"
         }
         ],
 
@@ -79,17 +87,17 @@
         }
         ],
 
-	"VM vmapper auto-update: enable": [
-	{
-		"TYPE": "jobType.PASSTHROUGH",
-		"SYNTAX": "su -c 'rm /sdcard/disableautovmapperupdate'"
-	}
-	],
+        "VM vmapper auto-update: enable": [
+        {
+                "TYPE": "jobType.PASSTHROUGH",
+                "SYNTAX": "su -c 'rm /sdcard/disableautovmapperupdate'"
+        }
+        ],
 
         "VM vmapper auto-update: disable": [
         {
-        	"TYPE": "jobType.PASSTHROUGH",
-        	"SYNTAX": "su -c 'touch /sdcard/disableautovmapperupdate'"
+                "TYPE": "jobType.PASSTHROUGH",
+                "SYNTAX": "su -c 'touch /sdcard/disableautovmapperupdate'"
         }
         ],
 
@@ -98,6 +106,22 @@
         {
                 "TYPE": "jobType.PASSTHROUGH",
                 "SYNTAX": "su -c 'mount -o remount,rw /system && /system/bin/curl -L -o /system/etc/init.d/55vmapper -k -s https://raw.githubusercontent.com/dkmur/vmconf/main/55vmapper && chmod +x /system/etc/init.d/55vmapper && touch /sdcard/disableautovmapperupdate'"
+        }
+        ],
+
+        "VM disable VM and enable PD daemon":
+        [
+        {
+                "TYPE": "jobType.PASSTHROUGH",
+                "SYNTAX": "su -c '/system/bin/vmapper.sh -svp'"
+        }
+        ],
+
+        "VM enable VM and disable PD daemon":
+        [
+        {
+                "TYPE": "jobType.PASSTHROUGH",
+                "SYNTAX": "su -c '/system/bin/vmapper.sh -spv'"
         }
         ]
 }

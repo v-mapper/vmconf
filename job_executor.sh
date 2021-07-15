@@ -1,9 +1,8 @@
 #!/bin/bash
 
-if [ -z "$STY" ]; then exec screen -dm -S allDeviceReboot /bin/bash "$0"; fi
+if [ -z "$STY" ]; then exec screen -dm -S jobExecutor /bin/bash "$0"; fi
 
-folder="$(cd ../ && pwd)"
-source $folder/config.ini
+source config.ini
 
 ## run job for instance 1
 if [ -z "$MAD_path_1" ]; then

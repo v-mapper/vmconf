@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 0.9
+# version 0.10
 
 source /sdcard/vmapper_conf
 
@@ -55,6 +55,19 @@ done
 }
 
 create_vmapper_config(){
+# download latest vmapper_conf
+update_vmapper_conf
+# check for missing added config options
+if [ -z "$openlucky" ]
+then
+        echo "you did NOT add openlucky setting to config.ini, setting it to true for now"
+        openlucky="true"
+        echo ""
+else
+        echo "openlucky setting added to config.ini, proceeding"
+        echo ""
+fi
+# (re)create vmapper config.xml
 vmconf="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
 vmuser=$(ls -la /data/data/de.goldjpg.vmapper/|head -n2|tail -n1|awk '{print $3}')
 rm -f $vmconf
@@ -72,6 +85,7 @@ echo "    <boolean name=\"betamode\" value=\"$betamode\" />" >> $vmconf
 echo "    <boolean name=\"daemon\" value=\"$daemon\" />" >> $vmconf
 echo "    <boolean name=\"gzip\" value=\"$gzip\" />" >> $vmconf
 echo "    <int name=\"bootdelay\" value=\"$bootdelay\" />" >> $vmconf
+echo "    <int name=\"openlucky\" value=\"$openlucky\" />" >> $vmconf
 echo "</map>" >> $vmconf
 chmod 660 $vmconf
 chown $vmuser:$vmuser $vmconf
@@ -150,7 +164,9 @@ update_vmapper(){
 # will force-stop prevent atvexperience from becomming unresponsive? it will require to push start again so we reboot after update
 # am force-stop de.goldjpg.vmapper
 /system/bin/pm install -r /sdcard/Download/vmapper.apk
-/system/bin/rm /sdcard/Download/vmapper.apk
+/system/bin/rm -f /sdcard/Download/vmapper.apk
+# re create vmapper config.xml
+create_vmapper_config
 am broadcast -a android.intent.action.BOOT_COMPLETED -p de.goldjpg.vmapper
 reboot=1
 }
@@ -164,13 +180,15 @@ newver="$(curl -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm
 installedver="$(dumpsys package de.goldjpg.vmapper|awk -F'=' '/versionName/{print $2}'|head -n1 | awk '{print substr($1,2); }')"
 if checkupdate "$newver" "$installedver" ;then
  echo "updating vmapper..."
- rm -f /sdcard/Download/vmapper.apk
+ /system/bin/rm -f /sdcard/Download/vmapper.apk
  until curl -o /sdcard/Download/vmapper.apk -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/download" ;do
-  rm -f /sdcard/Download/vmapper.apk
+  /system/bin/rm -f /sdcard/Download/vmapper.apk
   sleep
  done
  /system/bin/pm install -r /sdcard/Download/vmapper.apk
- rm -f /sdcard/Download/vmapper.apk
+ /system/bin/rm -f /sdcard/Download/vmapper.apk
+ # re create vmapper config.xml
+ create_vmapper_config
  reboot=1
 fi
 }

@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 0.11
+# version 0.12
 
 source /sdcard/vmapper_conf
 
@@ -244,6 +244,15 @@ sed -i 's,\"daemon\" value=\"false\",\"daemon\" value=\"true\",g' $vmconf
 chmod 660 $vmconf
 chown $vmuser:$vmuser $vmconf
 
+# kill pd & start vm
+am force-stop com.mad.pogodroid
+am start -n de.goldjpg.vmapper/.MainActivity
+sleep 5
+input tap 352 199
+sleep 2
+input tap 630 170
+sleep 2
+
 reboot=1
 }
 
@@ -259,6 +268,14 @@ chown $vmuser:$vmuser $vmconf
 sed -i 's,\"full_daemon\" value=\"false\",\"full_daemon\" value=\"true\",g' $pdconf
 chmod 660 $pdconf
 chown $puser:$puser $pdconf
+
+#kill vm & start pd
+am force-stop de.goldjpg.vmapper
+sleep 2
+monkey -p com.mad.pogodroid 1
+sleep 2
+am start -n com.mad.pogodroid/.SplashPermissionsActivity
+sleep 5
 
 reboot=1
 }

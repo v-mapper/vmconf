@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 0.10
+# version 0.11
 
 source /sdcard/vmapper_conf
 
@@ -84,8 +84,8 @@ echo "    <boolean name=\"selinux\" value=\"$selinux\" />" >> $vmconf
 echo "    <boolean name=\"betamode\" value=\"$betamode\" />" >> $vmconf
 echo "    <boolean name=\"daemon\" value=\"$daemon\" />" >> $vmconf
 echo "    <boolean name=\"gzip\" value=\"$gzip\" />" >> $vmconf
+echo "    <boolean name=\"openlucky\" value=\"$openlucky\" />" >> $vmconf
 echo "    <int name=\"bootdelay\" value=\"$bootdelay\" />" >> $vmconf
-echo "    <int name=\"openlucky\" value=\"$openlucky\" />" >> $vmconf
 echo "</map>" >> $vmconf
 chmod 660 $vmconf
 chown $vmuser:$vmuser $vmconf

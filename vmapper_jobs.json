@@ -1,5 +1,5 @@
 {
-        "VM setting overview":
+        "10: setting overview":
         [
         {
                 "TYPE": "jobType.PASSTHROUGH",
@@ -7,7 +7,7 @@
         }
         ],
 
-        "VM install vmapper (autoupdate disabled)":
+        "01: install vmapper (autoupdate disabled)":
         [
         {
                 "TYPE": "jobType.PASSTHROUGH",
@@ -15,7 +15,7 @@
         }
         ],
 
-        "VM install vmapper from wizzard (autoupdate enabled)":
+        "03: install vmapper from wizzard (autoupdate enabled)":
         [
         {
                 "TYPE": "jobType.PASSTHROUGH",
@@ -23,7 +23,7 @@
         }
         ],
 
-        "VM install vmapper and pogo update":
+        "02: install vmapper (autoupdate disabled) and pogo update":
         [
         {
                 "TYPE": "jobType.PASSTHROUGH",
@@ -31,7 +31,7 @@
         }
         ],
 
-        "VM update configuration script":
+        "23: update configuration script (vmapper.sh)":
         [
         {
                 "TYPE": "jobType.PASSTHROUGH",
@@ -39,7 +39,7 @@
         }
         ],
 
-        "VM update script configuration file":
+        "24: update script configuration file (vmapper_conf)":
         [
         {
                 "TYPE": "jobType.PASSTHROUGH",
@@ -47,7 +47,7 @@
         }
         ],
 
-        "VM update config.xml including configuration file update":
+        "25: update config.xml (including update vmapper_conf)":
         [
         {
                 "TYPE": "jobType.PASSTHROUGH",
@@ -55,7 +55,7 @@
         }
         ],
 
-        "VM update vmapper":
+        "20: update vmapper":
         [
         {
                 "TYPE": "jobType.PASSTHROUGH",
@@ -63,7 +63,7 @@
         }
         ],
 
-        "VM update pogo":
+        "22: update pogo":
         [
         {
                 "TYPE": "jobType.PASSTHROUGH",
@@ -71,7 +71,7 @@
         }
         ],
 
-        "VM update pogo and vmapper":
+        "21: update vmapper and pogo":
         [
         {
                 "TYPE": "jobType.PASSTHROUGH",
@@ -79,7 +79,7 @@
         }
         ],
 
-        "VM add script (only needed when vmapper install was done before repo was created)":
+        "30: add script (only needed when vmapper install was done before repo was created)":
         [
         {
                 "TYPE": "jobType.PASSTHROUGH",
@@ -87,21 +87,21 @@
         }
         ],
 
-        "VM vmapper auto-update: enable": [
+        "13: vmapper auto-update: enable": [
         {
                 "TYPE": "jobType.PASSTHROUGH",
                 "SYNTAX": "su -c 'rm /sdcard/disableautovmapperupdate'"
         }
         ],
 
-        "VM vmapper auto-update: disable": [
+        "14: vmapper auto-update: disable": [
         {
                 "TYPE": "jobType.PASSTHROUGH",
                 "SYNTAX": "su -c 'touch /sdcard/disableautovmapperupdate'"
         }
         ],
 
-        "VM add vmapper autoupdate YET disabled (only needed when vmapper install was done before autoupdate was created)":
+        "31: add vmapper autoupdate YET disabled (only needed when vmapper install was done before autoupdate was created)":
         [
         {
                 "TYPE": "jobType.PASSTHROUGH",
@@ -109,7 +109,7 @@
         }
         ],
 
-        "VM disable VM and enable PD daemon":
+        "11: disable VM and enable PD daemon":
         [
         {
                 "TYPE": "jobType.PASSTHROUGH",
@@ -117,7 +117,7 @@
         }
         ],
 
-        "VM enable VM and disable PD daemon":
+        "12: enable VM and disable PD daemon":
         [
         {
                 "TYPE": "jobType.PASSTHROUGH",

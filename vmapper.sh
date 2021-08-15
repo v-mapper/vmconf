@@ -67,6 +67,15 @@ else
         echo "openlucky setting added to config.ini, proceeding"
         echo ""
 fi
+if [ -z "$rebootminutes" ]
+then
+        echo "you did NOT add rebootminutes setting to config.ini, setting it to 0 for now"
+        rebootminutes="0"
+        echo ""
+else
+        echo "rebootminutes setting added to config.ini, proceeding"
+        echo ""
+fi
 # (re)create vmapper config.xml
 vmconf="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
 vmuser=$(ls -la /data/data/de.goldjpg.vmapper/|head -n2|tail -n1|awk '{print $3}')

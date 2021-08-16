@@ -13,6 +13,15 @@ else
 	echo ""
 fi
 
+if [ -z "$rebootminutes" ]
+then
+        echo "you did NOT add rebootminutes setting to config.ini, setting it to 0 for now"
+        rebootminutes="0"
+        echo ""
+else
+        echo "rebootminutes setting added to config.ini, proceeding"
+        echo ""
+fi
 
 ## Generic
 cp vmapper_conf.example $Download_path/vmapper_conf
@@ -24,6 +33,7 @@ sed -i "s/XCC/"$gzip"/g" $Download_path/vmapper_conf
 sed -i "s/XDD/"$selinux"/g" $Download_path/vmapper_conf
 sed -i "s/XEE/"$betamode"/g" $Download_path/vmapper_conf
 sed -i "s/XFF/"$openlucky"/g" $Download_path/vmapper_conf
+sed -i "s/XGG/"$rebootminutes"/g" $Download_path/vmapper_conf
 
 ## Instance specific
 ## instance 1

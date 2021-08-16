@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 0.12
+# version 0.13
 
 source /sdcard/vmapper_conf
 
@@ -67,6 +67,15 @@ else
         echo "openlucky setting added to config.ini, proceeding"
         echo ""
 fi
+if [ -z "$rebootminutes" ]
+then
+        echo "you did NOT add rebootminutes setting to config.ini, setting it to 0 for now"
+        rebootminutes="0"
+        echo ""
+else
+        echo "rebootminutes setting added to config.ini, proceeding"
+        echo ""
+fi
 # (re)create vmapper config.xml
 vmconf="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
 vmuser=$(ls -la /data/data/de.goldjpg.vmapper/|head -n2|tail -n1|awk '{print $3}')
@@ -86,6 +95,7 @@ echo "    <boolean name=\"daemon\" value=\"$daemon\" />" >> $vmconf
 echo "    <boolean name=\"gzip\" value=\"$gzip\" />" >> $vmconf
 echo "    <boolean name=\"openlucky\" value=\"$openlucky\" />" >> $vmconf
 echo "    <int name=\"bootdelay\" value=\"$bootdelay\" />" >> $vmconf
+echo "    <int name=\"rebootminutes\" value=\"$rebootminutes\" />" >> $vmconf
 echo "</map>" >> $vmconf
 chmod 660 $vmconf
 chown $vmuser:$vmuser $vmconf
@@ -122,12 +132,12 @@ create_vmapper_config
 #am start -n de.goldjpg.vmapper/.MainActivity
 monkey -p de.goldjpg.vmapper 1
 sleep 5
-# Let try and push start, untested
-# portrait
-input tap 352 199
+# Push start
+# portrait 64bit
+input tap 209 745
 sleep 2
-#landscape
-input tap 630 170
+# portrait 32bit
+input tap 199 642
 sleep 5
 
 ## add 55vmapper
@@ -248,10 +258,13 @@ chown $vmuser:$vmuser $vmconf
 am force-stop com.mad.pogodroid
 am start -n de.goldjpg.vmapper/.MainActivity
 sleep 5
-input tap 352 199
+# Push start
+# portrait 64bit
+input tap 209 745
 sleep 2
-input tap 630 170
-sleep 2
+# portrait 32bit
+input tap 199 642
+sleep 5
 
 reboot=1
 }

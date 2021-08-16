@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 0.12
+# version 0.13
 
 source /sdcard/vmapper_conf
 

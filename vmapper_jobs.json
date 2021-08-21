@@ -101,6 +101,20 @@
         }
         ],
 
+        "15: experimental vhook: enable (reboot included)": [
+        {
+        "TYPE": "jobType.PASSTHROUGH",
+        "SYNTAX": "vmconf=\"/data/data/de.goldjpg.vmapper/shared_prefs/config.xml\" && sed -i 's,\"betamode\" value=\"false\",\"betamode\" value=\"true\",g' \"$vmconf\" && chmod 660 \"$vmconf\" && vmuser=$(ls -la /data/data/de.goldjpg.vmapper/|head -n2|tail -n1|awk '{print $3}') && chown \"$vmuser\":\"$vmuser\" \"$vmconf\" && reboot"
+        }
+        ],
+
+        "16: experimental vhook: disable (reboot included)": [
+        {
+        "TYPE": "jobType.PASSTHROUGH",
+        "SYNTAX": "vmconf=\"/data/data/de.goldjpg.vmapper/shared_prefs/config.xml\" && sed -i 's,\"betamode\" value=\"true\",\"betamode\" value=\"false\",g' \"$vmconf\" && chmod 660 \"$vmconf\" && vmuser=$(ls -la /data/data/de.goldjpg.vmapper/|head -n2|tail -n1|awk '{print $3}') && chown \"$vmuser\":\"$vmuser\" \"$vmconf\" && reboot"
+        }
+        ],        
+        
         "31: add vmapper autoupdate YET disabled (only needed when vmapper install was done before autoupdate was created)":
         [
         {

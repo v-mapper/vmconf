@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 0.13
+# version 0.14
 
 source /sdcard/vmapper_conf
 
@@ -64,7 +64,7 @@ then
         openlucky="true"
         echo ""
 else
-        echo "openlucky setting added to config.ini, proceeding"
+        echo "openlucky setting added, proceeding"
         echo ""
 fi
 if [ -z "$rebootminutes" ]
@@ -73,9 +73,20 @@ then
         rebootminutes="0"
         echo ""
 else
-        echo "rebootminutes setting added to config.ini, proceeding"
+        echo "rebootminutes setting added, proceeding"
         echo ""
 fi
+
+if [ -z "$rawpostdest" ]
+then
+        echo "you did NOT add $rawpostdest setting to config.ini, setting it to NO rawpoastdest for now"
+        rawpostdest=""
+        echo ""
+else
+        echo "$rawpostdest setting added, proceeding"
+        echo ""
+fi
+
 # (re)create vmapper config.xml
 vmconf="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
 vmuser=$(ls -la /data/data/de.goldjpg.vmapper/|head -n2|tail -n1|awk '{print $3}')
@@ -89,6 +100,7 @@ echo "    <string name=\"authuser\">$authuser</string>" >> $vmconf
 echo "    <string name=\"authid\">$vmtoken</string>" >> $vmconf
 echo "    <string name=\"origin\">$origin</string>" >> $vmconf
 echo "    <string name=\"postdest\">$postdest</string>" >> $vmconf
+echo "    <string name=\"rawpostdest\">$rawpostdest</string>" >> $vmconf
 echo "    <boolean name=\"selinux\" value=\"$selinux\" />" >> $vmconf
 echo "    <boolean name=\"betamode\" value=\"$betamode\" />" >> $vmconf
 echo "    <boolean name=\"daemon\" value=\"$daemon\" />" >> $vmconf

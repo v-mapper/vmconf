@@ -35,7 +35,7 @@
         [
         {
                 "TYPE": "jobType.PASSTHROUGH",
-                "SYNTAX": "su -c '/system/bin/vmapper.sh -us'"
+                "SYNTAX": "su -c '/system/bin/vmapper.sh -us &'"
         }
         ],
 

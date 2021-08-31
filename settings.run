@@ -23,6 +23,16 @@ else
         echo ""
 fi
 
+if [ -z "$rawpostdest" ]
+then
+        echo "you did NOT add $rawpostdest setting to config.ini, setting it to NO rawpoastdest for now"
+        rawpostdest=""
+        echo ""
+else
+        echo "$rawpostdest setting added to config.ini, proceeding"
+        echo ""
+fi
+
 ## Generic
 cp vmapper_conf.example $Download_path/vmapper_conf
 sed -i "s|LinkToYourSecretHideoutForDownloadFiles|"$Download_link"|g" $Download_path/vmapper_conf
@@ -34,6 +44,7 @@ sed -i "s/XDD/"$selinux"/g" $Download_path/vmapper_conf
 sed -i "s/XEE/"$betamode"/g" $Download_path/vmapper_conf
 sed -i "s/XFF/"$openlucky"/g" $Download_path/vmapper_conf
 sed -i "s/XGG/"$rebootminutes"/g" $Download_path/vmapper_conf
+sed -i "s/XHH/"$rawpostdest"/g" $Download_path/vmapper_conf
 
 ## Instance specific
 ## instance 1

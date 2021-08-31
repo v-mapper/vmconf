@@ -25,11 +25,11 @@ fi
 
 if [ -z "$rawpostdest" ]
 then
-        echo "you did NOT add $rawpostdest setting to config.ini or it is unused"
+        echo "you did NOT add rawpostdest setting to config.ini or it is unused"
         rawpostdest=""
         echo ""
 else
-        echo "$rawpostdest added to config.ini"
+        echo "rawpostdest setting added to config.ini"
         echo ""
 fi
 

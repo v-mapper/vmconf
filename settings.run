@@ -44,7 +44,7 @@ sed -i "s/XDD/"$selinux"/g" $Download_path/vmapper_conf
 sed -i "s/XEE/"$betamode"/g" $Download_path/vmapper_conf
 sed -i "s/XFF/"$openlucky"/g" $Download_path/vmapper_conf
 sed -i "s/XGG/"$rebootminutes"/g" $Download_path/vmapper_conf
-sed -i "s/XHH/"$rawpostdest"/g" $Download_path/vmapper_conf
+sed -i "s|XHH|"$rawpostdest"|g" $Download_path/vmapper_conf
 
 ## Instance specific
 ## instance 1

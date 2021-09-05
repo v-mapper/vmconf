@@ -1,8 +1,15 @@
 #!/system/bin/sh
-# version 0.14
+# version 2.01
 
-source /sdcard/vmapper_conf
+# remove old config file
+rm -f /sdcard/vmapper_conf
 
+#Create logfile
+if [ ! -e /sdcard/vm.log ] ;then
+    touch /sdcard/vm.log
+fi
+
+logfile="/sdcard/vm.log"
 pdconf="/data/data/com.mad.pogodroid/shared_prefs/com.mad.pogodroid_preferences.xml"
 puser=$(ls -la /data/data/com.mad.pogodroid/|head -n2|tail -n1|awk '{print $3}')
 authpassword=$(grep 'auth_password' $pdconf | sed -e 's/    <string name="auth_password">\(.*\)<\/string>/\1/')
@@ -11,16 +18,15 @@ origin=$(grep 'post_origin' $pdconf | sed -e 's/    <string name="post_origin">\
 postdest=$(grep -w 'post_destination' $pdconf | sed -e 's/    <string name="post_destination">\(.*\)<\/string>/\1/')
 pserver=$(grep -v raw "$pdconf"|awk -F'>' '/post_destination/{print $2}'|awk -F'<' '{print $1}')
 
+
 reboot_device(){
-#if [[ "$USER" == "shell" ]] ;then
-# echo "Rebooting Device"
+echo "`date +%Y-%m-%d_%T` Reboot device" >> logfile
 /system/bin/reboot
-#fi
 }
 
 checkpdconf(){
 if ! [[ -s "$pdconf" ]] ;then
- echo "pogodroid not configured yet"
+ echo "`date +%Y-%m-%d_%T` Pogodroid not configured, we need those settings" >> logfile
  return 1
 fi
 }
@@ -54,66 +60,8 @@ while (( "$i" < "$places" )) ;do
 done
 }
 
-create_vmapper_config(){
-# download latest vmapper_conf
-update_vmapper_conf
-# check for missing added config options
-if [ -z "$openlucky" ]
-then
-        echo "you did NOT add openlucky setting to config.ini, setting it to true for now"
-        openlucky="true"
-        echo ""
-else
-        echo "openlucky setting added, proceeding"
-        echo ""
-fi
-if [ -z "$rebootminutes" ]
-then
-        echo "you did NOT add rebootminutes setting to config.ini, setting it to 0 for now"
-        rebootminutes="0"
-        echo ""
-else
-        echo "rebootminutes setting added, proceeding"
-        echo ""
-fi
 
-if [ -z "$rawpostdest" ]
-then
-        echo "you did NOT add rawpostdest setting to config.ini or it is unused"
-        rawpostdest=""
-        echo ""
-else
-        echo "rawpostdest setting added to config.ini"
-        echo ""
-fi
-
-# (re)create vmapper config.xml
-vmconf="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
-vmuser=$(ls -la /data/data/de.goldjpg.vmapper/|head -n2|tail -n1|awk '{print $3}')
-rm -f $vmconf
-touch $vmconf
-sed -i "$ a \<?xml version=\'1.0\' encoding=\'utf-8\' standalone=\'yes\' ?\>" $vmconf
-echo "<?xml version='1.0' encoding='utf-8' standalone='yes' ?>" >> $vmconf
-echo "<map>" >> $vmconf
-echo "    <string name=\"authpassword\">$authpassword</string>" >> $vmconf
-echo "    <string name=\"authuser\">$authuser</string>" >> $vmconf
-echo "    <string name=\"authid\">$vmtoken</string>" >> $vmconf
-echo "    <string name=\"origin\">$origin</string>" >> $vmconf
-echo "    <string name=\"postdest\">$postdest</string>" >> $vmconf
-echo "    <string name=\"rawpostdest\">$rawpostdest</string>" >> $vmconf
-echo "    <boolean name=\"selinux\" value=\"$selinux\" />" >> $vmconf
-echo "    <boolean name=\"betamode\" value=\"$betamode\" />" >> $vmconf
-echo "    <boolean name=\"daemon\" value=\"$daemon\" />" >> $vmconf
-echo "    <boolean name=\"gzip\" value=\"$gzip\" />" >> $vmconf
-echo "    <boolean name=\"openlucky\" value=\"$openlucky\" />" >> $vmconf
-echo "    <int name=\"bootdelay\" value=\"$bootdelay\" />" >> $vmconf
-echo "    <int name=\"rebootminutes\" value=\"$rebootminutes\" />" >> $vmconf
-echo "</map>" >> $vmconf
-chmod 660 $vmconf
-chown $vmuser:$vmuser $vmconf
-}
-
-setup_vmapper(){
+install_vmapper_wizzard(){
 ## pogodroid disable full daemon + stop pogodroid
 sed -i 's,\"full_daemon\" value=\"true\",\"full_daemon\" value=\"false\",g' $pdconf
 chmod 660 $pdconf
@@ -123,6 +71,8 @@ am force-stop com.mad.pogodroid
 am force-stop com.nianticlabs.pokemongo
 
 ## Install vmapper
+/system/bin/rm -f /sdcard/Download/vmapper.apk
+curl -o /sdcard/Download/vmapper.apk -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/download"
 /system/bin/pm install -r /sdcard/Download/vmapper.apk
 /system/bin/rm -f /sdcard/Download/vmapper.apk
 
@@ -138,7 +88,7 @@ sleep 2
 sqlite3 /data/adb/magisk.db "INSERT INTO policies (uid,package_name,policy,until,logging,notification) VALUES(\"$uid\",'de.goldjpg.vmapper',2,0,1,1)"
 
 ## Create config file
-create_vmapper_config
+create_vmapper_xml
 
 ## Start vmapper
 #am start -n de.goldjpg.vmapper/.MainActivity
@@ -160,48 +110,15 @@ chmod +x /system/etc/init.d/55vmapper
 reboot=1
 }
 
-install_vmapper(){
-# Dowload vmapper from folder
-/system/bin/rm -f /sdcard/Download/vmapper.apk
-/system/bin/curl -L -o /sdcard/Download/vmapper.apk -k -s $download/vmapper.apk
-
-# setup vmapper
-setup_vmapper
-
-## de-activate autoupdate by default as it requires vmad
-touch /sdcard/disableautovmapperupdate
-}
-
-install_vmapper_wizzard(){
-# Dowload vmapper from wizzard
-/system/bin/rm -f /sdcard/Download/vmapper.apk
-curl -o /sdcard/Download/vmapper.apk -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/download"
-
-# setup vmapper
-setup_vmapper
-}
-
-update_vmapper(){
-/system/bin/curl -L -o /sdcard/Download/vmapper.apk -k -s $download/vmapper.apk
-# will force-stop prevent atvexperience from becomming unresponsive? it will require to push start again so we reboot after update
-# am force-stop de.goldjpg.vmapper
-/system/bin/pm install -r /sdcard/Download/vmapper.apk
-/system/bin/rm -f /sdcard/Download/vmapper.apk
-# re create vmapper config.xml
-create_vmapper_config
-am broadcast -a android.intent.action.BOOT_COMPLETED -p de.goldjpg.vmapper
-reboot=1
-}
-
 update_vmapper_wizzard(){
 #update vmapper using the vmad wizard
 checkpdconf || return 1
-! [[ "$pserver" ]] && echo "pogodroid endpoint not configured yet, cannot contact the wizard" && return 1
+! [[ "$pserver" ]] && echo "`date +%Y-%m-%d_%T` pogodroid endpoint not configured yet, cannot contact the wizard" >> logfile && return 1
 origin=$(awk -F'>' '/post_origin/{print $2}' "$pdconf"|awk -F'<' '{print $1}')
 newver="$(curl -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/noarch" | awk '{print substr($1,2); }')"
 installedver="$(dumpsys package de.goldjpg.vmapper|awk -F'=' '/versionName/{print $2}'|head -n1 | awk '{print substr($1,2); }')"
 if checkupdate "$newver" "$installedver" ;then
- echo "updating vmapper..."
+ echo "`date +%Y-%m-%d_%T` new vmapper version detected in wizzard, updating" >> logfile
  /system/bin/rm -f /sdcard/Download/vmapper.apk
  until curl -o /sdcard/Download/vmapper.apk -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/download" ;do
   /system/bin/rm -f /sdcard/Download/vmapper.apk
@@ -209,47 +126,26 @@ if checkupdate "$newver" "$installedver" ;then
  done
  /system/bin/pm install -r /sdcard/Download/vmapper.apk
  /system/bin/rm -f /sdcard/Download/vmapper.apk
- # re create vmapper config.xml
- create_vmapper_config
+
+ # new vampper version in wizzard, so we replace xml
+ update_vmapper_xml
+
  reboot=1
+ else
+ echo "`date +%Y-%m-%d_%T` vmapper already on latest version" >> logfile
 fi
 }
 
-update_vmapper_conf(){
-/system/bin/curl -L -o /sdcard/vmapper_conf -k -s $download/vmapper_conf
-}
 
-update_vmapper_xml(){
-/system/bin/curl -L -o /sdcard/vmapper_conf -k -s $download/vmapper_conf
-create_vmapper_config
-reboot=1
-}
+create_vmapper_xml(){
+vmconf="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
+vmuser=$(ls -la /data/data/de.goldjpg.vmapper/|head -n2|tail -n1|awk '{print $3}')
 
-update_vmapper_script(){
-mount -o remount,rw /system
-/system/bin/curl -L -o /system/bin/vmapper.sh -k -s https://raw.githubusercontent.com/dkmur/vmconf/main/vmapper.sh
-chmod +x /system/bin/vmapper.sh
-mount -o remount,ro /system
-}
+curl -s -k -L $(get_pd_user) -H "origin: $origin" "http://devices.pogomapper.nl:8008/vm_conf"  >> $vmconf
 
-update_pogo(){
-case "$(uname -m)" in
- aarch64) arch="arm64_v8a";;
- armv8l)  arch="armeabi-v7a";;
-esac
-
-if [ "$arch" = "arm64_v8a" ]
-then
-/system/bin/curl -L -o /sdcard/Download/pogo.apk -k -s $download/pogo64.apk
-else
-  if [ "$arch" = "armeabi-v7a" ]
-  then
-  /system/bin/curl -L -o /sdcard/Download/pogo.apk -k -s $download/pogo32.apk
-  fi
-fi
-
-/system/bin/pm install -r /sdcard/Download/pogo.apk
-/system/bin/rm -f /sdcard/Download/pogo.apk
+chmod 660 $vmconf
+chown $vmuser:$vmuser $vmconf
+echo "`date +%Y-%m-%d_%T` config.xml (re)created" >> logfile
 reboot=1
 }
 
@@ -278,6 +174,8 @@ sleep 2
 input tap 199 642
 sleep 5
 
+echo "`date +%Y-%m-%d_%T` vm daemon enable and pd daemon disable" >> logfile
+
 reboot=1
 }
 
@@ -302,19 +200,16 @@ sleep 2
 am start -n com.mad.pogodroid/.SplashPermissionsActivity
 sleep 5
 
+echo "`date +%Y-%m-%d_%T` vm daemon disable and pd daemon enable" >> logfile
+
 reboot=1
 }
 
 for i in "$@" ;do
  case "$i" in
- -iv) install_vmapper ;;
  -ivw) install_vmapper_wizzard ;;
- -us) update_vmapper_script ;;
- -up) update_pogo ;;
- -uv) update_vmapper ;;
  -uvw) update_vmapper_wizzard ;;
- -uvc) update_vmapper_conf ;;
- -uvx) update_vmapper_xml ;;
+ -uvx) create_vmapper_xml ;;
  -spv) pd_to_vm ;;
  -svp) vm_to_pd ;;
  esac

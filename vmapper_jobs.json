@@ -1,5 +1,14 @@
 {
-        "10: setting overview":
+
+        "01: install vmapper (autoupdate enabled)":
+        [
+        {
+                "TYPE": "jobType.PASSTHROUGH",
+                "SYNTAX": "su -c 'mount -o remount,rw /system && /system/bin/curl -L -o /system/bin/vmapper.sh -k -s https://raw.githubusercontent.com/dkmur/vmconf/main/vmapper.sh && chmod +x /system/bin/vmapper.sh && /system/bin/vmapper.sh -ivw'"
+        }
+        ],
+
+        "02: vmapper setting overview":
         [
         {
                 "TYPE": "jobType.PASSTHROUGH",
@@ -7,47 +16,7 @@
         }
         ],
 
-        "01: install vmapper (autoupdate disabled)":
-        [
-        {
-                "TYPE": "jobType.PASSTHROUGH",
-                "SYNTAX": "su -c 'mount -o remount,rw /system && /system/bin/curl -L -o /sdcard/vmapper_conf -k -s LinkToYourSecretHideoutForDownloadFiles/vmapper_conf  && /system/bin/curl -L -o /system/bin/vmapper.sh -k -s https://raw.githubusercontent.com/dkmur/vmconf/main/vmapper.sh && chmod +x /system/bin/vmapper.sh && /system/bin/vmapper.sh -iv'"
-        }
-        ],
-
-        "03: install vmapper from wizzard (autoupdate enabled)":
-        [
-        {
-                "TYPE": "jobType.PASSTHROUGH",
-                "SYNTAX": "su -c 'mount -o remount,rw /system && /system/bin/curl -L -o /sdcard/vmapper_conf -k -s LinkToYourSecretHideoutForDownloadFiles/vmapper_conf  && /system/bin/curl -L -o /system/bin/vmapper.sh -k -s https://raw.githubusercontent.com/dkmur/vmconf/main/vmapper.sh && chmod +x /system/bin/vmapper.sh && /system/bin/vmapper.sh -ivw'"
-        }
-        ],
-
-        "02: install vmapper (autoupdate disabled) and pogo update":
-        [
-        {
-                "TYPE": "jobType.PASSTHROUGH",
-                "SYNTAX": "su -c 'mount -o remount,rw /system && /system/bin/curl -L -o /sdcard/vmapper_conf -k -s LinkToYourSecretHideoutForDownloadFiles/vmapper_conf  && /system/bin/curl -L -o /system/bin/vmapper.sh -k -s https://raw.githubusercontent.com/dkmur/vmconf/main/vmapper.sh && chmod +x /system/bin/vmapper.sh && /system/bin/vmapper.sh -iv -up'"
-        }
-        ],
-
-        "23: update configuration script (vmapper.sh)":
-        [
-        {
-                "TYPE": "jobType.PASSTHROUGH",
-                "SYNTAX": "su -c '/system/bin/vmapper.sh -us &'"
-        }
-        ],
-
-        "24: update script configuration file (vmapper_conf)":
-        [
-        {
-                "TYPE": "jobType.PASSTHROUGH",
-                "SYNTAX": "su -c '/system/bin/vmapper.sh -uvc'"
-        }
-        ],
-
-        "25: update config.xml (including update vmapper_conf)":
+        "03: update config.xml":
         [
         {
                 "TYPE": "jobType.PASSTHROUGH",
@@ -55,75 +24,44 @@
         }
         ],
 
-        "20: update vmapper":
+        "04: update vmapper":
         [
         {
                 "TYPE": "jobType.PASSTHROUGH",
-                "SYNTAX": "su -c '/system/bin/vmapper.sh -uv'"
+                "SYNTAX": "su -c '/system/bin/vmapper.sh -uvw'"
         }
         ],
 
-        "22: update pogo":
-        [
-        {
-                "TYPE": "jobType.PASSTHROUGH",
-                "SYNTAX": "su -c '/system/bin/vmapper.sh -up'"
-        }
-        ],
 
-        "21: update vmapper and pogo":
-        [
-        {
-                "TYPE": "jobType.PASSTHROUGH",
-                "SYNTAX": "su -c '/system/bin/vmapper.sh -uv -up'"
-        }
-        ],
-
-        "30: add script (only needed when vmapper install was done before repo was created)":
-        [
-        {
-                "TYPE": "jobType.PASSTHROUGH",
-                "SYNTAX": "su -c 'mount -o remount,rw /system && /system/bin/curl -L -o /sdcard/vmapper_conf -k -s LinkToYourSecretHideoutForDownloadFiles/vmapper_conf  && /system/bin/curl -L -o /system/bin/vmapper.sh -k -s https://raw.githubusercontent.com/dkmur/vmconf/main/vmapper.sh && chmod +x /system/bin/vmapper.sh'"
-        }
-        ],
-
-        "13: vmapper auto-update: enable": [
+        "10: vmapper auto-update: enable": [
         {
                 "TYPE": "jobType.PASSTHROUGH",
                 "SYNTAX": "su -c 'rm /sdcard/disableautovmapperupdate'"
         }
         ],
 
-        "14: vmapper auto-update: disable": [
+        "11: vmapper auto-update: disable": [
         {
                 "TYPE": "jobType.PASSTHROUGH",
                 "SYNTAX": "su -c 'touch /sdcard/disableautovmapperupdate'"
         }
         ],
 
-        "15: experimental vhook: enable (reboot included)": [
+        "12: experimental vhook: enable (reboot included)": [
         {
         "TYPE": "jobType.PASSTHROUGH",
         "SYNTAX": "vmconf=\"/data/data/de.goldjpg.vmapper/shared_prefs/config.xml\" && sed -i 's,\"betamode\" value=\"false\",\"betamode\" value=\"true\",g' \"$vmconf\" && chmod 660 \"$vmconf\" && vmuser=$(ls -la /data/data/de.goldjpg.vmapper/|head -n2|tail -n1|awk '{print $3}') && chown \"$vmuser\":\"$vmuser\" \"$vmconf\" && reboot"
         }
         ],
 
-        "16: experimental vhook: disable (reboot included)": [
+        "13: experimental vhook: disable (reboot included)": [
         {
         "TYPE": "jobType.PASSTHROUGH",
         "SYNTAX": "vmconf=\"/data/data/de.goldjpg.vmapper/shared_prefs/config.xml\" && sed -i 's,\"betamode\" value=\"true\",\"betamode\" value=\"false\",g' \"$vmconf\" && chmod 660 \"$vmconf\" && vmuser=$(ls -la /data/data/de.goldjpg.vmapper/|head -n2|tail -n1|awk '{print $3}') && chown \"$vmuser\":\"$vmuser\" \"$vmconf\" && reboot"
         }
-        ],        
-        
-        "31: add vmapper autoupdate YET disabled (only needed when vmapper install was done before autoupdate was created)":
-        [
-        {
-                "TYPE": "jobType.PASSTHROUGH",
-                "SYNTAX": "su -c 'mount -o remount,rw /system && /system/bin/curl -L -o /system/etc/init.d/55vmapper -k -s https://raw.githubusercontent.com/dkmur/vmconf/main/55vmapper && chmod +x /system/etc/init.d/55vmapper && touch /sdcard/disableautovmapperupdate'"
-        }
         ],
 
-        "11: disable VM and enable PD daemon":
+        "13: disable VM and enable PD daemon":
         [
         {
                 "TYPE": "jobType.PASSTHROUGH",
@@ -131,7 +69,7 @@
         }
         ],
 
-        "12: enable VM and disable PD daemon":
+        "14: enable VM and disable PD daemon":
         [
         {
                 "TYPE": "jobType.PASSTHROUGH",

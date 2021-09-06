@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 0.2
+# version 0.3
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -7,7 +7,7 @@ if [ ! -e /sdcard/vm.log ] ;then
 fi
 
 #update vmapper.sh and 55vmapper
-old55=$(grep '# version' /system/etc/init.d/55vmapper | awk '{ print $NF }')
+old55=$(head -5 /system/etc/init.d/55vmapper | grep '# version' | awk '{ print $NF }')
 oldsh=$(grep '# version' /system/bin/vmapper.sh | awk '{ print $NF }')
 
 mount -o remount,rw /system
@@ -17,7 +17,7 @@ chmod +x /system/bin/vmapper.sh
 chmod +x /system/etc/init.d/55vmapper
 mount -o remount,ro /system
 
-new55=$(grep '# version' /system/etc/init.d/55vmapper | awk '{ print $NF }')
+new55=$(head -5 /system/etc/init.d/55vmapper | grep '# version' | awk '{ print $NF }')
 newsh=$(grep '# version' /system/bin/vmapper.sh | awk '{ print $NF }')
 echo "`date +%Y-%m-%d_%T` Device rebooted, 55vmapper $old55=>$new55, vmapper.sh $oldsh=>$newsh" >> /sdcard/vm.log
 

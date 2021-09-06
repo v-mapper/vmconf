@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.01
+# version 2.02
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -20,13 +20,13 @@ pserver=$(grep -v raw "$pdconf"|awk -F'>' '/post_destination/{print $2}'|awk -F'
 
 
 reboot_device(){
-echo "`date +%Y-%m-%d_%T` Reboot device" >> logfile
+echo "`date +%Y-%m-%d_%T` Reboot device" >> $logfile
 /system/bin/reboot
 }
 
 checkpdconf(){
 if ! [[ -s "$pdconf" ]] ;then
- echo "`date +%Y-%m-%d_%T` Pogodroid not configured, we need those settings" >> logfile
+ echo "`date +%Y-%m-%d_%T` Pogodroid not configured, we need those settings" >> $logfile
  return 1
 fi
 }
@@ -115,12 +115,12 @@ reboot=1
 update_vmapper_wizzard(){
 #update vmapper using the vmad wizard
 checkpdconf || return 1
-! [[ "$pserver" ]] && echo "`date +%Y-%m-%d_%T` pogodroid endpoint not configured yet, cannot contact the wizard" >> logfile && return 1
+! [[ "$pserver" ]] && echo "`date +%Y-%m-%d_%T` pogodroid endpoint not configured yet, cannot contact the wizard" >> $logfile && return 1
 origin=$(awk -F'>' '/post_origin/{print $2}' "$pdconf"|awk -F'<' '{print $1}')
 newver="$(curl -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/noarch" | awk '{print substr($1,2); }')"
 installedver="$(dumpsys package de.goldjpg.vmapper|awk -F'=' '/versionName/{print $2}'|head -n1 | awk '{print substr($1,2); }')"
 if checkupdate "$newver" "$installedver" ;then
- echo "`date +%Y-%m-%d_%T` new vmapper version detected in wizzard, updating $installedver=>$newver" >> logfile
+ echo "`date +%Y-%m-%d_%T` new vmapper version detected in wizzard, updating $installedver=>$newver" >> $logfile
  /system/bin/rm -f /sdcard/Download/vmapper.apk
  until curl -o /sdcard/Download/vmapper.apk -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/download" ;do
   /system/bin/rm -f /sdcard/Download/vmapper.apk
@@ -134,7 +134,7 @@ if checkupdate "$newver" "$installedver" ;then
 
  reboot=1
  else
- echo "`date +%Y-%m-%d_%T` vmapper already on latest version" >> logfile
+ echo "`date +%Y-%m-%d_%T` vmapper already on latest version" >> $logfile
 fi
 }
 
@@ -147,7 +147,7 @@ curl -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/vm_conf"  >> $vmconf
 
 chmod 660 $vmconf
 chown $vmuser:$vmuser $vmconf
-echo "`date +%Y-%m-%d_%T` config.xml (re)created" >> logfile
+echo "`date +%Y-%m-%d_%T` config.xml (re)created" >> $logfile
 reboot=1
 }
 
@@ -176,7 +176,7 @@ sleep 2
 input tap 199 642
 sleep 5
 
-echo "`date +%Y-%m-%d_%T` vm daemon enable and pd daemon disable" >> logfile
+echo "`date +%Y-%m-%d_%T` vm daemon enable and pd daemon disable" >> $logfile
 
 reboot=1
 }
@@ -202,7 +202,7 @@ sleep 2
 am start -n com.mad.pogodroid/.SplashPermissionsActivity
 sleep 5
 
-echo "`date +%Y-%m-%d_%T` vm daemon disable and pd daemon enable" >> logfile
+echo "`date +%Y-%m-%d_%T` vm daemon disable and pd daemon enable" >> $logfile
 
 reboot=1
 }

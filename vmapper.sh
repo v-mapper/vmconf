@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.08
+# version 2.09
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -74,7 +74,7 @@ echo "`date +%Y-%m-%d_%T` VM install: pogodroid disabled" >> $logfile
 
 ## Install vmapper
 /system/bin/rm -f /sdcard/Download/vmapper.apk
-/system/bin/curl -k -s -L -o /sdcard/Download/vmapper.apk -u $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/download"
+/system/bin/curl -k -s -L -o /sdcard/Download/vmapper.apk $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/download"
 /system/bin/pm install -r /sdcard/Download/vmapper.apk
 /system/bin/rm -f /sdcard/Download/vmapper.apk
 echo "`date +%Y-%m-%d_%T` VM install: vmapper installed" >> $logfile
@@ -122,12 +122,12 @@ update_vmapper_wizzard(){
 checkpdconf || return 1
 ! [[ "$pserver" ]] && echo "`date +%Y-%m-%d_%T` pogodroid endpoint not configured yet, cannot contact the wizard" >> $logfile && return 1
 origin=$(awk -F'>' '/post_origin/{print $2}' "$pdconf"|awk -F'<' '{print $1}')
-newver="$(curl -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/noarch" | awk '{print substr($1,2); }')"
+newver="$(/system/bin/curl -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/noarch" | awk '{print substr($1,2); }')"
 installedver="$(dumpsys package de.goldjpg.vmapper|awk -F'=' '/versionName/{print $2}'|head -n1 | awk '{print substr($1,2); }')"
 if checkupdate "$newver" "$installedver" ;then
  echo "`date +%Y-%m-%d_%T` New vmapper version detected in wizzard, updating $installedver=>$newver" >> $logfile
  /system/bin/rm -f /sdcard/Download/vmapper.apk
- until /system/bin/curl -k -s -L -o /sdcard/Download/vmapper.apk -u $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/download" ;do
+ until /system/bin/curl -k -s -L -o /sdcard/Download/vmapper.apk $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/download" ;do
   /system/bin/rm -f /sdcard/Download/vmapper.apk
   sleep
  done
@@ -148,7 +148,7 @@ create_vmapper_xml(){
 vmconf="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
 vmuser=$(ls -la /data/data/de.goldjpg.vmapper/|head -n2|tail -n1|awk '{print $3}')
 
-/system/bin/curl -k -s -L -o $vmconf -u $(get_pd_user) -H "origin: $origin" "$pserver/vm_conf"
+/system/bin/curl -k -s -L -o $vmconf $(get_pd_user) -H "origin: $origin" "$pserver/vm_conf"
 
 chmod 660 $vmconf
 chown $vmuser:$vmuser $vmconf

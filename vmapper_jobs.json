@@ -4,7 +4,7 @@
         [
         {
                 "TYPE": "jobType.PASSTHROUGH",
-                "SYNTAX": "su -c 'mount -o remount,rw /system && /system/bin/curl -L -o /system/bin/vmapper.sh -k -s https://raw.githubusercontent.com/dkmur/vmconf/main/vmapper.sh && chmod +x /system/bin/vmapper.sh && /system/bin/vmapper.sh -ivw'"
+                "SYNTAX": "su -c 'mount -o remount,rw /system && /system/bin/curl -L -o /system/bin/vmapper.sh -k -s https://raw.githubusercontent.com/dkmur/vmconf/v2/vmapper.sh && chmod +x /system/bin/vmapper.sh && /system/bin/vmapper.sh -ivw'"
         }
         ],
 
@@ -36,7 +36,7 @@
         [
         {
                 "TYPE": "jobType.PASSTHROUGH",
-                "SYNTAX": "su -c 'mount -o remount,rw /system && /system/bin/curl -L -o /system/etc/init.d/55vmapper -k -s https://raw.githubusercontent.com/dkmur/vmconf/main/55vmapper && chmod +x /system/etc/init.d/55vmapper && mount -o remount,ro /system && reboot'"
+                "SYNTAX": "su -c 'mount -o remount,rw /system && /system/bin/curl -L -o /system/etc/init.d/55vmapper -k -s https://raw.githubusercontent.com/dkmur/vmconf/v2/55vmapper && chmod +x /system/etc/init.d/55vmapper && mount -o remount,ro /system && reboot'"
         }
         ],
 

@@ -69,12 +69,14 @@ chown $puser:$puser $pdconf
 am force-stop com.mad.pogodroid
 # let us kill pogo as well
 am force-stop com.nianticlabs.pokemongo
+echo "`date +%Y-%m-%d_%T` VM install: pogodroid disabled" >> $logfile
 
 ## Install vmapper
 /system/bin/rm -f /sdcard/Download/vmapper.apk
 curl -o /sdcard/Download/vmapper.apk -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/download"
 /system/bin/pm install -r /sdcard/Download/vmapper.apk
 /system/bin/rm -f /sdcard/Download/vmapper.apk
+echo "`date +%Y-%m-%d_%T` VM install: vmapper installed" >> $logfile
 
 ## At this stage vmapper isn't in magisk db nor had it generated a config folder
 #monkey -p de.goldjpg.vmapper -c android.intent.category.LAUNCHER 1
@@ -86,6 +88,7 @@ sleep 2
 
 ## Grant su access
 sqlite3 /data/adb/magisk.db "INSERT INTO policies (uid,package_name,policy,until,logging,notification) VALUES(\"$uid\",'de.goldjpg.vmapper',2,0,1,1)"
+echo "`date +%Y-%m-%d_%T` VM install: vmapper granted su" >> $logfile
 
 ## Create config file
 create_vmapper_xml
@@ -107,6 +110,7 @@ mount -o remount,rw /system
 /system/bin/curl -L -o /system/etc/init.d/55vmapper -k -s https://raw.githubusercontent.com/dkmur/vmconf/v2/55vmapper
 chmod +x /system/etc/init.d/55vmapper
 mount -o remount,ro /system
+echo "`date +%Y-%m-%d_%T` VM install: 55vmapper added" >> $logfile
 
 ## Set for reboot device
 reboot=1
@@ -120,7 +124,7 @@ origin=$(awk -F'>' '/post_origin/{print $2}' "$pdconf"|awk -F'<' '{print $1}')
 newver="$(curl -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/noarch" | awk '{print substr($1,2); }')"
 installedver="$(dumpsys package de.goldjpg.vmapper|awk -F'=' '/versionName/{print $2}'|head -n1 | awk '{print substr($1,2); }')"
 if checkupdate "$newver" "$installedver" ;then
- echo "`date +%Y-%m-%d_%T` new vmapper version detected in wizzard, updating $installedver=>$newver" >> $logfile
+ echo "`date +%Y-%m-%d_%T` New vmapper version detected in wizzard, updating $installedver=>$newver" >> $logfile
  /system/bin/rm -f /sdcard/Download/vmapper.apk
  until curl -o /sdcard/Download/vmapper.apk -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/download" ;do
   /system/bin/rm -f /sdcard/Download/vmapper.apk
@@ -134,7 +138,7 @@ if checkupdate "$newver" "$installedver" ;then
 
  reboot=1
  else
- echo "`date +%Y-%m-%d_%T` vmapper already on latest version" >> $logfile
+ echo "`date +%Y-%m-%d_%T` Vmapper already on latest version" >> $logfile
 fi
 }
 
@@ -147,7 +151,7 @@ curl -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/vm_conf"  >> $vmconf
 
 chmod 660 $vmconf
 chown $vmuser:$vmuser $vmconf
-echo "`date +%Y-%m-%d_%T` config.xml (re)created" >> $logfile
+echo "`date +%Y-%m-%d_%T` Vmapper config.xml (re)created" >> $logfile
 reboot=1
 }
 
@@ -176,7 +180,7 @@ sleep 2
 input tap 199 642
 sleep 5
 
-echo "`date +%Y-%m-%d_%T` vm daemon enable and pd daemon disable" >> $logfile
+echo "`date +%Y-%m-%d_%T` VM daemon enable and PD daemon disable" >> $logfile
 
 reboot=1
 }
@@ -202,7 +206,7 @@ sleep 2
 am start -n com.mad.pogodroid/.SplashPermissionsActivity
 sleep 5
 
-echo "`date +%Y-%m-%d_%T` vm daemon disable and pd daemon enable" >> $logfile
+echo "`date +%Y-%m-%d_%T` VM daemon disable and PD daemon enable" >> $logfile
 
 reboot=1
 }

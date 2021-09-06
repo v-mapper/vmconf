@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.07
+# version 2.08
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -148,7 +148,7 @@ create_vmapper_xml(){
 vmconf="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
 vmuser=$(ls -la /data/data/de.goldjpg.vmapper/|head -n2|tail -n1|awk '{print $3}')
 
-/system/curl -k -s -L -o $vmconf -u $(get_pd_user) -H "origin: $origin" "$pserver/vm_conf"
+/system/bin/curl -k -s -L -o $vmconf -u $(get_pd_user) -H "origin: $origin" "$pserver/vm_conf"
 
 chmod 660 $vmconf
 chown $vmuser:$vmuser $vmconf

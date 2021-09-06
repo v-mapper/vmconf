@@ -1,13 +1,13 @@
 #!/system/bin/sh
 # version 2.01
 
-# remove old config file
-rm -f /sdcard/vmapper_conf
-
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
     touch /sdcard/vm.log
 fi
+
+# remove old vmapper_conf file if exists
+rm -f /sdcard/vmapper_conf
 
 logfile="/sdcard/vm.log"
 pdconf="/data/data/com.mad.pogodroid/shared_prefs/com.mad.pogodroid_preferences.xml"
@@ -103,8 +103,10 @@ input tap 199 642
 sleep 5
 
 ## add 55vmapper
+mount -o remount,rw /system
 /system/bin/curl -L -o /system/etc/init.d/55vmapper -k -s https://raw.githubusercontent.com/dkmur/vmconf/main/55vmapper
 chmod +x /system/etc/init.d/55vmapper
+mount -o remount,ro /system
 
 ## Set for reboot device
 reboot=1
@@ -118,7 +120,7 @@ origin=$(awk -F'>' '/post_origin/{print $2}' "$pdconf"|awk -F'<' '{print $1}')
 newver="$(curl -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/noarch" | awk '{print substr($1,2); }')"
 installedver="$(dumpsys package de.goldjpg.vmapper|awk -F'=' '/versionName/{print $2}'|head -n1 | awk '{print substr($1,2); }')"
 if checkupdate "$newver" "$installedver" ;then
- echo "`date +%Y-%m-%d_%T` new vmapper version detected in wizzard, updating" >> logfile
+ echo "`date +%Y-%m-%d_%T` new vmapper version detected in wizzard, updating $installedver=>$newver" >> logfile
  /system/bin/rm -f /sdcard/Download/vmapper.apk
  until curl -o /sdcard/Download/vmapper.apk -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/download" ;do
   /system/bin/rm -f /sdcard/Download/vmapper.apk
@@ -128,7 +130,7 @@ if checkupdate "$newver" "$installedver" ;then
  /system/bin/rm -f /sdcard/Download/vmapper.apk
 
  # new vampper version in wizzard, so we replace xml
- update_vmapper_xml
+ create_vmapper_xml
 
  reboot=1
  else
@@ -141,7 +143,7 @@ create_vmapper_xml(){
 vmconf="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
 vmuser=$(ls -la /data/data/de.goldjpg.vmapper/|head -n2|tail -n1|awk '{print $3}')
 
-curl -s -k -L $(get_pd_user) -H "origin: $origin" "http://devices.pogomapper.nl:8008/vm_conf"  >> $vmconf
+curl -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/vm_conf"  >> $vmconf
 
 chmod 660 $vmconf
 chown $vmuser:$vmuser $vmconf

@@ -1,13 +1,25 @@
 #!/system/bin/sh
-# version="0.2"
+# version 0.2
+
+#Create logfile
+if [ ! -e /sdcard/vm.log ] ;then
+    touch /sdcard/vm.log
+fi
 
 #update vmapper.sh and 55vmapper
+old55=$(grep '# version' /system/etc/init.d/55vmapper | awk '{ print $NF }')
+oldsh=$(grep '# version' /system/bin/vmapper.sh | awk '{ print $NF }')
+
 mount -o remount,rw /system
 /system/bin/curl -L -o /system/bin/vmapper.sh -k -s https://raw.githubusercontent.com/dkmur/vmconf/main/vmapper.sh
 chmod +x /system/bin/vmapper.sh
 /system/bin/curl -L -o /system/etc/init.d/55vmapper -k -s https://raw.githubusercontent.com/dkmur/vmconf/main/55vmapper
 chmod +x /system/etc/init.d/55vmapper
 mount -o remount,ro /system
+
+new55=$(grep '# version' /system/etc/init.d/55vmapper | awk '{ print $NF }')
+newsh=$(grep '# version' /system/bin/vmapper.sh | awk '{ print $NF }')
+echo "`date +%Y-%m-%d_%T` Device rebooted, 55vmapper $old55=>$new55, vmapper.sh $oldsh=>$newsh" >> /sdcard/vm.log
 
 # have vmapper.sh check for updated vmapper version in wizzard
 ! [[ -f /sdcard/disableautovmapperupdate ]] && sh -x /system/bin/vmapper.sh -uvw

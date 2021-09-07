@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.12
+# version 2.13
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -122,8 +122,8 @@ echo "`date +%Y-%m-%d_%T` VM install: 55vmapper added" >> $logfile
 reboot=1
 }
 
-update_vmapper_wizard(){
-#update vmapper using the vmad wizard
+vmapper_wizard(){
+#check update vmapper and download from wizard
 checkpdconf || return 1
 ! [[ "$pserver" ]] && echo "`date +%Y-%m-%d_%T` pogodroid endpoint not configured yet, cannot contact the wizard" >> $logfile && return 1
 
@@ -137,20 +137,31 @@ if checkupdate "$newver" "$installedver" ;then
   /system/bin/rm -f /sdcard/Download/vmapper.apk
   sleep
  done
- /system/bin/pm install -r /sdcard/Download/vmapper.apk
- /system/bin/rm -f /sdcard/Download/vmapper.apk
 
- # new vampper version in wizzard, so we replace xml
- create_vmapper_xml
+ # set vmapper to be installed
+ vm_install="install"
 
- reboot=1
  else
+ vm_install="skip"
  echo "`date +%Y-%m-%d_%T` Vmapper already on latest version" >> $logfile
 fi
 }
 
-update_pogo_wizard(){
-#update pogo using wizard, only works for .apk
+update_vmapper_wizard(){
+vmapper_wizard
+if [ "$vm_install" = "install" ]; then
+ echo "`date +%Y-%m-%d_%T` Installing vmapper" >> $logfile
+ # install vmapper
+ /system/bin/pm install -r /sdcard/Download/vmapper.apk
+ /system/bin/rm -f /sdcard/Download/vmapper.apk
+ # new vampper version in wizzard, so we replace xml
+ create_vmapper_xml
+ reboot=1
+fi
+}
+
+pogo_wizard(){
+#check pogo and download from wizard
 checkpdconf || return 1
 ! [[ "$pserver" ]] && echo "`date +%Y-%m-%d_%T` pogodroid endpoint not configured yet, cannot contact the wizard" >> $logfile && return 1
 
@@ -164,17 +175,29 @@ if checkupdate "$newver" "$installedver" ;then
   /system/bin/rm -f /sdcard/Download/pogo.apk
   sleep
  done
- /system/bin/pm install -r /sdcard/Download/pogo.apk
- /system/bin/rm -f /sdcard/Download/pogo.apk
 
- reboot=1
+ # set pogo to be installed
+ pogo_install="install"
+
  else
+ pogo_install="skip"
  echo "`date +%Y-%m-%d_%T` PoGo already on latest version" >> $logfile
 fi
 }
 
-update_rgc_wizard(){
-#update rgc using the wizard
+update_pogo_wizard(){
+pogo_wizard
+if [ "$pogo_install" = "install" ]; then
+ echo "`date +%Y-%m-%d_%T` Installing pogo" >> $logfile
+ # install pogo
+ /system/bin/pm install -r /sdcard/Download/pogo.apk
+ /system/bin/rm -f /sdcard/Download/pogo.apk
+ reboot=1
+fi
+}
+
+rgc_wizard(){
+#check update rgc and download from wizard
 checkpdconf || return 1
 ! [[ "$pserver" ]] && echo "pogodroid endpoint not configured yet, cannot contact the wizard" && return 1
 
@@ -188,19 +211,60 @@ if checkupdate "$newver" "$installedver" ;then
   rm -f /sdcard/Download/RemoteGpsController.apk
   sleep 2
  done
- /system/bin/pm install -r /sdcard/Download/RemoteGpsController.apk
- /system/bin/rm -f /sdcard/Download/RemoteGpsController.apk
- 
- reboot=1
+
+ # set rgc to be installed
+ rgc_install="install"
+
  else
+ rgc_install="skip"
  echo "`date +%Y-%m-%d_%T` RGC already on latest version" >> $logfile
 fi
 }
 
+update_rgc_wizard(){
+rgc_wizard
+if [ "$rgc_install" = "install" ]; then
+ echo "`date +%Y-%m-%d_%T` Installing rgc" >> $logfile
+ # install rgc
+ /system/bin/pm install -r /sdcard/Download/RemoteGpsController.apk
+ /system/bin/rm -f /sdcard/Download/RemoteGpsController.apk
+ reboot=1
+fi
+}
+
 update_all(){
-update_vmapper_wizard
-update_pogo_wizard
-update_rgc_wizard
+vmapper_wizard
+pogo_wizard
+rgc_wizard
+if [ ! -z "$vm_install" ] && [ ! -z "$rgc_install" ] && [ ! -z "$pogo_install" ]; then
+    echo "`date +%Y-%m-%d_%T` All updates checked and downloaded if needed" >> $logfile
+    if [ "$vm_install" = "install" ]; then
+      echo "`date +%Y-%m-%d_%T` Installing vmapper" >> $logfile
+      # install vmapper
+      /system/bin/pm install -r /sdcard/Download/vmapper.apk
+      /system/bin/rm -f /sdcard/Download/vmapper.apk
+      # new vampper version in wizzard, so we replace xml
+      create_vmapper_xml
+      reboot=1
+    fi
+    if [ "$pogo_install" = "install" ]; then
+      echo "`date +%Y-%m-%d_%T` Installing pogo" >> $logfile
+      # install pogo
+      /system/bin/pm install -r /sdcard/Download/pogo.apk
+      /system/bin/rm -f /sdcard/Download/pogo.apk
+      reboot=1
+    fi
+    if [ "$rgc_install" = "install" ]; then
+      echo "`date +%Y-%m-%d_%T` Installing rgc" >> $logfile
+      # install rgc
+      /system/bin/pm install -r /sdcard/Download/RemoteGpsController.apk
+      /system/bin/rm -f /sdcard/Download/RemoteGpsController.apk
+      reboot=1
+    fi
+
+    else
+      echo "`date +%Y-%m-%d_%T` Nothing to install, no reboot" >> $logfile
+fi
 }
 
 create_vmapper_xml(){

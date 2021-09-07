@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.13
+# version 2.14
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -261,9 +261,9 @@ if [ ! -z "$vm_install" ] && [ ! -z "$rgc_install" ] && [ ! -z "$pogo_install" ]
       /system/bin/rm -f /sdcard/Download/RemoteGpsController.apk
       reboot=1
     fi
-
-    else
+    if [ "$vm_install" != "install" ] && [ "$pogo_install" != "install" ] && [ "$rgc_install" != "install" ]; then
       echo "`date +%Y-%m-%d_%T` Nothing to install, no reboot" >> $logfile
+    fi
 fi
 }
 

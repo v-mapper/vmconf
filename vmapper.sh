@@ -41,6 +41,11 @@ if [[ "$user" ]] ;then
 fi
 }
 
+case "$(uname -m)" in
+ aarch64) arch="arm64_v8a";;
+ armv8l)  arch="armeabi-v7a";;
+esac
+
 checkupdate(){
 # $1 = new version
 # $2 = installed version
@@ -62,7 +67,7 @@ done
 }
 
 
-install_vmapper_wizzard(){
+install_vmapper_wizard(){
 ## pogodroid disable full daemon + stop pogodroid
 sed -i 's,\"full_daemon\" value=\"true\",\"full_daemon\" value=\"false\",g' $pdconf
 chmod 660 $pdconf
@@ -117,15 +122,16 @@ echo "`date +%Y-%m-%d_%T` VM install: 55vmapper added" >> $logfile
 reboot=1
 }
 
-update_vmapper_wizzard(){
+update_vmapper_wizard(){
 #update vmapper using the vmad wizard
 checkpdconf || return 1
 ! [[ "$pserver" ]] && echo "`date +%Y-%m-%d_%T` pogodroid endpoint not configured yet, cannot contact the wizard" >> $logfile && return 1
-origin=$(awk -F'>' '/post_origin/{print $2}' "$pdconf"|awk -F'<' '{print $1}')
+
 newver="$(/system/bin/curl -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/noarch" | awk '{print substr($1,2); }')"
 installedver="$(dumpsys package de.goldjpg.vmapper|awk -F'=' '/versionName/{print $2}'|head -n1 | awk '{print substr($1,2); }')"
+
 if checkupdate "$newver" "$installedver" ;then
- echo "`date +%Y-%m-%d_%T` New vmapper version detected in wizzard, updating $installedver=>$newver" >> $logfile
+ echo "`date +%Y-%m-%d_%T` New vmapper version detected in wizard, updating $installedver=>$newver" >> $logfile
  /system/bin/rm -f /sdcard/Download/vmapper.apk
  until /system/bin/curl -k -s -L -o /sdcard/Download/vmapper.apk $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/download" ;do
   /system/bin/rm -f /sdcard/Download/vmapper.apk
@@ -143,6 +149,34 @@ if checkupdate "$newver" "$installedver" ;then
 fi
 }
 
+update_pogo_wizard(){
+#update pogo using wizard, only works for .apk
+checkpdconf || return 1
+! [[ "$pserver" ]] && echo "`date +%Y-%m-%d_%T` pogodroid endpoint not configured yet, cannot contact the wizard" >> $logfile && return 1
+
+newver="$(/system/bin/curl -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/pogo/$arch")"
+installedver="$(dumpsys package com.nianticlabs.pokemongo|awk -F'=' '/versionName/{print $2}')"
+
+if checkupdate "$newver" "$installedver" ;then
+ echo "`date +%Y-%m-%d_%T` New pogo version detected in wizard, updating $installedver=>$newver" >> $logfile
+ /system/bin/rm -f /sdcard/Download/pogo.apk
+ until /system/bin/curl -k -s -L -o /sdcard/Download/pogo.apk $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/pogo/$arch/download" ;do
+  /system/bin/rm -f /sdcard/Download/pogo.apk
+  sleep
+ done
+ /system/bin/pm install -r /sdcard/Download/pogo.apk
+ /system/bin/rm -f /sdcard/Download/pogo.apk
+
+ reboot=1
+ else
+ echo "`date +%Y-%m-%d_%T` PoGo already on latest version" >> $logfile
+fi
+}
+
+update_all(){
+update_vmapper_wizard
+update_pogo_wizard
+}
 
 create_vmapper_xml(){
 vmconf="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
@@ -214,8 +248,10 @@ reboot=1
 
 for i in "$@" ;do
  case "$i" in
- -ivw) install_vmapper_wizzard ;;
- -uvw) update_vmapper_wizzard ;;
+ -ivw) install_vmapper_wizard ;;
+ -uvw) update_vmapper_wizard ;;
+ -upw) update_pogo_wizard ;;
+ -ua) update_all ;;
  -uvx) create_vmapper_xml ;;
  -spv) pd_to_vm ;;
  -svp) vm_to_pd ;;

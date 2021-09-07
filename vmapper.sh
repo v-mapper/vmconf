@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.11
+# version 2.12
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -173,9 +173,34 @@ if checkupdate "$newver" "$installedver" ;then
 fi
 }
 
+update_rgc_wizard(){
+#update rgc using the wizard
+checkpdconf || return 1
+! [[ "$pserver" ]] && echo "pogodroid endpoint not configured yet, cannot contact the wizard" && return 1
+
+newver="$(curl -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/rgc/noarch")"
+installedver="$(dumpsys package de.grennith.rgc.remotegpscontroller 2>/dev/null|awk -F'=' '/versionName/{print $2}'|head -n1)"
+
+if checkupdate "$newver" "$installedver" ;then
+ echo "`date +%Y-%m-%d_%T` New rgc version detected in wizard, updating $installedver=>$newver" >> $logfile
+ rm -f /sdcard/Download/RemoteGpsController.apk
+ until curl -o /sdcard/Download/RemoteGpsController.apk  -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/rgc/download" ;do
+  rm -f /sdcard/Download/RemoteGpsController.apk
+  sleep 2
+ done
+ /system/bin/pm install -r /sdcard/Download/RemoteGpsController.apk
+ /system/bin/rm -f /sdcard/Download/RemoteGpsController.apk
+ 
+ reboot=1
+ else
+ echo "`date +%Y-%m-%d_%T` RGC already on latest version" >> $logfile
+fi
+}
+
 update_all(){
 update_vmapper_wizard
 update_pogo_wizard
+update_rgc_wizard
 }
 
 create_vmapper_xml(){
@@ -251,6 +276,7 @@ for i in "$@" ;do
  -ivw) install_vmapper_wizard ;;
  -uvw) update_vmapper_wizard ;;
  -upw) update_pogo_wizard ;;
+ -urw) update_rgc_wizard ;;
  -ua) update_all ;;
  -uvx) create_vmapper_xml ;;
  -spv) pd_to_vm ;;

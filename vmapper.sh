@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.14
+# version 2.15
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -25,12 +25,14 @@ sleep 2
 /system/bin/reboot
 }
 
+
 checkpdconf(){
 if ! [[ -s "$pdconf" ]] ;then
  echo "`date +%Y-%m-%d_%T` Pogodroid not configured, we need those settings" >> $logfile
  return 1
 fi
 }
+
 
 get_pd_user(){
 checkpdconf || return 1
@@ -41,10 +43,12 @@ if [[ "$user" ]] ;then
 fi
 }
 
+
 case "$(uname -m)" in
  aarch64) arch="arm64_v8a";;
  armv8l)  arch="armeabi-v7a";;
 esac
+
 
 checkupdate(){
 # $1 = new version
@@ -122,6 +126,7 @@ echo "`date +%Y-%m-%d_%T` VM install: 55vmapper added" >> $logfile
 reboot=1
 }
 
+
 vmapper_wizard(){
 #check update vmapper and download from wizard
 checkpdconf || return 1
@@ -147,6 +152,7 @@ if checkupdate "$newver" "$installedver" ;then
 fi
 }
 
+
 update_vmapper_wizard(){
 vmapper_wizard
 if [ "$vm_install" = "install" ]; then
@@ -154,11 +160,12 @@ if [ "$vm_install" = "install" ]; then
  # install vmapper
  /system/bin/pm install -r /sdcard/Download/vmapper.apk
  /system/bin/rm -f /sdcard/Download/vmapper.apk
- # new vampper version in wizzard, so we replace xml
+ # new vmapper version in wizzard, so we replace xml
  create_vmapper_xml
  reboot=1
 fi
 }
+
 
 pogo_wizard(){
 #check pogo and download from wizard
@@ -185,6 +192,7 @@ if checkupdate "$newver" "$installedver" ;then
 fi
 }
 
+
 update_pogo_wizard(){
 pogo_wizard
 if [ "$pogo_install" = "install" ]; then
@@ -195,6 +203,7 @@ if [ "$pogo_install" = "install" ]; then
  reboot=1
 fi
 }
+
 
 rgc_wizard(){
 #check update rgc and download from wizard
@@ -221,6 +230,7 @@ if checkupdate "$newver" "$installedver" ;then
 fi
 }
 
+
 update_rgc_wizard(){
 rgc_wizard
 if [ "$rgc_install" = "install" ]; then
@@ -232,18 +242,26 @@ if [ "$rgc_install" = "install" ]; then
 fi
 }
 
+
 update_all(){
+rgc_wizard
 vmapper_wizard
 pogo_wizard
-rgc_wizard
 if [ ! -z "$vm_install" ] && [ ! -z "$rgc_install" ] && [ ! -z "$pogo_install" ]; then
     echo "`date +%Y-%m-%d_%T` All updates checked and downloaded if needed" >> $logfile
+    if [ "$rgc_install" = "install" ]; then
+      echo "`date +%Y-%m-%d_%T` Installing rgc" >> $logfile
+      # install rgc
+      /system/bin/pm install -r /sdcard/Download/RemoteGpsController.apk
+      /system/bin/rm -f /sdcard/Download/RemoteGpsController.apk
+      reboot=1
+    fi
     if [ "$vm_install" = "install" ]; then
       echo "`date +%Y-%m-%d_%T` Installing vmapper" >> $logfile
       # install vmapper
       /system/bin/pm install -r /sdcard/Download/vmapper.apk
       /system/bin/rm -f /sdcard/Download/vmapper.apk
-      # new vampper version in wizzard, so we replace xml
+      # new vmapper version in wizzard, so we replace xml
       create_vmapper_xml
       reboot=1
     fi
@@ -254,20 +272,61 @@ if [ ! -z "$vm_install" ] && [ ! -z "$rgc_install" ] && [ ! -z "$pogo_install" ]
       /system/bin/rm -f /sdcard/Download/pogo.apk
       reboot=1
     fi
-    if [ "$rgc_install" = "install" ]; then
-      echo "`date +%Y-%m-%d_%T` Installing rgc" >> $logfile
-      # install rgc
-      /system/bin/pm install -r /sdcard/Download/RemoteGpsController.apk
-      /system/bin/rm -f /sdcard/Download/RemoteGpsController.apk
-      reboot=1
-    fi
     if [ "$vm_install" != "install" ] && [ "$pogo_install" != "install" ] && [ "$rgc_install" != "install" ]; then
       echo "`date +%Y-%m-%d_%T` Nothing to install, no reboot" >> $logfile
     fi
 fi
 }
 
-create_vmapper_xml(){
+
+update_all_no_reboot(){
+rgc_wizard
+vmapper_wizard
+pogo_wizard
+if [ ! -z "$vm_install" ] && [ ! -z "$rgc_install" ] && [ ! -z "$pogo_install" ]; then
+    echo "`date +%Y-%m-%d_%T` All updates checked and downloaded if needed" >> $logfile
+    if [ "$rgc_install" = "install" ]; then
+      echo "`date +%Y-%m-%d_%T` Install and start rgc" >> $logfile
+      # install rgc
+      /system/bin/pm install -r /sdcard/Download/RemoteGpsController.apk
+      /system/bin/rm -f /sdcard/Download/RemoteGpsController.apk
+      # start rgc
+      monkey -p de.grennith.rgc.remotegpscontroller 1
+    fi
+    if [ "$vm_install" = "install" ]; then
+      echo "`date +%Y-%m-%d_%T` Install and start vmapper" >> $logfile
+      # kill pogo
+      am force-stop com.nianticlabs.pokemongo
+      # install vmapper
+      /system/bin/pm install -r /sdcard/Download/vmapper.apk
+      /system/bin/rm -f /sdcard/Download/vmapper.apk
+      # new vmapper version in wizzard, replace xml
+      vmapper_xml
+      # start vmapper
+      am broadcast -n de.goldjpg.vmapper/.RestartService
+      # if no pogo update we restart it now
+      if [ "$pogo_install" != "install" ];then
+        echo "`date +%Y-%m-%d_%T` No pogo update, start pogo" >> $logfile 
+        sleep 5
+        monkey -p com.nianticlabs.pokemongo -c android.intent.category.LAUNCHER 1
+      fi
+    fi
+    if [ "$pogo_install" = "install" ]; then
+      echo "`date +%Y-%m-%d_%T` Install and start pogo" >> $logfile
+      # install pogo
+      /system/bin/pm install -r /sdcard/Download/pogo.apk
+      /system/bin/rm -f /sdcard/Download/pogo.apk
+      # start pogo
+      monkey -p com.nianticlabs.pokemongo -c android.intent.category.LAUNCHER 1
+    fi
+    if [ "$vm_install" != "install" ] && [ "$pogo_install" != "install" ] && [ "$rgc_install" != "install" ]; then
+      echo "`date +%Y-%m-%d_%T` Nothing to install" >> $logfile
+    fi
+fi
+}
+
+
+vmapper_xml(){
 vmconf="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
 vmuser=$(ls -la /data/data/de.goldjpg.vmapper/|head -n2|tail -n1|awk '{print $3}')
 
@@ -276,8 +335,24 @@ vmuser=$(ls -la /data/data/de.goldjpg.vmapper/|head -n2|tail -n1|awk '{print $3}
 chmod 660 $vmconf
 chown $vmuser:$vmuser $vmconf
 echo "`date +%Y-%m-%d_%T` Vmapper config.xml (re)created" >> $logfile
+}
+
+
+create_vmapper_xml(){
+vmapper_xml
 reboot=1
 }
+
+
+create_vmapper_xml_no_reboot(){
+am force-stop com.nianticlabs.pokemongo
+am force-stop de.goldjpg.vmapper
+vmapper_xml
+am broadcast -n de.goldjpg.vmapper/.RestartService
+sleep 5
+monkey -p com.nianticlabs.pokemongo -c android.intent.category.LAUNCHER 1
+}
+
 
 pd_to_vm(){
 vmconf="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
@@ -309,6 +384,7 @@ echo "`date +%Y-%m-%d_%T` VM daemon enable and PD daemon disable" >> $logfile
 reboot=1
 }
 
+
 vm_to_pd(){
 vmconf="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
 vmuser=$(ls -la /data/data/de.goldjpg.vmapper/|head -n2|tail -n1|awk '{print $3}')
@@ -335,6 +411,7 @@ echo "`date +%Y-%m-%d_%T` VM daemon disable and PD daemon enable" >> $logfile
 reboot=1
 }
 
+
 for i in "$@" ;do
  case "$i" in
  -ivw) install_vmapper_wizard ;;
@@ -342,7 +419,9 @@ for i in "$@" ;do
  -upw) update_pogo_wizard ;;
  -urw) update_rgc_wizard ;;
  -ua) update_all ;;
+ -uanr) update_all_no_reboot ;;
  -uvx) create_vmapper_xml ;;
+ -uvxnr) create_vmapper_xml_no_reboot ;;
  -spv) pd_to_vm ;;
  -svp) vm_to_pd ;;
  esac

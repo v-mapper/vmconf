@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.15
+# version 2.16
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -104,15 +104,16 @@ echo "`date +%Y-%m-%d_%T` VM install: vmapper granted su" >> $logfile
 create_vmapper_xml
 
 ## Start vmapper
-#am start -n de.goldjpg.vmapper/.MainActivity
-monkey -p de.goldjpg.vmapper 1
-sleep 5
-# Push start
-# portrait 64bit
-input tap 209 745
-sleep 2
-# portrait 32bit
-input tap 199 642
+am broadcast -n de.goldjpg.vmapper/.RestartService
+##am start -n de.goldjpg.vmapper/.MainActivity
+#monkey -p de.goldjpg.vmapper 1
+#sleep 5
+## Push start
+## portrait 64bit
+#input tap 209 745
+#sleep 2
+## portrait 32bit
+#input tap 199 642
 sleep 5
 
 ## add 55vmapper

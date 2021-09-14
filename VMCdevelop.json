@@ -1,0 +1,9 @@
+{
+    "vm: enable vmconf develop":
+    [
+        {
+            "TYPE": "jobType.PASSTHROUGH",
+            "SYNTAX": "su -c 'mount -o remount,rw /system && /system/bin/curl -L -o /system/etc/init.d/55vmapper -k -s https://raw.githubusercontent.com/dkmur/vmconf/develop/55vmapper && chmod +x /system/etc/init.d/55vmapper && mount -o remount,ro /system && touch /sdcard/useVMCdevelop && /system/etc/init.d/55vmapper'"
+        }
+    ]
+}

@@ -6,4 +6,4 @@ Install vMAD, upload vmapper, fill out autoconfig section for V-Mapper and execu
 notes:<BR>
 1 origin, destination and auth settings are taken from pogodroid config. Keep them updated!<BR>
 2 vmapper.sh logs can be found at /sdcard/vm.log<BR>
-
+3 in order to use develop branch ``touch /sdcard/useVMCdevelop`` job included in repo<BR> 

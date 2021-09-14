@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.16
+# version 2.20
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -105,15 +105,6 @@ create_vmapper_xml
 
 ## Start vmapper
 am broadcast -n de.goldjpg.vmapper/.RestartService
-##am start -n de.goldjpg.vmapper/.MainActivity
-#monkey -p de.goldjpg.vmapper 1
-#sleep 5
-## Push start
-## portrait 64bit
-#input tap 209 745
-#sleep 2
-## portrait 32bit
-#input tap 199 642
 sleep 5
 
 ## add 55vmapper
@@ -370,14 +361,7 @@ chown $vmuser:$vmuser $vmconf
 
 # kill pd & start vm
 am force-stop com.mad.pogodroid
-am start -n de.goldjpg.vmapper/.MainActivity
-sleep 5
-# Push start
-# portrait 64bit
-input tap 209 745
-sleep 2
-# portrait 32bit
-input tap 199 642
+am broadcast -n de.goldjpg.vmapper/.RestartService
 sleep 5
 
 echo "`date +%Y-%m-%d_%T` VM daemon enable and PD daemon disable" >> $logfile

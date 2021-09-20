@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.20
+# version 2.30
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -109,7 +109,7 @@ sleep 5
 
 ## add 55vmapper
 mount -o remount,rw /system
-/system/bin/curl -L -o /system/etc/init.d/55vmapper -k -s https://raw.githubusercontent.com/dkmur/vmconf/main/55vmapper
+/system/bin/curl -L -o /system/etc/init.d/55vmapper -k -s https://raw.githubusercontent.com/v-mapper/vmconf/main/55vmapper
 chmod +x /system/etc/init.d/55vmapper
 mount -o remount,ro /system
 echo "`date +%Y-%m-%d_%T` VM install: 55vmapper added" >> $logfile

@@ -12,6 +12,7 @@ magisk_ver="20.3"
 msum="959e46971c2eb500b91a053b2f1c1a8c"
 url_magisk="https://github.com/Map-A-Droid/MAD-ATV/raw/master/Magisk-v20.3.zip"
 url_gapps="https://madatv.b-cdn.net/open_gapps-arm64-7.1-pico-20200715.zip"
+url_nfs="https://github.com/Map-A-Droid/MAD-ATV/raw/master/nfs/NFS-INJECTOR-v7.8.FLASHPOINT.zip"
 rgcconf="/data/data/de.grennith.rgc.remotegpscontroller/shared_prefs/de.grennith.rgc.remotegpscontroller_preferences.xml"
 pdconf="/data/data/com.mad.pogodroid/shared_prefs/com.mad.pogodroid_preferences.xml"
 useragent='Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0'
@@ -454,6 +455,19 @@ if [[ ! $(pm list packages android.vending) ]] ;then
     echo '--update_package=/sdcard/gapps.zip' >> /cache/recovery/command
     cachereboot=1
 fi
+
+# Install NFS (check usb for file called nfs)
+NFS_install="$(find /mnt/media_rw/ -iname nfs 2>/dev/null)"
+if [[ -z "$NFS_install" ]];then
+    log_msg 2 "Skipping NFS install"
+else
+    rm -f /sdcard/NFS-INJECTOR.zip
+    download "$url_nfs" /sdcard/NFS-INJECTOR.zip
+    echo '--update_package=/sdcard/NFS-INJECTOR.zip' >> /cache/recovery/command
+    log_msg 2 "NFS ready to be installed"
+    cachereboot=1
+fi
+
 [[ -d /sdcard/TWRP ]] && rm -rf /sdcard/TWRP
 [[ $(settings get global hdmi_control_enabled) != "0" ]] && settings put global hdmi_control_enabled 0
 [[ $(settings get global stay_on_while_plugged_in) != 3 ]] && settings put global stay_on_while_plugged_in 3

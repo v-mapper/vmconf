@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.30
+# version 2.31
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -164,7 +164,11 @@ pogo_wizard(){
 checkpdconf || return 1
 ! [[ "$pserver" ]] && echo "`date +%Y-%m-%d_%T` pogodroid endpoint not configured yet, cannot contact the wizard" >> $logfile && return 1
 
-newver="$(/system/bin/curl -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/pogo/$arch")"
+if [ -z ${force_pogo_update+x} ]; then
+  newver="$(/system/bin/curl -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/pogo/$arch")"
+else
+  newver="1.599.1"
+fi
 installedver="$(dumpsys package com.nianticlabs.pokemongo|awk -F'=' '/versionName/{print $2}')"
 
 if checkupdate "$newver" "$installedver" ;then
@@ -397,6 +401,10 @@ reboot=1
 }
 
 
+force_pogo_update(){
+force_pogo_update=true
+}
+
 for i in "$@" ;do
  case "$i" in
  -ivw) install_vmapper_wizard ;;
@@ -409,6 +417,7 @@ for i in "$@" ;do
  -uvxnr) create_vmapper_xml_no_reboot ;;
  -spv) pd_to_vm ;;
  -svp) vm_to_pd ;;
+ -fp) force_pogo_update ;;
  esac
 done
 

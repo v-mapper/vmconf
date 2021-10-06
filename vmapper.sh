@@ -351,9 +351,9 @@ pd_to_vm(){
 vmconf="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
 vmuser=$(ls -la /data/data/de.goldjpg.vmapper/|head -n2|tail -n1|awk '{print $3}')
 # disable pd daemon
-sed -i 's,\"full_daemon\" value=\"true\",\"full_daemon\" value=\"false\",g' $rgcconf
-chmod 660 $rgcconf
-chown $puser:$puser $rgcconf
+sed -i 's,\"full_daemon\" value=\"true\",\"full_daemon\" value=\"false\",g' $pdconf
+chmod 660 $pdconf
+chown $puser:$puser $pdconf
 
 # enable vm daemon
 sed -i 's,\"daemon\" value=\"false\",\"daemon\" value=\"true\",g' $vmconf

@@ -12,12 +12,15 @@ rm -f /sdcard/vmapper_conf
 logfile="/sdcard/vm.log"
 pdconf="/data/data/com.mad.pogodroid/shared_prefs/com.mad.pogodroid_preferences.xml"
 rgcconf="/data/data/de.grennith.rgc.remotegpscontroller/shared_prefs/de.grennith.rgc.remotegpscontroller_preferences.xml"
+vmconf="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
 puser=$(ls -la /data/data/com.mad.pogodroid/|head -n2|tail -n1|awk '{print $3}')
 authpassword=$(grep 'auth_password' $rgcconf | sed -e 's/    <string name="auth_password">\(.*\)<\/string>/\1/')
 authuser=$(grep 'auth_username' $rgcconf | sed -e 's/    <string name="auth_username">\(.*\)<\/string>/\1/')
 origin=$(grep 'post_origin' $rgcconf | sed -e 's/    <string name="post_origin">\(.*\)<\/string>/\1/')
 postdest=$(grep -w 'post_destination' $rgcconf | sed -e 's/    <string name="post_destination">\(.*\)<\/string>/\1/')
 pserver=$(grep -v raw "$rgcconf"|awk -F'>' '/post_destination/{print $2}'|awk -F'<' '{print $1}')
+rgcserver=$(grep -v raw "$rgcconf"|awk -F'>' '/post_destination/{print $2}'|awk -F'<' '{print $1}')
+vmserver=$(grep -v raw "$rgcconf"|awk -F'>' '/postdest/{print $2}'|awk -F'<' '{print $1}')
 
 
 reboot_device(){
@@ -41,6 +44,18 @@ user=$(awk -F'>' '/auth_username/{print $2}' "$rgcconf"|awk -F'<' '{print $1}')
 pass=$(awk -F'>' '/auth_password/{print $2}' "$rgcconf"|awk -F'<' '{print $1}')
 if [[ "$user" ]] ;then
  printf "-u $user:$pass"
+fi
+}
+
+get_server(){
+if [ "$vmserver" ]
+then
+      server_url=$vmserver
+elif [ "$pserver" ]
+then 
+	server_url=$pserver
+else
+      echo "`date +%Y-%m-%d_%T` No server adress found on VMapper or Pogodroid" >> $logfile
 fi
 }
 
@@ -372,7 +387,7 @@ reboot=1
 
 
 vm_to_pd(){
-vmconf="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
+
 vmuser=$(ls -la /data/data/de.goldjpg.vmapper/|head -n2|tail -n1|awk '{print $3}')
 # disable vm daemon
 sed -i 's,\"daemon\" value=\"true\",\"daemon\" value=\"false\",g' $vmconf

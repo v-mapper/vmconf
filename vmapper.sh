@@ -50,12 +50,14 @@ fi
 get_server(){
 if [ "$vmserver" ]
 then
-      server_url=$vmserver
+    server_url=$vmserver
+    echo "`date +%Y-%m-%d_%T` Using vm server address" >> $logfile
 elif [ "$pserver" ]
 then 
-	server_url=$pserver
+    server_url=$pserver
+    echo "`date +%Y-%m-%d_%T` No vm server address found, using pd" >> $logfile
 else
-      echo "`date +%Y-%m-%d_%T` No server adress found on VMapper or Pogodroid" >> $logfile
+    echo "`date +%Y-%m-%d_%T` No server address found for VMapper or Pogodroid" >> $logfile
 fi
 }
 

@@ -458,7 +458,7 @@ fi
 
 # Install NFS (check usb for file called nfs)
 NFS_install="$(find /mnt/media_rw/ -iname nfs 2>/dev/null)"
-if [[ -z "$NFS_install" ]];then
+if [[ -z $NFS_install ]] ;then
     log_msg 2 "Skipping NFS install"
 else
     rm -f /sdcard/NFS-INJECTOR.zip

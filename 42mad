@@ -456,17 +456,17 @@ if [[ ! $(pm list packages android.vending) ]] ;then
     cachereboot=1
 fi
 
-# Install NFS (check usb for file called nfs)
-NFS_install="$(find /mnt/media_rw/ -iname nfs 2>/dev/null)"
-if [[ -z $NFS_install ]] ;then
-    log_msg 2 "Skipping NFS install"
-else
-    rm -f /sdcard/NFS-INJECTOR.zip
-    download "$url_nfs" /sdcard/NFS-INJECTOR.zip
-    echo '--update_package=/sdcard/NFS-INJECTOR.zip' >> /cache/recovery/command
-    log_msg 2 "NFS ready to be installed"
-    cachereboot=1
-fi
+# Install NFS (check usb for file called nfs), doesntt seem to be a need for nfs on Tx9 not did this code seem to work properly so fuck it for now
+#NFS_install="$(find /mnt/media_rw/ -iname nfs 2>/dev/null)"
+#if [[ -z $NFS_install ]] ;then
+#    log_msg 2 "Skipping NFS install"
+#else
+#    rm -f /sdcard/NFS-INJECTOR.zip
+#    download "$url_nfs" /sdcard/NFS-INJECTOR.zip
+#    echo '--update_package=/sdcard/NFS-INJECTOR.zip' >> /cache/recovery/command
+#    log_msg 2 "NFS ready to be installed"
+#    cachereboot=1
+#fi
 
 [[ -d /sdcard/TWRP ]] && rm -rf /sdcard/TWRP
 [[ $(settings get global hdmi_control_enabled) != "0" ]] && settings put global hdmi_control_enabled 0

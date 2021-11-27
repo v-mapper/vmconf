@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.31
+# version 2.32
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -156,6 +156,27 @@ if [ "$vm_install" = "install" ]; then
  create_vmapper_xml
  reboot=1
 fi
+}
+
+
+downgrade_vmapper_wizard(){
+# remove vmapper
+am force-stop com.nianticlabs.pokemongo
+am force-stop de.goldjpg.vmapper
+sleep 2
+/system/bin/pm uninstall de.goldjpg.vmapper
+echo "`date +%Y-%m-%d_%T` VM downgrade: vmapper removed" >> $logfile
+
+# install vmapper from wizard
+/system/bin/rm -f /sdcard/Download/vmapper.apk
+/system/bin/curl -k -s -L -o /sdcard/Download/vmapper.apk $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/download"
+/system/bin/pm install -r /sdcard/Download/vmapper.apk
+/system/bin/rm -f /sdcard/Download/vmapper.apk
+echo "`date +%Y-%m-%d_%T` VM downgrade: vmapper installed" >> $logfile
+
+# (re)create xml and start vmapper+pogo
+create_vmapper_xml_no_reboot
+echo "`date +%Y-%m-%d_%T` VM downgrade: vmapper and pogo started" >> $logfile
 }
 
 
@@ -409,6 +430,7 @@ for i in "$@" ;do
  case "$i" in
  -ivw) install_vmapper_wizard ;;
  -uvw) update_vmapper_wizard ;;
+ -dvw) downgrade_vmapper_wizard ;;
  -upw) update_pogo_wizard ;;
  -urw) update_rgc_wizard ;;
  -ua) update_all ;;

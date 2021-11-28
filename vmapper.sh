@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.32
+# version 2.33
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -174,9 +174,18 @@ echo "`date +%Y-%m-%d_%T` VM downgrade: vmapper removed" >> $logfile
 /system/bin/rm -f /sdcard/Download/vmapper.apk
 echo "`date +%Y-%m-%d_%T` VM downgrade: vmapper installed" >> $logfile
 
+# grant SU
+am start -n de.goldjpg.vmapper/.MainActivity
+sleep 2
+uid=$(stat -c %u /data/data/de.goldjpg.vmapper/)
+am force-stop de.goldjpg.vmapper
+sleep 2
+sqlite3 /data/adb/magisk.db "INSERT INTO policies (uid,package_name,policy,until,logging,notification) VALUES(\"$uid\",'de.goldjpg.vmapper',2,0,1,1)"
+echo "`date +%Y-%m-%d_%T`VM downgrade: vmapper granted SU access" >> $logfile
+
 # (re)create xml and start vmapper+pogo
 create_vmapper_xml_no_reboot
-echo "`date +%Y-%m-%d_%T` VM downgrade: vmapper and pogo started" >> $logfile
+echo "`date +%Y-%m-%d_%T` VM downgrade: xml re-created and vmapper+pogo re-started" >> $logfile
 }
 
 

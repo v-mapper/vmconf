@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.33
+# version 2.34
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -127,21 +127,26 @@ checkpdconf || return 1
 newver="$(/system/bin/curl -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/noarch" | awk '{print substr($1,2); }')"
 installedver="$(dumpsys package de.goldjpg.vmapper|awk -F'=' '/versionName/{print $2}'|head -n1 | awk '{print substr($1,2); }')"
 
-if checkupdate "$newver" "$installedver" ;then
- echo "`date +%Y-%m-%d_%T` New vmapper version detected in wizard, updating $installedver=>$newver" >> $logfile
- /system/bin/rm -f /sdcard/Download/vmapper.apk
- until /system/bin/curl -k -s -L -o /sdcard/Download/vmapper.apk $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/download" ;do
-  /system/bin/rm -f /sdcard/Download/vmapper.apk
-  sleep
- done
+if [ "$newver" = "" ] ;then
+vm_install="skip"
+echo "`date +%Y-%m-%d_%T` Vmapper not found in MADmin, skipping version check" >> $logfile
+else
+  if checkupdate "$newver" "$installedver" ;then
+   echo "`date +%Y-%m-%d_%T` New vmapper version detected in wizard, updating $installedver=>$newver" >> $logfile
+   /system/bin/rm -f /sdcard/Download/vmapper.apk
+   until /system/bin/curl -k -s -L -o /sdcard/Download/vmapper.apk $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/download" ;do
+    /system/bin/rm -f /sdcard/Download/vmapper.apk
+    sleep
+   done
 
  # set vmapper to be installed
  vm_install="install"
 
- else
- vm_install="skip"
- echo "`date +%Y-%m-%d_%T` Vmapper already on latest version" >> $logfile
-fi
+   else
+   vm_install="skip"
+   echo "`date +%Y-%m-%d_%T` Vmapper already on latest version" >> $logfile
+  fi
+fi  
 }
 
 

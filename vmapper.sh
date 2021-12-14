@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.34
+# version 2.35
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -325,7 +325,7 @@ if [ ! -z "$vm_install" ] && [ ! -z "$rgc_install" ] && [ ! -z "$pogo_install" ]
       monkey -p de.grennith.rgc.remotegpscontroller 1
     fi
     if [ "$vm_install" = "install" ]; then
-      echo "`date +%Y-%m-%d_%T` Install and start vmapper" >> $logfile
+      echo "`date +%Y-%m-%d_%T` Install vmapper and recreate xml" >> $logfile
       # kill pogo
       am force-stop com.nianticlabs.pokemongo
       # install vmapper
@@ -333,21 +333,22 @@ if [ ! -z "$vm_install" ] && [ ! -z "$rgc_install" ] && [ ! -z "$pogo_install" ]
       /system/bin/rm -f /sdcard/Download/vmapper.apk
       # new vmapper version in wizzard, replace xml
       vmapper_xml
-      # start vmapper
-      am broadcast -n de.goldjpg.vmapper/.RestartService
-      # if no pogo update we restart it now
+      # if no pogo update we restart both now
       if [ "$pogo_install" != "install" ];then
-        echo "`date +%Y-%m-%d_%T` No pogo update, start pogo" >> $logfile 
+        echo "`date +%Y-%m-%d_%T` No pogo update, starting vmapper+pogo" >> $logfile
+        am broadcast -n de.goldjpg.vmapper/.RestartService        
         sleep 5
         monkey -p com.nianticlabs.pokemongo -c android.intent.category.LAUNCHER 1
       fi
     fi
     if [ "$pogo_install" = "install" ]; then
-      echo "`date +%Y-%m-%d_%T` Install and start pogo" >> $logfile
+      echo "`date +%Y-%m-%d_%T` Install pogo, restart vmapper and start pogo" >> $logfile
       # install pogo
       /system/bin/pm install -r /sdcard/Download/pogo.apk
       /system/bin/rm -f /sdcard/Download/pogo.apk
-      # start pogo
+      # restart vmapper + start pogo
+      am broadcast -n de.goldjpg.vmapper/.RestartService        
+      sleep 5
       monkey -p com.nianticlabs.pokemongo -c android.intent.category.LAUNCHER 1
     fi
     if [ "$vm_install" != "install" ] && [ "$pogo_install" != "install" ] && [ "$rgc_install" != "install" ]; then

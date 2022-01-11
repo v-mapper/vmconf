@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.31
+# version 2.36
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -89,22 +89,22 @@ echo "`date +%Y-%m-%d_%T` VM install: pogodroid disabled" >> $logfile
 echo "`date +%Y-%m-%d_%T` VM install: vmapper installed" >> $logfile
 
 ## At this stage vmapper isn't in magisk db nor had it generated a config folder
-#monkey -p de.goldjpg.vmapper -c android.intent.category.LAUNCHER 1
-am start -n de.goldjpg.vmapper/.MainActivity
+#monkey -p de.vahrmap.vmapper -c android.intent.category.LAUNCHER 1
+am start -n de.vahrmap.vmapper/.MainActivity
 sleep 2
-uid=$(stat -c %u /data/data/de.goldjpg.vmapper/)
-am force-stop de.goldjpg.vmapper
+uid=$(stat -c %u /data/data/de.vahrmap.vmapper/)
+am force-stop de.vahrmap.vmapper
 sleep 2
 
 ## Grant su access
-sqlite3 /data/adb/magisk.db "INSERT INTO policies (uid,package_name,policy,until,logging,notification) VALUES(\"$uid\",'de.goldjpg.vmapper',2,0,1,1)"
+sqlite3 /data/adb/magisk.db "INSERT INTO policies (uid,package_name,policy,until,logging,notification) VALUES(\"$uid\",'de.vahrmap.vmapper',2,0,1,1)"
 echo "`date +%Y-%m-%d_%T` VM install: vmapper granted su" >> $logfile
 
 ## Create config file
 create_vmapper_xml
 
 ## Start vmapper
-am broadcast -n de.goldjpg.vmapper/.RestartService
+am broadcast -n de.vahrmap.vmapper/.RestartService
 sleep 5
 
 ## add 55vmapper
@@ -125,22 +125,43 @@ checkpdconf || return 1
 ! [[ "$pserver" ]] && echo "`date +%Y-%m-%d_%T` pogodroid endpoint not configured yet, cannot contact the wizard" >> $logfile && return 1
 
 newver="$(/system/bin/curl -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/noarch" | awk '{print substr($1,2); }')"
+installedver="$(dumpsys package de.vahrmap.vmapper|awk -F'=' '/versionName/{print $2}'|head -n1 | awk '{print substr($1,2); }')"
+
+if [ "$installedver" = "" ] ;then
 installedver="$(dumpsys package de.goldjpg.vmapper|awk -F'=' '/versionName/{print $2}'|head -n1 | awk '{print substr($1,2); }')"
+fi
 
-if checkupdate "$newver" "$installedver" ;then
- echo "`date +%Y-%m-%d_%T` New vmapper version detected in wizard, updating $installedver=>$newver" >> $logfile
- /system/bin/rm -f /sdcard/Download/vmapper.apk
- until /system/bin/curl -k -s -L -o /sdcard/Download/vmapper.apk $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/download" ;do
-  /system/bin/rm -f /sdcard/Download/vmapper.apk
-  sleep
- done
+if [ "$newver" = "" ] ;then
+vm_install="skip"
+echo "`date +%Y-%m-%d_%T` Vmapper not found in MADmin, skipping version check" >> $logfile
+else
+  if checkupdate "$newver" "$installedver" ;then
+    vold="$(echo $installedver | awk '{print substr($1,1,1); }')"
+    vnew="$(echo $newver | awk '{print substr($1,1,1); }')"
+    if [[ "$vold" = 6 ]] && [[ "$vnew" = 7 ]] ;then
+          echo "`date +%Y-%m-%d_%T` New vmapper version detected in wizard, $installedver=>$newver, oeps we uninstall and install" >> $logfile
+          # Its not a downgrade, but this should work and we cancel the the default update routine
+		  am force-stop de.goldjpg.vmapper
+		  /system/bin/pm uninstall de.goldjpg.vmapper
+		  sqlite3 /data/adb/magisk.db "DELETE FROM policies WHERE package_name = 'de.goldjpg.vmapper'"
+		  /system/bin/rm -R /data/data/de.goldjpg.vmapper
+          downgrade_vmapper_wizard
+          vm_install="skip"
+        else
+      echo "`date +%Y-%m-%d_%T` New vmapper version detected in wizard, updating $installedver=>$newver" >> $logfile
+      /system/bin/rm -f /sdcard/Download/vmapper.apk
+      until /system/bin/curl -k -s -L -o /sdcard/Download/vmapper.apk $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/download" ;do
+       /system/bin/rm -f /sdcard/Download/vmapper.apk
+       sleep
+      done
 
- # set vmapper to be installed
- vm_install="install"
-
- else
- vm_install="skip"
- echo "`date +%Y-%m-%d_%T` Vmapper already on latest version" >> $logfile
+      # set vmapper to be installed
+      vm_install="install"
+    fi
+  else
+    vm_install="skip"
+    echo "`date +%Y-%m-%d_%T` Vmapper already on latest version" >> $logfile
+  fi
 fi
 }
 
@@ -156,6 +177,36 @@ if [ "$vm_install" = "install" ]; then
  create_vmapper_xml
  reboot=1
 fi
+}
+
+
+downgrade_vmapper_wizard(){
+# remove vmapper
+am force-stop com.nianticlabs.pokemongo
+am force-stop de.vahrmap.vmapper
+sleep 2
+/system/bin/pm uninstall de.vahrmap.vmapper
+echo "`date +%Y-%m-%d_%T` VM downgrade: vmapper removed" >> $logfile
+
+# install vmapper from wizard
+/system/bin/rm -f /sdcard/Download/vmapper.apk
+/system/bin/curl -k -s -L -o /sdcard/Download/vmapper.apk $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/download"
+/system/bin/pm install -r /sdcard/Download/vmapper.apk
+/system/bin/rm -f /sdcard/Download/vmapper.apk
+echo "`date +%Y-%m-%d_%T` VM downgrade: vmapper installed" >> $logfile
+
+# grant SU
+am start -n de.vahrmap.vmapper/.MainActivity
+sleep 5
+uid=$(stat -c %u /data/data/de.vahrmap.vmapper/)
+am force-stop de.vahrmap.vmapper
+sleep 2
+sqlite3 /data/adb/magisk.db "INSERT INTO policies (uid,package_name,policy,until,logging,notification) VALUES(\"$uid\",'de.vahrmap.vmapper',2,0,1,1)"
+echo "`date +%Y-%m-%d_%T`VM downgrade: vmapper granted SU access" >> $logfile
+
+# (re)create xml and start vmapper+pogo
+create_vmapper_xml_no_reboot
+echo "`date +%Y-%m-%d_%T` VM downgrade: xml re-created and vmapper+pogo re-started" >> $logfile
 }
 
 
@@ -290,7 +341,7 @@ if [ ! -z "$vm_install" ] && [ ! -z "$rgc_install" ] && [ ! -z "$pogo_install" ]
       monkey -p de.grennith.rgc.remotegpscontroller 1
     fi
     if [ "$vm_install" = "install" ]; then
-      echo "`date +%Y-%m-%d_%T` Install and start vmapper" >> $logfile
+      echo "`date +%Y-%m-%d_%T` Install vmapper and recreate xml" >> $logfile
       # kill pogo
       am force-stop com.nianticlabs.pokemongo
       # install vmapper
@@ -298,21 +349,22 @@ if [ ! -z "$vm_install" ] && [ ! -z "$rgc_install" ] && [ ! -z "$pogo_install" ]
       /system/bin/rm -f /sdcard/Download/vmapper.apk
       # new vmapper version in wizzard, replace xml
       vmapper_xml
-      # start vmapper
-      am broadcast -n de.goldjpg.vmapper/.RestartService
-      # if no pogo update we restart it now
+      # if no pogo update we restart both now
       if [ "$pogo_install" != "install" ];then
-        echo "`date +%Y-%m-%d_%T` No pogo update, start pogo" >> $logfile 
+        echo "`date +%Y-%m-%d_%T` No pogo update, starting vmapper+pogo" >> $logfile
+        am broadcast -n de.vahrmap.vmapper/.RestartService        
         sleep 5
         monkey -p com.nianticlabs.pokemongo -c android.intent.category.LAUNCHER 1
       fi
     fi
     if [ "$pogo_install" = "install" ]; then
-      echo "`date +%Y-%m-%d_%T` Install and start pogo" >> $logfile
+      echo "`date +%Y-%m-%d_%T` Install pogo, restart vmapper and start pogo" >> $logfile
       # install pogo
       /system/bin/pm install -r /sdcard/Download/pogo.apk
       /system/bin/rm -f /sdcard/Download/pogo.apk
-      # start pogo
+      # restart vmapper + start pogo
+      am broadcast -n de.vahrmap.vmapper/.RestartService        
+      sleep 5
       monkey -p com.nianticlabs.pokemongo -c android.intent.category.LAUNCHER 1
     fi
     if [ "$vm_install" != "install" ] && [ "$pogo_install" != "install" ] && [ "$rgc_install" != "install" ]; then
@@ -323,8 +375,8 @@ fi
 
 
 vmapper_xml(){
-vmconf="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
-vmuser=$(ls -la /data/data/de.goldjpg.vmapper/|head -n2|tail -n1|awk '{print $3}')
+vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
+vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
 
 /system/bin/curl -k -s -L -o $vmconf $(get_pd_user) -H "origin: $origin" "$pserver/vm_conf"
 
@@ -342,17 +394,17 @@ reboot=1
 
 create_vmapper_xml_no_reboot(){
 am force-stop com.nianticlabs.pokemongo
-am force-stop de.goldjpg.vmapper
+am force-stop de.vahrmap.vmapper
 vmapper_xml
-am broadcast -n de.goldjpg.vmapper/.RestartService
+am broadcast -n de.vahrmap.vmapper/.RestartService
 sleep 5
 monkey -p com.nianticlabs.pokemongo -c android.intent.category.LAUNCHER 1
 }
 
 
 pd_to_vm(){
-vmconf="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
-vmuser=$(ls -la /data/data/de.goldjpg.vmapper/|head -n2|tail -n1|awk '{print $3}')
+vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
+vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
 # disable pd daemon
 sed -i 's,\"full_daemon\" value=\"true\",\"full_daemon\" value=\"false\",g' $pdconf
 chmod 660 $pdconf
@@ -365,7 +417,7 @@ chown $vmuser:$vmuser $vmconf
 
 # kill pd & start vm
 am force-stop com.mad.pogodroid
-am broadcast -n de.goldjpg.vmapper/.RestartService
+am broadcast -n de.vahrmap.vmapper/.RestartService
 sleep 5
 
 echo "`date +%Y-%m-%d_%T` VM daemon enable and PD daemon disable" >> $logfile
@@ -375,8 +427,8 @@ reboot=1
 
 
 vm_to_pd(){
-vmconf="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
-vmuser=$(ls -la /data/data/de.goldjpg.vmapper/|head -n2|tail -n1|awk '{print $3}')
+vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
+vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
 # disable vm daemon
 sed -i 's,\"daemon\" value=\"true\",\"daemon\" value=\"false\",g' $vmconf
 chmod 660 $vmconf
@@ -388,7 +440,7 @@ chmod 660 $pdconf
 chown $puser:$puser $pdconf
 
 #kill vm & start pd
-am force-stop de.goldjpg.vmapper
+am force-stop de.vahrmap.vmapper
 sleep 2
 monkey -p com.mad.pogodroid 1
 sleep 2
@@ -409,6 +461,7 @@ for i in "$@" ;do
  case "$i" in
  -ivw) install_vmapper_wizard ;;
  -uvw) update_vmapper_wizard ;;
+ -dvw) downgrade_vmapper_wizard ;;
  -upw) update_pogo_wizard ;;
  -urw) update_rgc_wizard ;;
  -ua) update_all ;;

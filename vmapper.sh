@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.38
+# version 2.37
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -162,7 +162,7 @@ reboot=1
 vmapper_wizard(){
 #check update vmapper and download from wizard
 # checkpdconf || return 1
-! [[ "$server" ]] && echo "`date +%Y-%m-%d_%T` pogodroid endpoint not configured yet, cannot contact the wizard" >> $logfile && return 1
+! [[ "$server" ]] && echo "`date +%Y-%m-%d_%T` no MADmin endpoint configured, cannot contact the wizard" >> $logfile && return 1
 
 newver="$(/system/bin/curl -s -k -L -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/noarch" | awk '{print substr($1,2); }')"
 installedver="$(dumpsys package de.vahrmap.vmapper|awk -F'=' '/versionName/{print $2}'|head -n1 | awk '{print substr($1,2); }')"
@@ -253,7 +253,7 @@ echo "`date +%Y-%m-%d_%T` VM downgrade: xml re-created and vmapper+pogo re-start
 pogo_wizard(){
 #check pogo and download from wizard
 # checkpdconf || return 1
-! [[ "$server" ]] && echo "`date +%Y-%m-%d_%T` pogodroid endpoint not configured yet, cannot contact the wizard" >> $logfile && return 1
+! [[ "$server" ]] && echo "`date +%Y-%m-%d_%T` no MADmin endpoint configured, cannot contact the wizard" >> $logfile && return 1
 
 if [ -z ${force_pogo_update+x} ]; then
   newver="$(/system/bin/curl -s -k -L -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/pogo/$arch")"
@@ -295,7 +295,7 @@ fi
 rgc_wizard(){
 #check update rgc and download from wizard
 # checkpdconf || return 1
-! [[ "$server" ]] && echo "pogodroid endpoint not configured yet, cannot contact the wizard" && return 1
+! [[ "$server" ]] && echo "`date +%Y-%m-%d_%T` no MADmin endpoint configured, cannot contact the wizard" >> $logfile && return 1
 
 newver="$(curl -s -k -L -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/rgc/noarch")"
 installedver="$(dumpsys package de.grennith.rgc.remotegpscontroller 2>/dev/null|awk -F'=' '/versionName/{print $2}'|head -n1)"

@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.36
+# version 2.38
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -10,14 +10,55 @@ fi
 rm -f /sdcard/vmapper_conf
 
 logfile="/sdcard/vm.log"
-pdconf="/data/data/com.mad.pogodroid/shared_prefs/com.mad.pogodroid_preferences.xml"
-puser=$(ls -la /data/data/com.mad.pogodroid/|head -n2|tail -n1|awk '{print $3}')
-authpassword=$(grep 'auth_password' $pdconf | sed -e 's/    <string name="auth_password">\(.*\)<\/string>/\1/')
-authuser=$(grep 'auth_username' $pdconf | sed -e 's/    <string name="auth_username">\(.*\)<\/string>/\1/')
-origin=$(grep 'post_origin' $pdconf | sed -e 's/    <string name="post_origin">\(.*\)<\/string>/\1/')
-postdest=$(grep -w 'post_destination' $pdconf | sed -e 's/    <string name="post_destination">\(.*\)<\/string>/\1/')
-pserver=$(grep -v raw "$pdconf"|awk -F'>' '/post_destination/{print $2}'|awk -F'<' '{print $1}')
+#pdconf="/data/data/com.mad.pogodroid/shared_prefs/com.mad.pogodroid_preferences.xml"
+#authpassword=$(grep 'auth_password' $pdconf | sed -e 's/    <string name="auth_password">\(.*\)<\/string>/\1/')
+#authuser=$(grep 'auth_username' $pdconf | sed -e 's/    <string name="auth_username">\(.*\)<\/string>/\1/')
+#origin=$(grep 'post_origin' $pdconf | sed -e 's/    <string name="post_origin">\(.*\)<\/string>/\1/')
+#postdest=$(grep -w 'post_destination' $pdconf | sed -e 's/    <string name="post_destination">\(.*\)<\/string>/\1/')
+#pserver=$(grep -v raw "$pdconf"|awk -F'>' '/post_destination/{print $2}'|awk -F'<' '{print $1}')
 
+puser=$(ls -la /data/data/com.mad.pogodroid/|head -n2|tail -n1|awk '{print $3}')
+pdconf="/data/data/com.mad.pogodroid/shared_prefs/com.mad.pogodroid_preferences.xml"
+vmconfV6="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
+vmconfV7="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
+lastResort="/sdcard/vm_last_resort"
+
+
+if [ -f "$vmconfV7" ] && [ ! -z $(grep -w 'origin' $vmconfV7 | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/') ] ; then
+  server=$(grep -w 'postdest' $vmconfV7 | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/')
+  authuser=$(grep -w 'authuser' $vmconfV7 | sed -e 's/    <string name="authuser">\(.*\)<\/string>/\1/')
+  authpassword=$(grep -w 'authpassword' $vmconfV7 | sed -e 's/    <string name="authpassword">\(.*\)<\/string>/\1/')
+  origin=$(grep -w 'origin' $vmconfV7 | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/')
+  echo "`date +%Y-%m-%d_%T` Using vahrmap.vmapper settings" >> $logfile
+elif [ -f "$vmconfV6" ] && [ ! -z $(grep -w 'origin' $vmconfV6 | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/') ]; then
+  server=$(grep -w 'postdest' $vmconfV6 | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/')
+  authuser=$(grep -w 'authuser' $vmconfV6 | sed -e 's/    <string name="authuser">\(.*\)<\/string>/\1/')
+  authpassword=$(grep -w 'authpassword' $vmconfV6 | sed -e 's/    <string name="authpassword">\(.*\)<\/string>/\1/')
+  origin=$(grep -w 'origin' $vmconfV6 | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/')
+  echo "`date +%Y-%m-%d_%T` Using goldjpg.vmapper settings" >> $logfile
+elif [ -f "$pdconf" ] && [ ! -z $(grep -w 'post_origin' $pdconf | sed -e 's/    <string name="post_origin">\(.*\)<\/string>/\1/') ]; then
+  server=$(grep -w 'post_destination' $pdconf | sed -e 's/    <string name="post_destination">\(.*\)<\/string>/\1/')
+  authuser=$(grep -w 'auth_username' $pdconf | sed -e 's/    <string name="auth_username">\(.*\)<\/string>/\1/')
+  authpassword=$(grep -w 'auth_password' $pdconf | sed -e 's/    <string name="auth_password">\(.*\)<\/string>/\1/')
+  origin=$(grep -w 'post_origin' $pdconf | sed -e 's/    <string name="post_origin">\(.*\)<\/string>/\1/')
+  echo "`date +%Y-%m-%d_%T` Using pogodroid settings" >> $logfile
+elif [ -f "$lastResort" ]; then
+  server=$(awk '{print $1}' "$lastResort")
+  authuser=$(awk '{print $2}' "$lastResort")
+  authpassword=$(awk '{print $3}' "$lastResort")
+  origin=$(awk '{print $4}' "$lastResort")
+  echo "`date +%Y-%m-%d_%T` Using settings stored in /sdcard/vm_last_resort"  >> $logfile
+else
+  echo "`date +%Y-%m-%d_%T` No settings found to connect to MADmin, exiting vmapper.sh" >> $logfile
+  exit 1
+fi
+
+# store settings as last resort
+if [[ ! -z ${server+x} || ! -z ${authuser+x} || ! -z ${authpassword+x} || ! -z ${origin+x} ]] ; then
+/system/bin/rm -f "$lastResort"
+touch "$lastResort"
+echo "$server $authuser $authpassword $origin" >> "$lastResort"
+fi
 
 reboot_device(){
 echo "`date +%Y-%m-%d_%T` Reboot device" >> $logfile
@@ -25,23 +66,22 @@ sleep 2
 /system/bin/reboot
 }
 
+#checkpdconf(){
+#if ! [[ -s "$pdconf" ]] ;then
+# echo "`date +%Y-%m-%d_%T` Pogodroid not configured, we need those settings" >> $logfile
+# return 1
+#fi
+#}
 
-checkpdconf(){
-if ! [[ -s "$pdconf" ]] ;then
- echo "`date +%Y-%m-%d_%T` Pogodroid not configured, we need those settings" >> $logfile
- return 1
-fi
-}
 
-
-get_pd_user(){
-checkpdconf || return 1
-user=$(awk -F'>' '/auth_username/{print $2}' "$pdconf"|awk -F'<' '{print $1}')
-pass=$(awk -F'>' '/auth_password/{print $2}' "$pdconf"|awk -F'<' '{print $1}')
-if [[ "$user" ]] ;then
- printf "-u $user:$pass"
-fi
-}
+#get_pd_user(){
+# checkpdconf || return 1
+# user=$(awk -F'>' '/auth_username/{print $2}' "$pdconf"|awk -F'<' '{print $1}')
+# pass=$(awk -F'>' '/auth_password/{print $2}' "$pdconf"|awk -F'<' '{print $1}')
+# if [[ "$user" ]] ;then
+# printf "-u $user:$pass"
+# fi
+#}
 
 
 case "$(uname -m)" in
@@ -83,7 +123,7 @@ echo "`date +%Y-%m-%d_%T` VM install: pogodroid disabled" >> $logfile
 
 ## Install vmapper
 /system/bin/rm -f /sdcard/Download/vmapper.apk
-/system/bin/curl -k -s -L -o /sdcard/Download/vmapper.apk $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/download"
+/system/bin/curl -k -s -L -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download"
 /system/bin/pm install -r /sdcard/Download/vmapper.apk
 /system/bin/rm -f /sdcard/Download/vmapper.apk
 echo "`date +%Y-%m-%d_%T` VM install: vmapper installed" >> $logfile
@@ -121,10 +161,10 @@ reboot=1
 
 vmapper_wizard(){
 #check update vmapper and download from wizard
-checkpdconf || return 1
-! [[ "$pserver" ]] && echo "`date +%Y-%m-%d_%T` pogodroid endpoint not configured yet, cannot contact the wizard" >> $logfile && return 1
+# checkpdconf || return 1
+! [[ "$server" ]] && echo "`date +%Y-%m-%d_%T` pogodroid endpoint not configured yet, cannot contact the wizard" >> $logfile && return 1
 
-newver="$(/system/bin/curl -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/noarch" | awk '{print substr($1,2); }')"
+newver="$(/system/bin/curl -s -k -L -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/noarch" | awk '{print substr($1,2); }')"
 installedver="$(dumpsys package de.vahrmap.vmapper|awk -F'=' '/versionName/{print $2}'|head -n1 | awk '{print substr($1,2); }')"
 
 if [ "$installedver" = "" ] ;then
@@ -150,7 +190,7 @@ else
         else
       echo "`date +%Y-%m-%d_%T` New vmapper version detected in wizard, updating $installedver=>$newver" >> $logfile
       /system/bin/rm -f /sdcard/Download/vmapper.apk
-      until /system/bin/curl -k -s -L -o /sdcard/Download/vmapper.apk $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/download" ;do
+      until /system/bin/curl -k -s -L -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download" ;do
        /system/bin/rm -f /sdcard/Download/vmapper.apk
        sleep
       done
@@ -190,7 +230,7 @@ echo "`date +%Y-%m-%d_%T` VM downgrade: vmapper removed" >> $logfile
 
 # install vmapper from wizard
 /system/bin/rm -f /sdcard/Download/vmapper.apk
-/system/bin/curl -k -s -L -o /sdcard/Download/vmapper.apk $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/vm/download"
+/system/bin/curl -k -s -L -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download"
 /system/bin/pm install -r /sdcard/Download/vmapper.apk
 /system/bin/rm -f /sdcard/Download/vmapper.apk
 echo "`date +%Y-%m-%d_%T` VM downgrade: vmapper installed" >> $logfile
@@ -212,11 +252,11 @@ echo "`date +%Y-%m-%d_%T` VM downgrade: xml re-created and vmapper+pogo re-start
 
 pogo_wizard(){
 #check pogo and download from wizard
-checkpdconf || return 1
-! [[ "$pserver" ]] && echo "`date +%Y-%m-%d_%T` pogodroid endpoint not configured yet, cannot contact the wizard" >> $logfile && return 1
+# checkpdconf || return 1
+! [[ "$server" ]] && echo "`date +%Y-%m-%d_%T` pogodroid endpoint not configured yet, cannot contact the wizard" >> $logfile && return 1
 
 if [ -z ${force_pogo_update+x} ]; then
-  newver="$(/system/bin/curl -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/pogo/$arch")"
+  newver="$(/system/bin/curl -s -k -L -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/pogo/$arch")"
 else
   newver="1.599.1"
 fi
@@ -225,7 +265,7 @@ installedver="$(dumpsys package com.nianticlabs.pokemongo|awk -F'=' '/versionNam
 if checkupdate "$newver" "$installedver" ;then
  echo "`date +%Y-%m-%d_%T` New pogo version detected in wizard, updating $installedver=>$newver" >> $logfile
  /system/bin/rm -f /sdcard/Download/pogo.apk
- until /system/bin/curl -k -s -L -o /sdcard/Download/pogo.apk $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/pogo/$arch/download" ;do
+ until /system/bin/curl -k -s -L -o /sdcard/Download/pogo.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/pogo/$arch/download" ;do
   /system/bin/rm -f /sdcard/Download/pogo.apk
   sleep
  done
@@ -254,16 +294,16 @@ fi
 
 rgc_wizard(){
 #check update rgc and download from wizard
-checkpdconf || return 1
-! [[ "$pserver" ]] && echo "pogodroid endpoint not configured yet, cannot contact the wizard" && return 1
+# checkpdconf || return 1
+! [[ "$server" ]] && echo "pogodroid endpoint not configured yet, cannot contact the wizard" && return 1
 
-newver="$(curl -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/rgc/noarch")"
+newver="$(curl -s -k -L -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/rgc/noarch")"
 installedver="$(dumpsys package de.grennith.rgc.remotegpscontroller 2>/dev/null|awk -F'=' '/versionName/{print $2}'|head -n1)"
 
 if checkupdate "$newver" "$installedver" ;then
  echo "`date +%Y-%m-%d_%T` New rgc version detected in wizard, updating $installedver=>$newver" >> $logfile
  rm -f /sdcard/Download/RemoteGpsController.apk
- until curl -o /sdcard/Download/RemoteGpsController.apk  -s -k -L $(get_pd_user) -H "origin: $origin" "$pserver/mad_apk/rgc/download" ;do
+ until curl -o /sdcard/Download/RemoteGpsController.apk  -s -k -L -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/rgc/download" ;do
   rm -f /sdcard/Download/RemoteGpsController.apk
   sleep 2
  done
@@ -378,7 +418,7 @@ vmapper_xml(){
 vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
 vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
 
-/system/bin/curl -k -s -L -o $vmconf $(get_pd_user) -H "origin: $origin" "$pserver/vm_conf"
+/system/bin/curl -k -s -L -o $vmconf -u $authuser:$authpassword -H "origin: $origin" "$server/vm_conf"
 
 chmod 660 $vmconf
 chown $vmuser:$vmuser $vmconf

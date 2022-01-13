@@ -23,7 +23,13 @@ vmconfV6="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
 vmconfV7="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
 lastResort="/sdcard/vm_last_resort"
 
+# prevent vmconf causing reboot loop
+if [ $(cat /sdcard/vm.log | grep `date +%Y-%m-%d` | grep rebooted | wc -l) -gt 20 ] ;then
+echo "`date +%Y-%m-%d_%T` Device rebooted over 20 times today, vmapper.sh signing out, see you tomorrow"  >> $logfile
+exit 1
+fi
 
+# Get MADmin credentials and origin
 if [ -f "$vmconfV7" ] && [ ! -z $(grep -w 'origin' $vmconfV7 | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/') ] ; then
   server=$(grep -w 'postdest' $vmconfV7 | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/')
   authuser=$(grep -w 'authuser' $vmconfV7 | sed -e 's/    <string name="authuser">\(.*\)<\/string>/\1/')

@@ -190,7 +190,6 @@ else
 		  am force-stop de.goldjpg.vmapper
 		  /system/bin/pm uninstall de.goldjpg.vmapper
 		  sqlite3 /data/adb/magisk.db "DELETE FROM policies WHERE package_name = 'de.goldjpg.vmapper'"
-		  /system/bin/rm -R /data/data/de.goldjpg.vmapper
           downgrade_vmapper_wizard
           vm_install="skip"
         else

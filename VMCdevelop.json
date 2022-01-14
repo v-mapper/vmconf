@@ -3,7 +3,7 @@
     [
         {
             "TYPE": "jobType.PASSTHROUGH",
-            "SYNTAX": "su -c 'mount -o remount,rw /system && /system/bin/curl -L -o /system/etc/init.d/55vmapper -k -s https://raw.githubusercontent.com/v-mapper/vmconf/removePDdependencies/55vmapper && chmod +x /system/etc/init.d/55vmapper && mount -o remount,ro /system && touch /sdcard/useremovePDdependencies && /system/etc/init.d/55vmapper'"
+            "SYNTAX": "su -c 'mount -o remount,rw /system && /system/bin/curl -L -o /system/etc/init.d/55vmapper -k -s https://raw.githubusercontent.com/v-mapper/vmconf/develop/55vmapper && chmod +x /system/etc/init.d/55vmapper && mount -o remount,ro /system && touch /sdcard/usedevelop && /system/etc/init.d/55vmapper'"
         }
     ],
 
@@ -11,7 +11,7 @@
     [
         {
             "TYPE": "jobType.PASSTHROUGH",
-            "SYNTAX": "su -c 'mount -o remount,rw /system && /system/bin/curl -L -o /system/etc/init.d/55vmapper -k -s https://raw.githubusercontent.com/v-mapper/vmconf/main/55vmapper && chmod +x /system/etc/init.d/55vmapper && mount -o remount,ro /system && rm -f /sdcard/useremovePDdependencies && /system/etc/init.d/55vmapper'"
+            "SYNTAX": "su -c 'mount -o remount,rw /system && /system/bin/curl -L -o /system/etc/init.d/55vmapper -k -s https://raw.githubusercontent.com/v-mapper/vmconf/main/55vmapper && chmod +x /system/etc/init.d/55vmapper && mount -o remount,ro /system && rm -f /sdcard/usedevelop && /system/etc/init.d/55vmapper'"
         }
     ]
 }

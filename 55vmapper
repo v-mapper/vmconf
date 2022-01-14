@@ -12,7 +12,7 @@ oldsh=$(grep '# version' /system/bin/vmapper.sh | awk '{ print $NF }')
 
 mount -o remount,rw /system
 
-if [ -f /sdcard/usedevelop ]; then
+if [ -f /sdcard/useVMCdevelop ]; then
         /system/bin/curl -s -k -L -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/vmapper.sh
         chmod +x /system/bin/vmapper.sh
         /system/bin/curl -s -k -L -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/develop/55vmapper

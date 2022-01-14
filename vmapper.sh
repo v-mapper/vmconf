@@ -247,7 +247,7 @@ uid=$(stat -c %u /data/data/de.vahrmap.vmapper/)
 am force-stop de.vahrmap.vmapper
 sleep 2
 sqlite3 /data/adb/magisk.db "INSERT INTO policies (uid,package_name,policy,until,logging,notification) VALUES(\"$uid\",'de.vahrmap.vmapper',2,0,1,1)"
-echo "`date +%Y-%m-%d_%T`VM downgrade: vmapper granted SU access" >> $logfile
+echo "`date +%Y-%m-%d_%T` VM downgrade: vmapper granted SU access" >> $logfile
 
 # (re)create xml and start vmapper+pogo
 create_vmapper_xml_no_reboot

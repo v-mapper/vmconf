@@ -10,13 +10,6 @@ fi
 rm -f /sdcard/vmapper_conf
 
 logfile="/sdcard/vm.log"
-#pdconf="/data/data/com.mad.pogodroid/shared_prefs/com.mad.pogodroid_preferences.xml"
-#authpassword=$(grep 'auth_password' $pdconf | sed -e 's/    <string name="auth_password">\(.*\)<\/string>/\1/')
-#authuser=$(grep 'auth_username' $pdconf | sed -e 's/    <string name="auth_username">\(.*\)<\/string>/\1/')
-#origin=$(grep 'post_origin' $pdconf | sed -e 's/    <string name="post_origin">\(.*\)<\/string>/\1/')
-#postdest=$(grep -w 'post_destination' $pdconf | sed -e 's/    <string name="post_destination">\(.*\)<\/string>/\1/')
-#pserver=$(grep -v raw "$pdconf"|awk -F'>' '/post_destination/{print $2}'|awk -F'<' '{print $1}')
-
 puser=$(ls -la /data/data/com.mad.pogodroid/|head -n2|tail -n1|awk '{print $3}')
 pdconf="/data/data/com.mad.pogodroid/shared_prefs/com.mad.pogodroid_preferences.xml"
 vmconfV6="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
@@ -72,23 +65,6 @@ sleep 2
 /system/bin/reboot
 }
 
-#checkpdconf(){
-#if ! [[ -s "$pdconf" ]] ;then
-# echo "`date +%Y-%m-%d_%T` Pogodroid not configured, we need those settings" >> $logfile
-# return 1
-#fi
-#}
-
-
-#get_pd_user(){
-# checkpdconf || return 1
-# user=$(awk -F'>' '/auth_username/{print $2}' "$pdconf"|awk -F'<' '{print $1}')
-# pass=$(awk -F'>' '/auth_password/{print $2}' "$pdconf"|awk -F'<' '{print $1}')
-# if [[ "$user" ]] ;then
-# printf "-u $user:$pass"
-# fi
-#}
-
 
 case "$(uname -m)" in
  aarch64) arch="arm64_v8a";;
@@ -135,7 +111,6 @@ echo "`date +%Y-%m-%d_%T` VM install: pogodroid disabled" >> $logfile
 echo "`date +%Y-%m-%d_%T` VM install: vmapper installed" >> $logfile
 
 ## At this stage vmapper isn't in magisk db nor had it generated a config folder
-#monkey -p de.vahrmap.vmapper -c android.intent.category.LAUNCHER 1
 am start -n de.vahrmap.vmapper/.MainActivity
 sleep 2
 uid=$(stat -c %u /data/data/de.vahrmap.vmapper/)
@@ -167,7 +142,6 @@ reboot=1
 
 vmapper_wizard(){
 #check update vmapper and download from wizard
-# checkpdconf || return 1
 ! [[ "$server" ]] && echo "`date +%Y-%m-%d_%T` no MADmin endpoint configured, cannot contact the wizard" >> $logfile && return 1
 
 newver="$(/system/bin/curl -s -k -L -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/noarch" | awk '{print substr($1,2); }')"
@@ -257,7 +231,6 @@ echo "`date +%Y-%m-%d_%T` VM downgrade: xml re-created and vmapper+pogo re-start
 
 pogo_wizard(){
 #check pogo and download from wizard
-# checkpdconf || return 1
 ! [[ "$server" ]] && echo "`date +%Y-%m-%d_%T` no MADmin endpoint configured, cannot contact the wizard" >> $logfile && return 1
 
 if [ -z ${force_pogo_update+x} ]; then
@@ -299,7 +272,6 @@ fi
 
 rgc_wizard(){
 #check update rgc and download from wizard
-# checkpdconf || return 1
 ! [[ "$server" ]] && echo "`date +%Y-%m-%d_%T` no MADmin endpoint configured, cannot contact the wizard" >> $logfile && return 1
 
 newver="$(curl -s -k -L -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/rgc/noarch")"

@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.38
+# version 2.39
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -15,6 +15,9 @@ pdconf="/data/data/com.mad.pogodroid/shared_prefs/com.mad.pogodroid_preferences.
 vmconfV6="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
 vmconfV7="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
 lastResort="/sdcard/vm_last_resort"
+
+# stderr to logfile
+exec 2>> $logfile
 
 # prevent vmconf causing reboot loop
 if [ $(cat /sdcard/vm.log | grep `date +%Y-%m-%d` | grep rebooted | wc -l) -gt 20 ] ;then

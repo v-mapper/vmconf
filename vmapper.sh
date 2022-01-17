@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.39
+# version 2.40
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -18,6 +18,10 @@ lastResort="/sdcard/vm_last_resort"
 
 # stderr to logfile
 exec 2>> $logfile
+
+# add vmapper.sh command to log
+echo "" >> $logfile
+echo "`date +%Y-%m-%d_%T` ## Executing vmapper.sh $@" >> $logfile
 
 # prevent vmconf causing reboot loop
 if [ $(cat /sdcard/vm.log | grep `date +%Y-%m-%d` | grep rebooted | wc -l) -gt 20 ] ;then

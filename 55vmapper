@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 1.1
+# version 1.2
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -28,6 +28,7 @@ mount -o remount,ro /system
 
 new55=$(head -5 /system/etc/init.d/55vmapper | grep '# version' | awk '{ print $NF }')
 newsh=$(grep '# version' /system/bin/vmapper.sh | awk '{ print $NF }')
+echo "" >> /sdcard/vm.log
 echo "`date +%Y-%m-%d_%T` Device rebooted, 55vmapper $old55=>$new55, vmapper.sh $oldsh=>$newsh" >> /sdcard/vm.log
 
 # have vmapper.sh check for updated vmapper version in wizzard

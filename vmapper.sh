@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.40
+# version 2.41
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -65,6 +65,15 @@ if [[ ! -z ${server+x} || ! -z ${authuser+x} || ! -z ${authpassword+x} || ! -z $
 touch "$lastResort"
 echo "$server $authuser $authpassword $origin" >> "$lastResort"
 fi
+
+# temp check on v6+exit for v7 migration
+newver="$(/system/bin/curl -s -k -L -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/noarch" | awk '{print substr($1,2); }')"
+vnew="$(echo $newver | awk '{print substr($1,1,1); }')"
+if [[ "$vnew" = 6 ]] ;then
+echo "`date +%Y-%m-%d_%T` Vmapper $newver detected in wizard, exiting vmapper.sh" >> $logfile
+exit 1
+fi
+
 
 reboot_device(){
 echo "`date +%Y-%m-%d_%T` Reboot device" >> $logfile

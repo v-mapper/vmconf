@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.41
+# version 2.42
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -429,6 +429,7 @@ create_vmapper_xml_no_reboot(){
 am force-stop com.nianticlabs.pokemongo
 am force-stop de.vahrmap.vmapper
 vmapper_xml
+echo "`date +%Y-%m-%d_%T` Restarting vmapper and pogo" >> $logfile
 am broadcast -n de.vahrmap.vmapper/.RestartService
 sleep 5
 monkey -p com.nianticlabs.pokemongo -c android.intent.category.LAUNCHER 1

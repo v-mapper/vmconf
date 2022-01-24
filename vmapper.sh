@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.43
+# version 2.44
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -64,6 +64,18 @@ if [[ ! -z ${server+x} || ! -z ${authuser+x} || ! -z ${authpassword+x} || ! -z $
 /system/bin/rm -f "$lastResort"
 touch "$lastResort"
 echo "$server $authuser $authpassword $origin" >> "$lastResort"
+fi
+
+# set hostname = origin, wait till next reboot for it to take effect
+if [ $(cat /system/build.prop | grep net.hostname | wc -l) = 0 ]; then
+  echo "`date +%Y-%m-%d_%T` No hostname set, setting it to $origin" >> $logfile
+  echo "net.hostname=$origin" >> /system/build.prop
+else
+  hostname=$(grep net.hostname /system/build.prop | awk 'BEGIN { FS = "=" } ; { print $2 }')
+  if [[ $hostname != $origin ]]; then
+    echo "`date +%Y-%m-%d_%T` Changing hostname, from $hostname to $origin" >> $logfile
+    sed -i -e "s/^net.hostname=.*/net.hostname=$origin/g" /system/build.prop
+  fi
 fi
 
 # temp check on v6+exit for v7 migration

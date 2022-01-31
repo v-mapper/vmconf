@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.44
+# version 2.45
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -298,6 +298,20 @@ fi
 }
 
 
+downgrade_pogo_wizard_no_reboot(){
+/system/bin/rm -f /sdcard/Download/pogo.apk
+/system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/pogo.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/pogo/$arch/download"
+echo "`date +%Y-%m-%d_%T` PoGo downgrade: pogo downloaded from wizard" >> $logfile
+/system/bin/pm uninstall com.nianticlabs.pokemongo
+echo "`date +%Y-%m-%d_%T` PoGo downgrade: pogo removed" >> $logfile
+/system/bin/pm install -r /sdcard/Download/pogo.apk
+/system/bin/rm -f /sdcard/Download/pogo.apk
+echo "`date +%Y-%m-%d_%T` PoGo downgrade: pogo installed" >> $logfile
+monkey -p com.nianticlabs.pokemongo -c android.intent.category.LAUNCHER 1
+echo "`date +%Y-%m-%d_%T` PoGo downgrade: pogo started" >> $logfile
+}
+
+
 rgc_wizard(){
 #check update rgc and download from wizard
 ! [[ "$server" ]] && echo "`date +%Y-%m-%d_%T` no MADmin endpoint configured, cannot contact the wizard" >> $logfile && return 1
@@ -509,6 +523,7 @@ for i in "$@" ;do
  -uvw) update_vmapper_wizard ;;
  -dvw) downgrade_vmapper_wizard ;;
  -upw) update_pogo_wizard ;;
+ -dpwnr) downgrade_pogo_wizard_no_reboot ;;
  -urw) update_rgc_wizard ;;
  -ua) update_all ;;
  -uanr) update_all_no_reboot ;;

@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.45
+# version 2.46
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -69,12 +69,16 @@ fi
 # set hostname = origin, wait till next reboot for it to take effect
 if [ $(cat /system/build.prop | grep net.hostname | wc -l) = 0 ]; then
   echo "`date +%Y-%m-%d_%T` No hostname set, setting it to $origin" >> $logfile
+  mount -o remount,rw /system
   echo "net.hostname=$origin" >> /system/build.prop
+  mount -o remount,ro /system
 else
   hostname=$(grep net.hostname /system/build.prop | awk 'BEGIN { FS = "=" } ; { print $2 }')
   if [[ $hostname != $origin ]]; then
     echo "`date +%Y-%m-%d_%T` Changing hostname, from $hostname to $origin" >> $logfile
+    mount -o remount,rw /system
     sed -i -e "s/^net.hostname=.*/net.hostname=$origin/g" /system/build.prop
+    mount -o remount,ro /system
   fi
 fi
 

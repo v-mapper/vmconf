@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.46
+# version 2.47
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -12,6 +12,8 @@ rm -f /sdcard/vmapper_conf
 logfile="/sdcard/vm.log"
 puser=$(ls -la /data/data/com.mad.pogodroid/|head -n2|tail -n1|awk '{print $3}')
 pdconf="/data/data/com.mad.pogodroid/shared_prefs/com.mad.pogodroid_preferences.xml"
+ruser=$(ls -la /data/data/de.grennith.rgc.remotegpscontroller/|head -n2|tail -n1|awk '{print $3}')
+rgcconf="/data/data/de.grennith.rgc.remotegpscontroller/shared_prefs/de.grennith.rgc.remotegpscontroller_preferences.xml"
 vmconfV6="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
 vmconfV7="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
 lastResort="/sdcard/vm_last_resort"
@@ -516,6 +518,54 @@ echo "`date +%Y-%m-%d_%T` VM daemon disable and PD daemon enable" >> $logfile
 reboot=1
 }
 
+rgc_to_vm(){
+vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
+vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
+# disable rgc
+sed -i 's,\"autostart_services\" value=\"true\",\"autostart_services\" value=\"false\",g' $rgcconf
+sed -i 's,\"boot_startup\" value=\"true\",\"boot_startup\" value=\"false\",g' $rgcconf
+chmod 660 $rgcconf
+chown $ruser:$ruser $rgcconf
+
+# enable vm mockgps
+sed -i 's,\"mockgps\" value=\"false\",\"mockgps\" value=\"true\",g' $vmconf
+chmod 660 $vmconf
+chown $vmuser:$vmuser $vmconf
+
+# kill rgc & restart vm
+am force-stop de.grennith.rgc.remotegpscontroller
+am broadcast -n de.vahrmap.vmapper/.RestartService
+sleep 5
+
+echo "`date +%Y-%m-%d_%T` VM mockgps enable and RGC disable" >> $logfile
+
+reboot=1
+}
+
+vm_to_rgc(){
+vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
+vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
+# disable vm mockgps
+sed -i 's,\"mockgps\" value=\"true\",\"mockgps\" value=\"false\",g' $vmconf
+chmod 660 $vmconf
+chown $vmuser:$vmuser $vmconf
+
+# enable rgc
+sed -i 's,\"autostart_services\" value=\"false\",\"autostart_services\" value=\"true\",g' $rgcconf
+sed -i 's,\"boot_startup\" value=\"false\",\"boot_startup\" value=\"true\",g' $rgcconf
+chmod 660 $rgcconf
+chown $ruser:$ruser $rgcconf
+
+# restart vm & start rgc
+am broadcast -n de.vahrmap.vmapper/.RestartService
+sleep 2
+monkey -p de.grennith.rgc.remotegpscontroller 1
+sleep 5
+
+echo "`date +%Y-%m-%d_%T` VM mockgps disable and RGC enable" >> $logfile
+
+reboot=1
+}
 
 force_pogo_update(){
 force_pogo_update=true
@@ -535,6 +585,8 @@ for i in "$@" ;do
  -uvxnr) create_vmapper_xml_no_reboot ;;
  -spv) pd_to_vm ;;
  -svp) vm_to_pd ;;
+ -srv) rgc_to_vm ;;
+ -svr) vm_to_rgc ;;
  -fp) force_pogo_update ;;
  esac
 done

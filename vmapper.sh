@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.48
+# version 2.49
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -132,6 +132,14 @@ sed -i 's,\"mockgps\" value=\"false\",\"mockgps\" value=\"true\",g' $vmconfV7
 am broadcast -n de.vahrmap.vmapper/.RestartService
 echo "`date +%Y-%m-%d_%T` VMconf check: rgc deactivated and vmapper mockgps disabled, enabled mockgps and restarted vmapper" >> $logfile
 fi
+
+# ensure vmapper mockgps is active for useApi
+if [ -f "$vmconfV7" ] && [[ $(grep -w 'useApi' $vmconfV7 | awk -F "\"" '{print $4}') == "true" ]] && [[ $(grep -w 'mockgps' $vmconfV7 | awk -F "\"" '{print $4}') == "false" ]] ;then
+sed -i 's,\"mockgps\" value=\"false\",\"mockgps\" value=\"true\",g' $vmconfV7
+am broadcast -n de.vahrmap.vmapper/.RestartService
+echo "`date +%Y-%m-%d_%T` VMconf check: vmapper useApi activated and vmapper mockgps disabled, enabled mockgps and restarted vmapper" >> $logfile
+fi
+
 
 reboot_device(){
 echo "`date +%Y-%m-%d_%T` Reboot device" >> $logfile

@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.47
+# version 2.48
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -272,6 +272,11 @@ if [ -z ${force_pogo_update+x} ]; then
 else
   newver="1.599.1"
 fi
+
+if [[ $newver == "Supported version not installed" ]] ;then
+newver="1.599.1"
+fi
+
 installedver="$(dumpsys package com.nianticlabs.pokemongo|awk -F'=' '/versionName/{print $2}')"
 
 if checkupdate "$newver" "$installedver" ;then

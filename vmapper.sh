@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.47
+# version 2.48
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -92,6 +92,46 @@ echo "`date +%Y-%m-%d_%T` Vmapper $newver detected in wizard, exiting vmapper.sh
 exit 1
 fi
 
+# check rgc deactivated and vmapper not installed (properly) or empty config.xml
+if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print $4}') == "false" ]] ;then
+  if [ ! -f "$vmconfV7" ] || [ -z $(grep -w 'origin' $vmconfV7 | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/') ] ; then
+    sed -i 's,\"autostart_services\" value=\"false\",\"autostart_services\" value=\"true\",g' $rgcconf
+    sed -i 's,\"boot_startup\" value=\"false\",\"boot_startup\" value=\"true\",g' $rgcconf
+    chmod 660 $rgcconf
+    chown $ruser:$ruser $rgcconf
+	monkey -p de.grennith.rgc.remotegpscontroller 1
+    echo "`date +%Y-%m-%d_%T` VMconf check: rgc deactivated and either vmapper was not installed or config was empty, enabled rgc settings and started rgc " >> $logfile
+  fi
+fi
+
+# check vmapper mockgps active and rgc active
+if [ -f "$vmconfV7" ] && [[ $(grep -w 'mockgps' $vmconfV7 | awk -F "\"" '{print $4}') == "true" ]] && [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print $4}') == "true" ]] ;then
+# echo "deactivate rgc settings and kill rgc"
+am force-stop de.grennith.rgc.remotegpscontroller
+sed -i 's,\"autostart_services\" value=\"true\",\"autostart_services\" value=\"false\",g' $rgcconf
+sed -i 's,\"boot_startup\" value=\"true\",\"boot_startup\" value=\"false\",g' $rgcconf
+chmod 660 $rgcconf
+chown $ruser:$ruser $rgcconf
+echo "`date +%Y-%m-%d_%T` VMconf check: vmapper mockgps was active as well as rgc, disabled rgc settings and stopped rgc" >> $logfile
+fi
+
+# check vmapper useApi active and rgc active
+if [ -f "$vmconfV7" ] && [[ $(grep -w 'useApi' $vmconfV7 | awk -F "\"" '{print $4}') == "true" ]] && [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print $4}') == "true" ]] ;then
+#  echo "deactivate rgc settings and kill rgc"
+am force-stop de.grennith.rgc.remotegpscontroller
+sed -i 's,\"autostart_services\" value=\"true\",\"autostart_services\" value=\"false\",g' $rgcconf
+sed -i 's,\"boot_startup\" value=\"true\",\"boot_startup\" value=\"false\",g' $rgcconf
+chmod 660 $rgcconf
+chown $ruser:$ruser $rgcconf
+echo "`date +%Y-%m-%d_%T` VMconf check: vmapper useApi was active as well as rgc, disabled rgc settings and stopped rgc" >> $logfile
+fi
+
+# check rgc deactivated and vmapper mockgps disabled
+if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print $4}') == "false" ]] && [[ $(grep -w 'mockgps' $vmconfV7 | awk -F "\"" '{print $4}') == "false" ]] ;then
+sed -i 's,\"mockgps\" value=\"false\",\"mockgps\" value=\"true\",g' $vmconfV7
+am broadcast -n de.vahrmap.vmapper/.RestartService
+echo "`date +%Y-%m-%d_%T` VMconf check: rgc deactivated and vmapper mockgps disabled, enabled mockgps and restarted vmapper" >> $logfile
+fi
 
 reboot_device(){
 echo "`date +%Y-%m-%d_%T` Reboot device" >> $logfile

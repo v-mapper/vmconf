@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.49
+# version 2.50
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -216,6 +216,11 @@ mount -o remount,rw /system
 chmod +x /system/etc/init.d/55vmapper
 mount -o remount,ro /system
 echo "`date +%Y-%m-%d_%T` VM install: 55vmapper added" >> $logfile
+
+## check vmapper mockgps active
+if [ -f "$vmconfV7" ] && [[ $(grep -w 'mockgps' $vmconfV7 | awk -F "\"" '{print $4}') == "true" ]] ;then
+rgc_to_vm
+fi
 
 ## Set for reboot device
 reboot=1

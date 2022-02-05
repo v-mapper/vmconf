@@ -258,7 +258,7 @@ else
       /system/bin/rm -f /sdcard/Download/vmapper.apk
       until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download" ;do
        /system/bin/rm -f /sdcard/Download/vmapper.apk
-       sleep
+       sleep 2
       done
 
       # set vmapper to be installed

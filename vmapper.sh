@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.50
+# version 2.51
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -28,6 +28,7 @@ echo "`date +%Y-%m-%d_%T` ## Executing vmapper.sh $@" >> $logfile
 # prevent vmconf causing reboot loop
 if [ $(cat /sdcard/vm.log | grep `date +%Y-%m-%d` | grep rebooted | wc -l) -gt 20 ] ;then
 echo "`date +%Y-%m-%d_%T` Device rebooted over 20 times today, vmapper.sh signing out, see you tomorrow"  >> $logfile
+echo "Device rebooted over 20 times today, vmapper.sh signing out, see you tomorrow.....or (re)move /sdcard/vm.log"
 exit 1
 fi
 

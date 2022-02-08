@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.51
+# version 2.52
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -59,6 +59,7 @@ elif [ -f "$lastResort" ]; then
   echo "`date +%Y-%m-%d_%T` Using settings stored in /sdcard/vm_last_resort"  >> $logfile
 else
   echo "`date +%Y-%m-%d_%T` No settings found to connect to MADmin, exiting vmapper.sh" >> $logfile
+  echo "No settings found to connect to MADmin, exiting vmapper.sh"
   exit 1
 fi
 

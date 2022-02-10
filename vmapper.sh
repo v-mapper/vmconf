@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.52
+# version 2.53
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -25,11 +25,13 @@ exec 2>> $logfile
 echo "" >> $logfile
 echo "`date +%Y-%m-%d_%T` ## Executing vmapper.sh $@" >> $logfile
 
-# prevent vmconf causing reboot loop
-if [ $(cat /sdcard/vm.log | grep `date +%Y-%m-%d` | grep rebooted | wc -l) -gt 20 ] ;then
-echo "`date +%Y-%m-%d_%T` Device rebooted over 20 times today, vmapper.sh signing out, see you tomorrow"  >> $logfile
-echo "Device rebooted over 20 times today, vmapper.sh signing out, see you tomorrow.....or (re)move /sdcard/vm.log"
-exit 1
+# prevent vmconf causing reboot loop. Bypass check by executing, vmapper.sh -nrc -whatever
+if [ $1 != "-nrc" ] ;then
+  if [ $(cat /sdcard/vm.log | grep `date +%Y-%m-%d` | grep rebooted | wc -l) -gt 20 ] ;then
+  echo "`date +%Y-%m-%d_%T` Device rebooted over 20 times today, vmapper.sh signing out, see you tomorrow"  >> $logfile
+  echo "Device rebooted over 20 times today, vmapper.sh signing out, see you tomorrow.....or (re)move /sdcard/vm.log"
+  exit 1
+  fi
 fi
 
 # Get MADmin credentials and origin

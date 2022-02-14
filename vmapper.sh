@@ -620,7 +620,7 @@ sed -i 's,\"autostart_services\" value=\"false\",\"autostart_services\" value=\"
 sed -i 's,\"boot_startup\" value=\"false\",\"boot_startup\" value=\"true\",g' $rgcconf
 chmod 660 $rgcconf
 chown $ruser:$ruser $rgcconf
-# disable rgc autoupdate
+# enable rgc autoupdate
 rm -f /sdcard/disableautorgcupdate
 
 # restart vm & start rgc

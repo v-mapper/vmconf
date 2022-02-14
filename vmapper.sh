@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.53
+# version 2.54
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -188,6 +188,8 @@ am force-stop com.mad.pogodroid
 # let us kill pogo as well
 am force-stop com.nianticlabs.pokemongo
 echo "`date +%Y-%m-%d_%T` VM install: pogodroid disabled" >> $logfile
+# disable pd autoupdate
+touch /sdcard/disableautopogodroidupdate
 
 ## Install vmapper
 /system/bin/rm -f /sdcard/Download/vmapper.apk
@@ -532,6 +534,8 @@ vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}
 sed -i 's,\"full_daemon\" value=\"true\",\"full_daemon\" value=\"false\",g' $pdconf
 chmod 660 $pdconf
 chown $puser:$puser $pdconf
+# disable pd autoupdate
+touch /sdcard/disableautopogodroidupdate
 
 # enable vm daemon
 sed -i 's,\"daemon\" value=\"false\",\"daemon\" value=\"true\",g' $vmconf
@@ -561,6 +565,8 @@ chown $vmuser:$vmuser $vmconf
 sed -i 's,\"full_daemon\" value=\"false\",\"full_daemon\" value=\"true\",g' $pdconf
 chmod 660 $pdconf
 chown $puser:$puser $pdconf
+# enable pd autoupdate
+rm -f /sdcard/disableautopogodroidupdate
 
 #kill vm & start pd
 am force-stop de.vahrmap.vmapper
@@ -583,6 +589,8 @@ sed -i 's,\"autostart_services\" value=\"true\",\"autostart_services\" value=\"f
 sed -i 's,\"boot_startup\" value=\"true\",\"boot_startup\" value=\"false\",g' $rgcconf
 chmod 660 $rgcconf
 chown $ruser:$ruser $rgcconf
+# disable rgc autoupdate
+touch /sdcard/disableautorgcupdate
 
 # enable vm mockgps
 sed -i 's,\"mockgps\" value=\"false\",\"mockgps\" value=\"true\",g' $vmconf
@@ -612,6 +620,8 @@ sed -i 's,\"autostart_services\" value=\"false\",\"autostart_services\" value=\"
 sed -i 's,\"boot_startup\" value=\"false\",\"boot_startup\" value=\"true\",g' $rgcconf
 chmod 660 $rgcconf
 chown $ruser:$ruser $rgcconf
+# disable rgc autoupdate
+rm -f /sdcard/disableautorgcupdate
 
 # restart vm & start rgc
 am broadcast -n de.vahrmap.vmapper/.RestartService

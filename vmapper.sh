@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.54
+# version 2.55
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -24,15 +24,6 @@ exec 2>> $logfile
 # add vmapper.sh command to log
 echo "" >> $logfile
 echo "`date +%Y-%m-%d_%T` ## Executing vmapper.sh $@" >> $logfile
-
-# prevent vmconf causing reboot loop. Bypass check by executing, vmapper.sh -nrc -whatever
-if [ $1 != "-nrc" ] ;then
-  if [ $(cat /sdcard/vm.log | grep `date +%Y-%m-%d` | grep rebooted | wc -l) -gt 20 ] ;then
-  echo "`date +%Y-%m-%d_%T` Device rebooted over 20 times today, vmapper.sh signing out, see you tomorrow"  >> $logfile
-  echo "Device rebooted over 20 times today, vmapper.sh signing out, see you tomorrow.....or (re)move /sdcard/vm.log"
-  exit 1
-  fi
-fi
 
 # Get MADmin credentials and origin
 if [ -f "$vmconfV7" ] && [ ! -z $(grep -w 'origin' $vmconfV7 | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/') ] ; then
@@ -98,7 +89,7 @@ fi
 
 # check rgc deactivated and vmapper not installed (properly) or empty config.xml
 if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print $4}') == "false" ]] ;then
-  if [ ! -f "$vmconfV7" ] || [ -z $(grep -w 'origin' $vmconfV7 | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/') ] ; then
+  if [ ! -f "$vmconfV7" ] || [ -z $(grep -w 'websocketurl' $vmconfV7 | sed -e 's/    <string name="websocketurl">\(.*\)<\/string>/\1/') ] ; then
     sed -i 's,\"autostart_services\" value=\"false\",\"autostart_services\" value=\"true\",g' $rgcconf
     sed -i 's,\"boot_startup\" value=\"false\",\"boot_startup\" value=\"true\",g' $rgcconf
     chmod 660 $rgcconf
@@ -142,6 +133,16 @@ if [ -f "$vmconfV7" ] && [[ $(grep -w 'useApi' $vmconfV7 | awk -F "\"" '{print $
 sed -i 's,\"mockgps\" value=\"false\",\"mockgps\" value=\"true\",g' $vmconfV7
 am broadcast -n de.vahrmap.vmapper/.RestartService
 echo "`date +%Y-%m-%d_%T` VMconf check: vmapper useApi activated and vmapper mockgps disabled, enabled mockgps and restarted vmapper" >> $logfile
+fi
+
+
+# prevent vmconf causing reboot loop. Bypass check by executing, vmapper.sh -nrc -whatever
+if [ $1 != "-nrc" ] ;then
+  if [ $(cat /sdcard/vm.log | grep `date +%Y-%m-%d` | grep rebooted | wc -l) -gt 20 ] ;then
+  echo "`date +%Y-%m-%d_%T` Device rebooted over 20 times today, vmapper.sh signing out, see you tomorrow"  >> $logfile
+  echo "Device rebooted over 20 times today, vmapper.sh signing out, see you tomorrow.....add -nrc to job or (re)move /sdcard/vm.log then try again"
+  exit 1
+  fi
 fi
 
 

@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.54
+# version 2.55
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -98,7 +98,7 @@ fi
 
 # check rgc deactivated and vmapper not installed (properly) or empty config.xml
 if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print $4}') == "false" ]] ;then
-  if [ ! -f "$vmconfV7" ] || [ -z $(grep -w 'origin' $vmconfV7 | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/') ] ; then
+  if [ ! -f "$vmconfV7" ] || [ -z $(grep -w 'websocketurl' $vmconfV7 | sed -e 's/    <string name="websocketurl">\(.*\)<\/string>/\1/') ] ; then
     sed -i 's,\"autostart_services\" value=\"false\",\"autostart_services\" value=\"true\",g' $rgcconf
     sed -i 's,\"boot_startup\" value=\"false\",\"boot_startup\" value=\"true\",g' $rgcconf
     chmod 660 $rgcconf

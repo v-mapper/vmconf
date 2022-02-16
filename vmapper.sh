@@ -26,13 +26,13 @@ echo "" >> $logfile
 echo "`date +%Y-%m-%d_%T` ## Executing vmapper.sh $@" >> $logfile
 
 # Get MADmin credentials and origin
-if [ -f "$vmconfV7" ] && [ ! -z $(grep -w 'origin' $vmconfV7 | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/') ] ; then
+if [ -f "$vmconfV7" ] && [ ! -z $(grep -w 'postdest' $vmconfV7 | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/') ] ; then
   server=$(grep -w 'postdest' $vmconfV7 | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/')
   authuser=$(grep -w 'authuser' $vmconfV7 | sed -e 's/    <string name="authuser">\(.*\)<\/string>/\1/')
   authpassword=$(grep -w 'authpassword' $vmconfV7 | sed -e 's/    <string name="authpassword">\(.*\)<\/string>/\1/')
   origin=$(grep -w 'origin' $vmconfV7 | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/')
   echo "`date +%Y-%m-%d_%T` Using vahrmap.vmapper settings" >> $logfile
-elif [ -f "$vmconfV6" ] && [ ! -z $(grep -w 'origin' $vmconfV6 | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/') ]; then
+elif [ -f "$vmconfV6" ] && [ ! -z $(grep -w 'postdest' $vmconfV6 | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/') ]; then
   server=$(grep -w 'postdest' $vmconfV6 | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/')
   authuser=$(grep -w 'authuser' $vmconfV6 | sed -e 's/    <string name="authuser">\(.*\)<\/string>/\1/')
   authpassword=$(grep -w 'authpassword' $vmconfV6 | sed -e 's/    <string name="authpassword">\(.*\)<\/string>/\1/')

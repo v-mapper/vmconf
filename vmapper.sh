@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.56
+# version 2.57
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -95,6 +95,7 @@ if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print $4}') == "false" ]
     chmod 660 $rgcconf
     chown $ruser:$ruser $rgcconf
     monkey -p de.grennith.rgc.remotegpscontroller 1
+    reboot=1
     echo "`date +%Y-%m-%d_%T` VMconf check: rgc deactivated and either vmapper was not installed or config was empty, enabled rgc settings and started rgc " >> $logfile
   fi
 fi

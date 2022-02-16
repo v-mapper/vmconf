@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.55
+# version 2.56
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -94,7 +94,7 @@ if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print $4}') == "false" ]
     sed -i 's,\"boot_startup\" value=\"false\",\"boot_startup\" value=\"true\",g' $rgcconf
     chmod 660 $rgcconf
     chown $ruser:$ruser $rgcconf
-	monkey -p de.grennith.rgc.remotegpscontroller 1
+    monkey -p de.grennith.rgc.remotegpscontroller 1
     echo "`date +%Y-%m-%d_%T` VMconf check: rgc deactivated and either vmapper was not installed or config was empty, enabled rgc settings and started rgc " >> $logfile
   fi
 fi
@@ -124,6 +124,7 @@ fi
 # check rgc deactivated and vmapper mockgps disabled
 if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print $4}') == "false" ]] && [[ $(grep -w 'mockgps' $vmconfV7 | awk -F "\"" '{print $4}') == "false" ]] ;then
 sed -i 's,\"mockgps\" value=\"false\",\"mockgps\" value=\"true\",g' $vmconfV7
+am force-stop de.vahrmap.vmapper
 am broadcast -n de.vahrmap.vmapper/.RestartService
 echo "`date +%Y-%m-%d_%T` VMconf check: rgc deactivated and vmapper mockgps disabled, enabled mockgps and restarted vmapper" >> $logfile
 fi
@@ -131,6 +132,7 @@ fi
 # ensure vmapper mockgps is active for useApi
 if [ -f "$vmconfV7" ] && [[ $(grep -w 'useApi' $vmconfV7 | awk -F "\"" '{print $4}') == "true" ]] && [[ $(grep -w 'mockgps' $vmconfV7 | awk -F "\"" '{print $4}') == "false" ]] ;then
 sed -i 's,\"mockgps\" value=\"false\",\"mockgps\" value=\"true\",g' $vmconfV7
+am force-stop de.vahrmap.vmapper
 am broadcast -n de.vahrmap.vmapper/.RestartService
 echo "`date +%Y-%m-%d_%T` VMconf check: vmapper useApi activated and vmapper mockgps disabled, enabled mockgps and restarted vmapper" >> $logfile
 fi
@@ -287,7 +289,11 @@ if [ "$vm_install" = "install" ]; then
  /system/bin/pm install -r /sdcard/Download/vmapper.apk
  /system/bin/rm -f /sdcard/Download/vmapper.apk
  # new vmapper version in wizzard, so we replace xml
- create_vmapper_xml
+ if [[ -f /sdcard/disableautoxml ]] ;then
+   echo "`date +%Y-%m-%d_%T` Skipping update config.xml" >> $logfile
+ else
+   create_vmapper_xml
+ fi
  reboot=1
 fi
 }
@@ -434,7 +440,11 @@ if [ ! -z "$vm_install" ] && [ ! -z "$rgc_install" ] && [ ! -z "$pogo_install" ]
       /system/bin/pm install -r /sdcard/Download/vmapper.apk
       /system/bin/rm -f /sdcard/Download/vmapper.apk
       # new vmapper version in wizzard, so we replace xml
-      create_vmapper_xml
+      if [[ -f /sdcard/disableautoxml ]] ;then
+        echo "`date +%Y-%m-%d_%T` Skipping update config.xml" >> $logfile
+      else
+        create_vmapper_xml
+      fi
       reboot=1
     fi
     if [ "$pogo_install" = "install" ]; then
@@ -473,10 +483,15 @@ if [ ! -z "$vm_install" ] && [ ! -z "$rgc_install" ] && [ ! -z "$pogo_install" ]
       /system/bin/pm install -r /sdcard/Download/vmapper.apk
       /system/bin/rm -f /sdcard/Download/vmapper.apk
       # new vmapper version in wizzard, replace xml
-      vmapper_xml
+      if [[ -f /sdcard/disableautoxml ]] ;then
+        echo "`date +%Y-%m-%d_%T` Skipping update config.xml" >> $logfile
+      else
+        vmapper_xml
+      fi
       # if no pogo update we restart both now
       if [ "$pogo_install" != "install" ];then
         echo "`date +%Y-%m-%d_%T` No pogo update, starting vmapper+pogo" >> $logfile
+        am force-stop de.vahrmap.vmapper
         am broadcast -n de.vahrmap.vmapper/.RestartService
         sleep 5
         monkey -p com.nianticlabs.pokemongo -c android.intent.category.LAUNCHER 1
@@ -488,6 +503,7 @@ if [ ! -z "$vm_install" ] && [ ! -z "$rgc_install" ] && [ ! -z "$pogo_install" ]
       /system/bin/pm install -r /sdcard/Download/pogo.apk
       /system/bin/rm -f /sdcard/Download/pogo.apk
       # restart vmapper + start pogo
+      am force-stop de.vahrmap.vmapper
       am broadcast -n de.vahrmap.vmapper/.RestartService
       sleep 5
       monkey -p com.nianticlabs.pokemongo -c android.intent.category.LAUNCHER 1
@@ -518,10 +534,10 @@ reboot=1
 
 
 create_vmapper_xml_no_reboot(){
-am force-stop com.nianticlabs.pokemongo
-am force-stop de.vahrmap.vmapper
 vmapper_xml
 echo "`date +%Y-%m-%d_%T` Restarting vmapper and pogo" >> $logfile
+am force-stop com.nianticlabs.pokemongo
+am force-stop de.vahrmap.vmapper
 am broadcast -n de.vahrmap.vmapper/.RestartService
 sleep 5
 monkey -p com.nianticlabs.pokemongo -c android.intent.category.LAUNCHER 1
@@ -545,6 +561,7 @@ chown $vmuser:$vmuser $vmconf
 
 # kill pd & start vm
 am force-stop com.mad.pogodroid
+am force-stop de.vahrmap.vmapper
 am broadcast -n de.vahrmap.vmapper/.RestartService
 sleep 5
 
@@ -600,6 +617,7 @@ chown $vmuser:$vmuser $vmconf
 
 # kill rgc & restart vm
 am force-stop de.grennith.rgc.remotegpscontroller
+am force-stop de.vahrmap.vmapper
 am broadcast -n de.vahrmap.vmapper/.RestartService
 sleep 5
 
@@ -625,6 +643,7 @@ chown $ruser:$ruser $rgcconf
 rm -f /sdcard/disableautorgcupdate
 
 # restart vm & start rgc
+am force-stop de.vahrmap.vmapper
 am broadcast -n de.vahrmap.vmapper/.RestartService
 sleep 2
 monkey -p de.grennith.rgc.remotegpscontroller 1

@@ -289,7 +289,11 @@ if [ "$vm_install" = "install" ]; then
  /system/bin/pm install -r /sdcard/Download/vmapper.apk
  /system/bin/rm -f /sdcard/Download/vmapper.apk
  # new vmapper version in wizzard, so we replace xml
- create_vmapper_xml
+ if [[ -f /sdcard/disableautoxml ]] ;then
+   echo "`date +%Y-%m-%d_%T` Skipping update config.xml" >> $logfile
+ else
+   create_vmapper_xml
+ fi
  reboot=1
 fi
 }
@@ -436,7 +440,11 @@ if [ ! -z "$vm_install" ] && [ ! -z "$rgc_install" ] && [ ! -z "$pogo_install" ]
       /system/bin/pm install -r /sdcard/Download/vmapper.apk
       /system/bin/rm -f /sdcard/Download/vmapper.apk
       # new vmapper version in wizzard, so we replace xml
-      create_vmapper_xml
+      if [[ -f /sdcard/disableautoxml ]] ;then
+        echo "`date +%Y-%m-%d_%T` Skipping update config.xml" >> $logfile
+      else
+        create_vmapper_xml
+      fi
       reboot=1
     fi
     if [ "$pogo_install" = "install" ]; then
@@ -475,7 +483,11 @@ if [ ! -z "$vm_install" ] && [ ! -z "$rgc_install" ] && [ ! -z "$pogo_install" ]
       /system/bin/pm install -r /sdcard/Download/vmapper.apk
       /system/bin/rm -f /sdcard/Download/vmapper.apk
       # new vmapper version in wizzard, replace xml
-      vmapper_xml
+      if [[ -f /sdcard/disableautoxml ]] ;then
+        echo "`date +%Y-%m-%d_%T` Skipping update config.xml" >> $logfile
+      else
+        vmapper_xml
+      fi
       # if no pogo update we restart both now
       if [ "$pogo_install" != "install" ];then
         echo "`date +%Y-%m-%d_%T` No pogo update, starting vmapper+pogo" >> $logfile
@@ -522,10 +534,9 @@ reboot=1
 
 
 create_vmapper_xml_no_reboot(){
-am force-stop com.nianticlabs.pokemongo
-am force-stop de.vahrmap.vmapper
 vmapper_xml
 echo "`date +%Y-%m-%d_%T` Restarting vmapper and pogo" >> $logfile
+am force-stop com.nianticlabs.pokemongo
 am force-stop de.vahrmap.vmapper
 am broadcast -n de.vahrmap.vmapper/.RestartService
 sleep 5

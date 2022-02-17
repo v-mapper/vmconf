@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.58
+# version 2.59
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -648,8 +648,9 @@ reboot=1
 vm_to_rgc(){
 vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
 vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
-# disable vm mockgps
+# disable vm mockgps AND useApi
 sed -i 's,\"mockgps\" value=\"true\",\"mockgps\" value=\"false\",g' $vmconf
+sed -i 's,\"useApi\" value=\"true\",\"useApi\" value=\"false\",g' $vmconf
 chmod 660 $vmconf
 chown $vmuser:$vmuser $vmconf
 

@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.57
+# version 2.58
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -25,67 +25,6 @@ exec 2>> $logfile
 echo "" >> $logfile
 echo "`date +%Y-%m-%d_%T` ## Executing vmapper.sh $@" >> $logfile
 
-# Get MADmin credentials and origin
-if [ -f "$vmconfV7" ] && [ ! -z $(grep -w 'postdest' $vmconfV7 | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/') ] ; then
-  server=$(grep -w 'postdest' $vmconfV7 | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/')
-  authuser=$(grep -w 'authuser' $vmconfV7 | sed -e 's/    <string name="authuser">\(.*\)<\/string>/\1/')
-  authpassword=$(grep -w 'authpassword' $vmconfV7 | sed -e 's/    <string name="authpassword">\(.*\)<\/string>/\1/')
-  origin=$(grep -w 'origin' $vmconfV7 | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/')
-  echo "`date +%Y-%m-%d_%T` Using vahrmap.vmapper settings" >> $logfile
-elif [ -f "$vmconfV6" ] && [ ! -z $(grep -w 'postdest' $vmconfV6 | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/') ]; then
-  server=$(grep -w 'postdest' $vmconfV6 | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/')
-  authuser=$(grep -w 'authuser' $vmconfV6 | sed -e 's/    <string name="authuser">\(.*\)<\/string>/\1/')
-  authpassword=$(grep -w 'authpassword' $vmconfV6 | sed -e 's/    <string name="authpassword">\(.*\)<\/string>/\1/')
-  origin=$(grep -w 'origin' $vmconfV6 | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/')
-  echo "`date +%Y-%m-%d_%T` Using goldjpg.vmapper settings" >> $logfile
-elif [ -f "$pdconf" ] && [ ! -z $(grep -w 'post_origin' $pdconf | sed -e 's/    <string name="post_origin">\(.*\)<\/string>/\1/') ]; then
-  server=$(grep -w 'post_destination' $pdconf | sed -e 's/    <string name="post_destination">\(.*\)<\/string>/\1/')
-  authuser=$(grep -w 'auth_username' $pdconf | sed -e 's/    <string name="auth_username">\(.*\)<\/string>/\1/')
-  authpassword=$(grep -w 'auth_password' $pdconf | sed -e 's/    <string name="auth_password">\(.*\)<\/string>/\1/')
-  origin=$(grep -w 'post_origin' $pdconf | sed -e 's/    <string name="post_origin">\(.*\)<\/string>/\1/')
-  echo "`date +%Y-%m-%d_%T` Using pogodroid settings" >> $logfile
-elif [ -f "$lastResort" ]; then
-  server=$(awk '{print $1}' "$lastResort")
-  authuser=$(awk '{print $2}' "$lastResort")
-  authpassword=$(awk '{print $3}' "$lastResort")
-  origin=$(awk '{print $4}' "$lastResort")
-  echo "`date +%Y-%m-%d_%T` Using settings stored in /sdcard/vm_last_resort"  >> $logfile
-else
-  echo "`date +%Y-%m-%d_%T` No settings found to connect to MADmin, exiting vmapper.sh" >> $logfile
-  echo "No settings found to connect to MADmin, exiting vmapper.sh"
-  exit 1
-fi
-
-# store settings as last resort
-if [[ ! -z ${server+x} || ! -z ${authuser+x} || ! -z ${authpassword+x} || ! -z ${origin+x} ]] ; then
-/system/bin/rm -f "$lastResort"
-touch "$lastResort"
-echo "$server $authuser $authpassword $origin" >> "$lastResort"
-fi
-
-# set hostname = origin, wait till next reboot for it to take effect
-if [ $(cat /system/build.prop | grep net.hostname | wc -l) = 0 ]; then
-  echo "`date +%Y-%m-%d_%T` No hostname set, setting it to $origin" >> $logfile
-  mount -o remount,rw /system
-  echo "net.hostname=$origin" >> /system/build.prop
-  mount -o remount,ro /system
-else
-  hostname=$(grep net.hostname /system/build.prop | awk 'BEGIN { FS = "=" } ; { print $2 }')
-  if [[ $hostname != $origin ]]; then
-    echo "`date +%Y-%m-%d_%T` Changing hostname, from $hostname to $origin" >> $logfile
-    mount -o remount,rw /system
-    sed -i -e "s/^net.hostname=.*/net.hostname=$origin/g" /system/build.prop
-    mount -o remount,ro /system
-  fi
-fi
-
-# temp check on v6+exit for v7 migration
-newver="$(/system/bin/curl -s -k -L -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/noarch" | awk '{print substr($1,2); }')"
-vnew="$(echo $newver | awk '{print substr($1,1,1); }')"
-if [[ "$vnew" = 6 ]] ;then
-echo "`date +%Y-%m-%d_%T` Vmapper $newver detected in wizard, exiting vmapper.sh" >> $logfile
-exit 1
-fi
 
 # check rgc deactivated and vmapper not installed (properly) or empty config.xml
 if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print $4}') == "false" ]] ;then
@@ -139,12 +78,80 @@ echo "`date +%Y-%m-%d_%T` VMconf check: vmapper useApi activated and vmapper moc
 fi
 
 
+# Get MADmin credentials and origin
+if [ -f "$vmconfV7" ] && [ ! -z $(grep -w 'postdest' $vmconfV7 | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/') ] ; then
+  server=$(grep -w 'postdest' $vmconfV7 | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/')
+  authuser=$(grep -w 'authuser' $vmconfV7 | sed -e 's/    <string name="authuser">\(.*\)<\/string>/\1/')
+  authpassword=$(grep -w 'authpassword' $vmconfV7 | sed -e 's/    <string name="authpassword">\(.*\)<\/string>/\1/')
+  origin=$(grep -w 'origin' $vmconfV7 | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/')
+  echo "`date +%Y-%m-%d_%T` Using vahrmap.vmapper settings" >> $logfile
+elif [ -f "$vmconfV6" ] && [ ! -z $(grep -w 'postdest' $vmconfV6 | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/') ]; then
+  server=$(grep -w 'postdest' $vmconfV6 | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/')
+  authuser=$(grep -w 'authuser' $vmconfV6 | sed -e 's/    <string name="authuser">\(.*\)<\/string>/\1/')
+  authpassword=$(grep -w 'authpassword' $vmconfV6 | sed -e 's/    <string name="authpassword">\(.*\)<\/string>/\1/')
+  origin=$(grep -w 'origin' $vmconfV6 | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/')
+  echo "`date +%Y-%m-%d_%T` Using goldjpg.vmapper settings" >> $logfile
+elif [ -f "$pdconf" ] && [ ! -z $(grep -w 'post_origin' $pdconf | sed -e 's/    <string name="post_origin">\(.*\)<\/string>/\1/') ]; then
+  server=$(grep -w 'post_destination' $pdconf | sed -e 's/    <string name="post_destination">\(.*\)<\/string>/\1/')
+  authuser=$(grep -w 'auth_username' $pdconf | sed -e 's/    <string name="auth_username">\(.*\)<\/string>/\1/')
+  authpassword=$(grep -w 'auth_password' $pdconf | sed -e 's/    <string name="auth_password">\(.*\)<\/string>/\1/')
+  origin=$(grep -w 'post_origin' $pdconf | sed -e 's/    <string name="post_origin">\(.*\)<\/string>/\1/')
+  echo "`date +%Y-%m-%d_%T` Using pogodroid settings" >> $logfile
+elif [ -f "$lastResort" ]; then
+  server=$(awk '{print $1}' "$lastResort")
+  authuser=$(awk '{print $2}' "$lastResort")
+  authpassword=$(awk '{print $3}' "$lastResort")
+  origin=$(awk '{print $4}' "$lastResort")
+  echo "`date +%Y-%m-%d_%T` Using settings stored in /sdcard/vm_last_resort"  >> $logfile
+else
+  echo "`date +%Y-%m-%d_%T` No settings found to connect to MADmin, exiting vmapper.sh" >> $logfile
+  echo "No settings found to connect to MADmin, exiting vmapper.sh"
+  exit 1
+fi
+
+# verify endpoint and store settings as last resort
+statuscode=$(/system/bin/curl -k -s -L --fail --show-error -o /dev/null -u $authuser:$authpassword -H "origin: $origin" "$server/vm_conf" -w '%{http_code}')
+if [ $statuscode != 200 ] ;then
+  echo "Unable to reach MADmin endpoint, status code $statuscode, exit vmapper.sh"
+  echo "`date +%Y-%m-%d_%T` Unable to reach MADmin endpoint, status code $statuscode, exiting vmapper.sh" >> $logfile
+  exit 1
+else
+  /system/bin/rm -f "$lastResort"
+  touch "$lastResort"
+  echo "$server $authuser $authpassword $origin" >> "$lastResort"
+fi
+
 # prevent vmconf causing reboot loop. Bypass check by executing, vmapper.sh -nrc -whatever
 if [ $1 != "-nrc" ] ;then
   if [ $(cat /sdcard/vm.log | grep `date +%Y-%m-%d` | grep rebooted | wc -l) -gt 20 ] ;then
   echo "`date +%Y-%m-%d_%T` Device rebooted over 20 times today, vmapper.sh signing out, see you tomorrow"  >> $logfile
   echo "Device rebooted over 20 times today, vmapper.sh signing out, see you tomorrow.....add -nrc to job or (re)move /sdcard/vm.log then try again"
   exit 1
+  fi
+fi
+
+# temp check on v6 in MADmin => exit
+newver="$(/system/bin/curl -s -k -L -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/noarch" | awk '{print substr($1,2); }')"
+vnew="$(echo $newver | awk '{print substr($1,1,1); }')"
+if [[ "$vnew" = 6 ]] ;then
+echo "`date +%Y-%m-%d_%T` Vmapper $newver detected in wizard, exiting vmapper.sh" >> $logfile
+exit 1
+fi
+
+
+# set hostname = origin, wait till next reboot for it to take effect
+if [ $(cat /system/build.prop | grep net.hostname | wc -l) = 0 ]; then
+  echo "`date +%Y-%m-%d_%T` No hostname set, setting it to $origin" >> $logfile
+  mount -o remount,rw /system
+  echo "net.hostname=$origin" >> /system/build.prop
+  mount -o remount,ro /system
+else
+  hostname=$(grep net.hostname /system/build.prop | awk 'BEGIN { FS = "=" } ; { print $2 }')
+  if [[ $hostname != $origin ]]; then
+    echo "`date +%Y-%m-%d_%T` Changing hostname, from $hostname to $origin" >> $logfile
+    mount -o remount,rw /system
+    sed -i -e "s/^net.hostname=.*/net.hostname=$origin/g" /system/build.prop
+    mount -o remount,ro /system
   fi
 fi
 

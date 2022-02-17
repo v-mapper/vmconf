@@ -77,6 +77,17 @@ am broadcast -n de.vahrmap.vmapper/.RestartService
 echo "`date +%Y-%m-%d_%T` VMconf check: vmapper useApi activated and vmapper mockgps disabled, enabled mockgps and restarted vmapper" >> $logfile
 fi
 
+# check owner of vmapper config.xml
+vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
+vmconfiguser=$(ls -la /data/data/de.vahrmap.vmapper/shared_prefs/config.xml |head -n2|tail -n1|awk '{print $3}')
+if [ -f "$vmconfV7" ] && [[ $vmuser != $vmconfiguser ]] ;then
+chmod 660 $vmconfV7
+chown $vmuser:$vmuser $vmconfV7
+am force-stop de.vahrmap.vmapper
+am broadcast -n de.vahrmap.vmapper/.RestartService
+echo "`date +%Y-%m-%d_%T` VMconf check: vmapper config.xml user incorrect, changed it and restarted vmapper" >> $logfile
+fi
+
 
 # Get MADmin credentials and origin
 if [ -f "$vmconfV7" ] && [ ! -z $(grep -w 'postdest' $vmconfV7 | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/') ] ; then

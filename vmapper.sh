@@ -60,7 +60,8 @@ fi
 if [[ $oldsh != $newsh ]] ;then
   echo "`date +%Y-%m-%d_%T` vmapper.sh has been updated, restarting script" >> $logfile
   folder=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-  $folder/$(basename $0) $@ && exit
+  $folder/$(basename $0) $@
+  exit 1
 fi
 
 

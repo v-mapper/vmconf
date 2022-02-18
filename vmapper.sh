@@ -37,14 +37,14 @@ oldsh=$(head -2 /system/bin/vmapper.sh | grep '# version' | awk '{ print $NF }')
 
 mount -o remount,rw /system
 if [ -f /sdcard/useVMCdevelop ]; then
-  /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/vmapper.sh
+  /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/vmapper.sh || { echo "`date +%Y-%m-%d_%T` Download vmapper.sh failed, exit script" >> $logfile ; exit 1; }
   chmod +x /system/bin/vmapper.sh
-  /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/develop/55vmapper
+  /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/develop/55vmapper || { echo "`date +%Y-%m-%d_%T` Download 55vmapper failed, exit script" >> $logfile ; exit 1; }
   chmod +x /system/etc/init.d/55vmapper
 else
-  /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/main/vmapper.sh
+  /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/main/vmapper.sh || { echo "`date +%Y-%m-%d_%T` Download vmapper.sh failed, exit script" >> $logfile ; exit 1; }
   chmod +x /system/bin/vmapper.sh
-  /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/main/55vmapper
+  /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/main/55vmapper || { echo "`date +%Y-%m-%d_%T` Download 55vmapper failed, exit script" >> $logfile ; exit 1; }
   chmod +x /system/etc/init.d/55vmapper
 fi
 mount -o remount,ro /system
@@ -241,6 +241,10 @@ done
 
 
 install_vmapper_wizard(){
+# we first download vmapper
+/system/bin/rm -f /sdcard/Download/vmapper.apk
+/system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download" || { echo "`date +%Y-%m-%d_%T` Download vmapper failed, exit script" >> $logfile ; exit 1; }
+
 ## pogodroid disable full daemon + stop pogodroid
 sed -i 's,\"full_daemon\" value=\"true\",\"full_daemon\" value=\"false\",g' $pdconf
 chmod 660 $pdconf
@@ -253,8 +257,8 @@ echo "`date +%Y-%m-%d_%T` VM install: pogodroid disabled" >> $logfile
 touch /sdcard/disableautopogodroidupdate
 
 ## Install vmapper
-/system/bin/rm -f /sdcard/Download/vmapper.apk
-/system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download"
+#/system/bin/rm -f /sdcard/Download/vmapper.apk
+#/system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download"
 /system/bin/pm install -r /sdcard/Download/vmapper.apk
 /system/bin/rm -f /sdcard/Download/vmapper.apk
 echo "`date +%Y-%m-%d_%T` VM install: vmapper installed" >> $logfile
@@ -323,10 +327,7 @@ else
         else
       echo "`date +%Y-%m-%d_%T` New vmapper version detected in wizard, updating $installedver=>$newver" >> $logfile
       /system/bin/rm -f /sdcard/Download/vmapper.apk
-      until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download" ;do
-       /system/bin/rm -f /sdcard/Download/vmapper.apk
-       sleep 2
-      done
+      /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download" || { echo "`date +%Y-%m-%d_%T` Download vmapper failed, exit script" >> $logfile ; exit 1; }
 
       # set vmapper to be installed
       vm_install="install"
@@ -358,6 +359,9 @@ fi
 
 
 downgrade_vmapper_wizard(){
+# we download first
+/system/bin/rm -f /sdcard/Download/vmapper.apk
+/system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download" || { echo "`date +%Y-%m-%d_%T` Download vmapper failed, exit script" >> $logfile ; exit 1; }
 # remove vmapper
 am force-stop com.nianticlabs.pokemongo
 am force-stop de.vahrmap.vmapper
@@ -366,8 +370,8 @@ sleep 2
 echo "`date +%Y-%m-%d_%T` VM downgrade: vmapper removed" >> $logfile
 
 # install vmapper from wizard
-/system/bin/rm -f /sdcard/Download/vmapper.apk
-/system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download"
+#/system/bin/rm -f /sdcard/Download/vmapper.apk
+#/system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download"
 /system/bin/pm install -r /sdcard/Download/vmapper.apk
 /system/bin/rm -f /sdcard/Download/vmapper.apk
 echo "`date +%Y-%m-%d_%T` VM downgrade: vmapper installed" >> $logfile
@@ -401,10 +405,7 @@ installedver="$(dumpsys package com.nianticlabs.pokemongo|awk -F'=' '/versionNam
 if checkupdate "$newver" "$installedver" ;then
  echo "`date +%Y-%m-%d_%T` New pogo version detected in wizard, updating $installedver=>$newver" >> $logfile
  /system/bin/rm -f /sdcard/Download/pogo.apk
- until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/pogo.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/pogo/$arch/download" ;do
-  /system/bin/rm -f /sdcard/Download/pogo.apk
-  sleep
- done
+ /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/pogo.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/pogo/$arch/download" || { echo "`date +%Y-%m-%d_%T` Download pogo failed, exit script" >> $logfile ; exit 1; }
 
  # set pogo to be installed
  pogo_install="install"
@@ -430,7 +431,7 @@ fi
 
 downgrade_pogo_wizard_no_reboot(){
 /system/bin/rm -f /sdcard/Download/pogo.apk
-/system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/pogo.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/pogo/$arch/download"
+/system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/pogo.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/pogo/$arch/download" || { echo "`date +%Y-%m-%d_%T` Download pogo failed, exit script" >> $logfile ; exit 1; }
 echo "`date +%Y-%m-%d_%T` PoGo downgrade: pogo downloaded from wizard" >> $logfile
 /system/bin/pm uninstall com.nianticlabs.pokemongo
 echo "`date +%Y-%m-%d_%T` PoGo downgrade: pogo removed" >> $logfile
@@ -452,10 +453,7 @@ installedver="$(dumpsys package de.grennith.rgc.remotegpscontroller 2>/dev/null|
 if checkupdate "$newver" "$installedver" ;then
  echo "`date +%Y-%m-%d_%T` New rgc version detected in wizard, updating $installedver=>$newver" >> $logfile
  rm -f /sdcard/Download/RemoteGpsController.apk
- until curl -o /sdcard/Download/RemoteGpsController.apk  -s -k -L --fail --show-error -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/rgc/download" ;do
-  rm -f /sdcard/Download/RemoteGpsController.apk
-  sleep 2
- done
+ curl -o /sdcard/Download/RemoteGpsController.apk  -s -k -L --fail --show-error -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/rgc/download" || { echo "`date +%Y-%m-%d_%T` Download rgc failed, exit script" >> $logfile ; exit 1; }
 
  # set rgc to be installed
  rgc_install="install"
@@ -577,7 +575,7 @@ vmapper_xml(){
 vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
 vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
 
-/system/bin/curl -k -s -L --fail --show-error -o $vmconf -u $authuser:$authpassword -H "origin: $origin" "$server/vm_conf"
+/system/bin/curl -k -s -L --fail --show-error -o $vmconf -u $authuser:$authpassword -H "origin: $origin" "$server/vm_conf" || { echo "`date +%Y-%m-%d_%T` Download config.xml failed, exit script" >> $logfile ; exit 1; }
 
 chmod 660 $vmconf
 chown $vmuser:$vmuser $vmconf

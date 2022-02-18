@@ -32,8 +32,8 @@ done
 echo "`date +%Y-%m-%d_%T` Internet connection available" >> $logfile
 
 #download latest vmapper.sh and 55vmapper
-old55=$(head -5 /system/etc/init.d/55vmapper | grep '# version' | awk '{ print $NF }')
-oldsh=$(grep '# version' /system/bin/vmapper.sh | awk '{ print $NF }')
+old55=$(head -2 /system/etc/init.d/55vmapper | grep '# version' | awk '{ print $NF }')
+oldsh=$(head -2 /system/bin/vmapper.sh | grep '# version' | awk '{ print $NF }')
 
 mount -o remount,rw /system
 if [ -f /sdcard/useVMCdevelop ]; then
@@ -49,8 +49,8 @@ else
 fi
 mount -o remount,ro /system
 
-new55=$(head -5 /system/etc/init.d/55vmapper | grep '# version' | awk '{ print $NF }')
-newsh=$(grep '# version' /system/bin/vmapper.sh | awk '{ print $NF }')
+new55=$(head -2 /system/etc/init.d/55vmapper | grep '# version' | awk '{ print $NF }')
+newsh=$(head -2 /system/bin/vmapper.sh | grep '# version' | awk '{ print $NF }')
 
 if [[ $old55 != $new55 || $oldsh != $newsh ]] ;then
   echo "`date +%Y-%m-%d_%T` 55vmapper $old55=>$new55, vmapper.sh $oldsh=>$newsh" >> $logfile

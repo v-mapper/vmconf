@@ -348,11 +348,11 @@ if [ "$vm_install" = "install" ]; then
  /system/bin/pm install -r /sdcard/Download/vmapper.apk
  /system/bin/rm -f /sdcard/Download/vmapper.apk
  # new vmapper version in wizzard, so we replace xml
- if [[ -f /sdcard/disableautoxml ]] ;then
-   echo "`date +%Y-%m-%d_%T` Skipping update config.xml" >> $logfile
- else
-   create_vmapper_xml
- fi
+# if [[ -f /sdcard/disableautoxml ]] ;then
+#   echo "`date +%Y-%m-%d_%T` Skipping update config.xml" >> $logfile
+# else
+#   create_vmapper_xml
+# fi
  reboot=1
 fi
 }
@@ -496,11 +496,11 @@ if [ ! -z "$vm_install" ] && [ ! -z "$rgc_install" ] && [ ! -z "$pogo_install" ]
       /system/bin/pm install -r /sdcard/Download/vmapper.apk
       /system/bin/rm -f /sdcard/Download/vmapper.apk
       # new vmapper version in wizzard, so we replace xml
-      if [[ -f /sdcard/disableautoxml ]] ;then
-        echo "`date +%Y-%m-%d_%T` Skipping update config.xml" >> $logfile
-      else
-        create_vmapper_xml
-      fi
+#      if [[ -f /sdcard/disableautoxml ]] ;then
+#        echo "`date +%Y-%m-%d_%T` Skipping update config.xml" >> $logfile
+#      else
+#        create_vmapper_xml
+#      fi
       reboot=1
     fi
     if [ "$pogo_install" = "install" ]; then
@@ -539,11 +539,11 @@ if [ ! -z "$vm_install" ] && [ ! -z "$rgc_install" ] && [ ! -z "$pogo_install" ]
       /system/bin/pm install -r /sdcard/Download/vmapper.apk
       /system/bin/rm -f /sdcard/Download/vmapper.apk
       # new vmapper version in wizzard, replace xml
-      if [[ -f /sdcard/disableautoxml ]] ;then
-        echo "`date +%Y-%m-%d_%T` Skipping update config.xml" >> $logfile
-      else
-        vmapper_xml
-      fi
+#      if [[ -f /sdcard/disableautoxml ]] ;then
+#        echo "`date +%Y-%m-%d_%T` Skipping update config.xml" >> $logfile
+#      else
+#        vmapper_xml
+#      fi
       # if no pogo update we restart both now
       if [ "$pogo_install" != "install" ];then
         echo "`date +%Y-%m-%d_%T` No pogo update, starting vmapper+pogo" >> $logfile

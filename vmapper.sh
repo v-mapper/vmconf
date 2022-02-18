@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.59
+# version 3.00
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -24,6 +24,44 @@ exec 2>> $logfile
 # add vmapper.sh command to log
 echo "" >> $logfile
 echo "`date +%Y-%m-%d_%T` ## Executing vmapper.sh $@" >> $logfile
+
+#wait on internet
+until ping -c1 8.8.8.8 >/dev/null 2>/dev/null; do
+    sleep 10
+done
+echo "`date +%Y-%m-%d_%T` Internet connection available" >> $logfile
+
+#download latest vmapper.sh and 55vmapper
+old55=$(head -5 /system/etc/init.d/55vmapper | grep '# version' | awk '{ print $NF }')
+oldsh=$(grep '# version' /system/bin/vmapper.sh | awk '{ print $NF }')
+
+mount -o remount,rw /system
+if [ -f /sdcard/useVMCdevelop ]; then
+  /system/bin/curl -s -k -L -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/vmapper.sh
+  chmod +x /system/bin/vmapper.sh
+  /system/bin/curl -s -k -L -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/develop/55vmapper
+  chmod +x /system/etc/init.d/55vmapper
+else
+  /system/bin/curl -s -k -L -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/main/vmapper.sh
+  chmod +x /system/bin/vmapper.sh
+  /system/bin/curl -s -k -L -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/main/55vmapper
+  chmod +x /system/etc/init.d/55vmapper
+fi
+mount -o remount,ro /system
+
+new55=$(head -5 /system/etc/init.d/55vmapper | grep '# version' | awk '{ print $NF }')
+newsh=$(grep '# version' /system/bin/vmapper.sh | awk '{ print $NF }')
+
+if [[ $old55 != $new55 || $oldsh != $newsh ]] ;then
+  echo "`date +%Y-%m-%d_%T` 55vmapper $old55=>$new55, vmapper.sh $oldsh=>$newsh" >> $logfile
+fi
+
+# check if vmapper.sh was already on latest else restart command
+if [[ $oldsh != $newsh ]] ;then
+  echo "`date +%Y-%m-%d_%T` vmapper.sh has been updated, restarting script" >> $logfile
+  folder=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+  $folder/$(basename $0) $@ && exit
+fi
 
 
 # check rgc deactivated and vmapper not installed (properly) or empty config.xml

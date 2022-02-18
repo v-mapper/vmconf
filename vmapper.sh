@@ -37,14 +37,14 @@ oldsh=$(head -2 /system/bin/vmapper.sh | grep '# version' | awk '{ print $NF }')
 
 mount -o remount,rw /system
 if [ -f /sdcard/useVMCdevelop ]; then
-  /system/bin/curl -s -k -L -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/vmapper.sh
+  /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/vmapper.sh
   chmod +x /system/bin/vmapper.sh
-  /system/bin/curl -s -k -L -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/develop/55vmapper
+  /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/develop/55vmapper
   chmod +x /system/etc/init.d/55vmapper
 else
-  /system/bin/curl -s -k -L -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/main/vmapper.sh
+  /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/main/vmapper.sh
   chmod +x /system/bin/vmapper.sh
-  /system/bin/curl -s -k -L -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/main/55vmapper
+  /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/main/55vmapper
   chmod +x /system/etc/init.d/55vmapper
 fi
 mount -o remount,ro /system

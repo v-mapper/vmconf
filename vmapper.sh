@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 3.00
+# version 3.01
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -281,12 +281,12 @@ create_vmapper_xml
 am broadcast -n de.vahrmap.vmapper/.RestartService
 sleep 5
 
-## add 55vmapper
-mount -o remount,rw /system
-/system/bin/curl -L --fail --show-error -o /system/etc/init.d/55vmapper -k -s https://raw.githubusercontent.com/v-mapper/vmconf/main/55vmapper
-chmod +x /system/etc/init.d/55vmapper
-mount -o remount,ro /system
-echo "`date +%Y-%m-%d_%T` VM install: 55vmapper added" >> $logfile
+## add 55vmapper, already done at start for script, not needed anymore
+#mount -o remount,rw /system
+#/system/bin/curl -L --fail --show-error -o /system/etc/init.d/55vmapper -k -s https://raw.githubusercontent.com/v-mapper/vmconf/main/55vmapper
+#chmod +x /system/etc/init.d/55vmapper
+#mount -o remount,ro /system
+#echo "`date +%Y-%m-%d_%T` VM install: 55vmapper added" >> $logfile
 
 ## check vmapper mockgps active
 if [ -f "$vmconfV7" ] && [[ $(grep -w 'mockgps' $vmconfV7 | awk -F "\"" '{print $4}') == "true" ]] ;then

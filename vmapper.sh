@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 3.01
+# version 3.00
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then

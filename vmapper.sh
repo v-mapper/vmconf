@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 3.02
+# version 3.03
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -37,28 +37,30 @@ oldsh=$(head -2 /system/bin/vmapper.sh | grep '# version' | awk '{ print $NF }')
 
 mount -o remount,rw /system
 if [ -f /sdcard/useVMCdevelop ]; then
-  until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/vmapper.sh || { echo "`date +%Y-%m-%d_%T` Download vmapper.sh failed, exit script" >> $logfile ; exit 1; } ;do
+  rm -f /system/bin/vmapper_new.sh
+  until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper_new.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/vmapper.sh || { echo "`date +%Y-%m-%d_%T` Download vmapper.sh failed, exit script" >> $logfile ; exit 1; } ;do
     sleep 2
   done
-  chmod +x /system/bin/vmapper.sh
+  chmod +x /system/bin/vmapper_new.sh
   until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/develop/55vmapper || { echo "`date +%Y-%m-%d_%T` Download 55vmapper failed, exit script" >> $logfile ; exit 1; } ;do
     sleep 2
   done
   chmod +x /system/etc/init.d/55vmapper
 else
-  until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/main/vmapper.sh || { echo "`date +%Y-%m-%d_%T` Download vmapper.sh failed, exit script" >> $logfile ; exit 1; } ;do
+  rm -f /system/bin/vmapper_new.sh
+  until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper_new.sh https://raw.githubusercontent.com/v-mapper/vmconf/main/vmapper.sh || { echo "`date +%Y-%m-%d_%T` Download vmapper.sh failed, exit script" >> $logfile ; exit 1; } ;do
     sleep 2
   done
-  chmod +x /system/bin/vmapper.sh
+  chmod +x /system/bin/vmapper_new.sh
   until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/main/55vmapper || { echo "`date +%Y-%m-%d_%T` Download 55vmapper failed, exit script" >> $logfile ; exit 1; } ;do
     sleep 2
   done
   chmod +x /system/etc/init.d/55vmapper
 fi
-mount -o remount,ro /system
+# mount -o remount,ro /system
 
 new55=$(head -2 /system/etc/init.d/55vmapper | grep '# version' | awk '{ print $NF }')
-newsh=$(head -2 /system/bin/vmapper.sh | grep '# version' | awk '{ print $NF }')
+newsh=$(head -2 /system/bin/vmapper_new.sh | grep '# version' | awk '{ print $NF }')
 
 if [[ $old55 != $new55 || $oldsh != $newsh ]] ;then
   echo "`date +%Y-%m-%d_%T` 55vmapper $old55=>$new55, vmapper.sh $oldsh=>$newsh" >> $logfile
@@ -67,11 +69,13 @@ fi
 # check if vmapper.sh was already on latest else restart command
 if [[ $oldsh != $newsh ]] ;then
   echo "`date +%Y-%m-%d_%T` vmapper.sh has been updated, restarting script" >> $logfile
-  folder=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-  $folder/$(basename $0) $@
+#  folder=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+  cp /system/bin/vmapper_new.sh /system/bin/vmapper.sh
+  mount -o remount,ro /system
+  /system/bin/vmapper_new.sh $@
   exit 1
 fi
-
+mount -o remount,ro /system
 
 # check v6 and v7/8 present
 if [ -d "/data/data/de.goldjpg.vmapper" ] && [ -d "/data/data/de.vahrmap.vmapper" ] ;then

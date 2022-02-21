@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 3.04
+# version 3.05
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -23,7 +23,7 @@ exec 2>> $logfile
 
 # add vmapper.sh command to log
 echo "" >> $logfile
-echo "`date +%Y-%m-%d_%T` ## Executing vmapper.sh $@" >> $logfile
+echo "`date +%Y-%m-%d_%T` ## Executing $(basename $0) $@" >> $logfile
 
 #wait on internet
 until ping -c1 8.8.8.8 >/dev/null 2>/dev/null; do
@@ -36,26 +36,26 @@ old55=$(head -2 /system/etc/init.d/55vmapper | grep '# version' | awk '{ print $
 oldsh=$(head -2 /system/bin/vmapper.sh | grep '# version' | awk '{ print $NF }')
 
 mount -o remount,rw /system
-if [ -f /sdcard/useVMCdevelop ] ;then
-  rm -f /system/bin/vmapper_new.sh
-  until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper_new.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/vmapper.sh || { echo "`date +%Y-%m-%d_%T` Download vmapper.sh failed, exit script" >> $logfile ; exit 1; } ;do
-    sleep 2
-  done
-  chmod +x /system/bin/vmapper_new.sh
-  until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/develop/55vmapper || { echo "`date +%Y-%m-%d_%T` Download 55vmapper failed, exit script" >> $logfile ; exit 1; } ;do
-    sleep 2
-  done
-  chmod +x /system/etc/init.d/55vmapper
-else
-  rm -f /system/bin/vmapper_new.sh
-  until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper_new.sh https://raw.githubusercontent.com/v-mapper/vmconf/main/vmapper.sh || { echo "`date +%Y-%m-%d_%T` Download vmapper.sh failed, exit script" >> $logfile ; exit 1; } ;do
-    sleep 2
-  done
-  chmod +x /system/bin/vmapper_new.sh
-  until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/main/55vmapper || { echo "`date +%Y-%m-%d_%T` Download 55vmapper failed, exit script" >> $logfile ; exit 1; } ;do
-    sleep 2
-  done
-  chmod +x /system/etc/init.d/55vmapper
+if [[ $(basename $0) != "vmapper_new.sh" ]] ;then
+  if [ -f /sdcard/useVMCdevelop ] ;then
+    until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper_new.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/vmapper.sh || { echo "`date +%Y-%m-%d_%T` Download vmapper.sh failed, exit script" >> $logfile ; exit 1; } ;do
+      sleep 2
+    done
+    chmod +x /system/bin/vmapper_new.sh
+    until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/develop/55vmapper || { echo "`date +%Y-%m-%d_%T` Download 55vmapper failed, exit script" >> $logfile ; exit 1; } ;do
+      sleep 2
+    done
+    chmod +x /system/etc/init.d/55vmapper
+  else
+    until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper_new.sh https://raw.githubusercontent.com/v-mapper/vmconf/main/vmapper.sh || { echo "`date +%Y-%m-%d_%T` Download vmapper.sh failed, exit script" >> $logfile ; exit 1; } ;do
+      sleep 2
+    done
+    chmod +x /system/bin/vmapper_new.sh
+    until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/main/55vmapper || { echo "`date +%Y-%m-%d_%T` Download 55vmapper failed, exit script" >> $logfile ; exit 1; } ;do
+      sleep 2
+    done
+    chmod +x /system/etc/init.d/55vmapper
+  fi
 fi
 # mount -o remount,ro /system
 
@@ -79,10 +79,9 @@ mount -o remount,ro /system
 
 # check v6 and v7/8 present
 if [ -d "/data/data/de.goldjpg.vmapper" ] && [ -d "/data/data/de.vahrmap.vmapper" ] ;then
-  echo "`date +%Y-%m-%d_%T` VMconf check: vmapper v6 and v7/8 installed, briljant, talk to dkmur" >> $logfile
-  # echo "`date +%Y-%m-%d_%T` VMconf check: vmapper v6 and v7/8 installed, removing v6 and execute new install" >> $logfile
-  # pm uninstall de.goldjpg.vmapper
-  # install_vmapper_wizard
+  echo "`date +%Y-%m-%d_%T` VMconf check: vmapper v6 and v7/8 installed, removing v6 and execute new install" >> $logfile
+  pm uninstall de.goldjpg.vmapper
+  install_vmapper_wizard
 fi
 
 # check rgc deactivated and vmapper not installed (properly) or empty config.xml

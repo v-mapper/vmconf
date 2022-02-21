@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 3.03
+# version 3.04
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -36,7 +36,7 @@ old55=$(head -2 /system/etc/init.d/55vmapper | grep '# version' | awk '{ print $
 oldsh=$(head -2 /system/bin/vmapper.sh | grep '# version' | awk '{ print $NF }')
 
 mount -o remount,rw /system
-if [ -f /sdcard/useVMCdevelop ]; then
+if [ -f /sdcard/useVMCdevelop ] ;then
   rm -f /system/bin/vmapper_new.sh
   until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper_new.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/vmapper.sh || { echo "`date +%Y-%m-%d_%T` Download vmapper.sh failed, exit script" >> $logfile ; exit 1; } ;do
     sleep 2
@@ -303,7 +303,7 @@ create_vmapper_xml
 am broadcast -n de.vahrmap.vmapper/.RestartService
 sleep 5
 
-## add 55vmapper, already done at start for script, not needed anymore
+## add 55vmapper, already done at start of script, not needed anymore
 # mount -o remount,rw /system
 # /system/bin/curl -L --fail --show-error -o /system/etc/init.d/55vmapper -k -s https://raw.githubusercontent.com/v-mapper/vmconf/main/55vmapper
 # chmod +x /system/etc/init.d/55vmapper

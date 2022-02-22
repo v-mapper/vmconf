@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.59
+# version 3.06
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -23,11 +23,69 @@ exec 2>> $logfile
 
 # add vmapper.sh command to log
 echo "" >> $logfile
-echo "`date +%Y-%m-%d_%T` ## Executing vmapper.sh $@" >> $logfile
+echo "`date +%Y-%m-%d_%T` ## Executing $(basename $0) $@" >> $logfile
 
+#wait on internet
+until ping -c1 8.8.8.8 >/dev/null 2>/dev/null; do
+    sleep 10
+done
+echo "`date +%Y-%m-%d_%T` Internet connection available" >> $logfile
+
+#download latest vmapper.sh and 55vmapper
+old55=$(head -2 /system/etc/init.d/55vmapper | grep '# version' | awk '{ print $NF }')
+oldsh=$(head -2 /system/bin/vmapper.sh | grep '# version' | awk '{ print $NF }')
+
+mount -o remount,rw /system
+if [[ $(basename $0) != "vmapper_new.sh" ]] ;then
+  if [ -f /sdcard/useVMCdevelop ] ;then
+    until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper_new.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/vmapper.sh || { echo "`date +%Y-%m-%d_%T` Download vmapper.sh failed, exit script" >> $logfile ; exit 1; } ;do
+      sleep 2
+    done
+    chmod +x /system/bin/vmapper_new.sh
+    until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/develop/55vmapper || { echo "`date +%Y-%m-%d_%T` Download 55vmapper failed, exit script" >> $logfile ; exit 1; } ;do
+      sleep 2
+    done
+    chmod +x /system/etc/init.d/55vmapper
+  else
+    until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper_new.sh https://raw.githubusercontent.com/v-mapper/vmconf/main/vmapper.sh || { echo "`date +%Y-%m-%d_%T` Download vmapper.sh failed, exit script" >> $logfile ; exit 1; } ;do
+      sleep 2
+    done
+    chmod +x /system/bin/vmapper_new.sh
+    until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/main/55vmapper || { echo "`date +%Y-%m-%d_%T` Download 55vmapper failed, exit script" >> $logfile ; exit 1; } ;do
+      sleep 2
+    done
+    chmod +x /system/etc/init.d/55vmapper
+  fi
+fi
+# mount -o remount,ro /system
+
+new55=$(head -2 /system/etc/init.d/55vmapper | grep '# version' | awk '{ print $NF }')
+newsh=$(head -2 /system/bin/vmapper_new.sh | grep '# version' | awk '{ print $NF }')
+
+if [[ $old55 != $new55 || $oldsh != $newsh ]] ;then
+  echo "`date +%Y-%m-%d_%T` 55vmapper $old55=>$new55, vmapper.sh $oldsh=>$newsh" >> $logfile
+fi
+
+# check if vmapper.sh was already on latest else restart command
+if [[ $oldsh != $newsh ]] ;then
+  echo "`date +%Y-%m-%d_%T` vmapper.sh has been updated, restarting script" >> $logfile
+#  folder=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+  cp /system/bin/vmapper_new.sh /system/bin/vmapper.sh
+  mount -o remount,ro /system
+  /system/bin/vmapper_new.sh $@
+  exit 1
+fi
+mount -o remount,ro /system
+
+# check v6 and v7/8 present
+if [ -d "/data/data/de.goldjpg.vmapper" ] && [ -d "/data/data/de.vahrmap.vmapper" ] ;then
+  echo "`date +%Y-%m-%d_%T` VMconf check: vmapper v6 and v7/8 installed, removing v6 and execute new install" >> $logfile
+  pm uninstall de.goldjpg.vmapper
+  install_vmapper_wizard
+fi
 
 # check rgc deactivated and vmapper not installed (properly) or empty config.xml
-if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print $4}') == "false" ]] ;then
+if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "false" ]] ;then
   if [ ! -f "$vmconfV7" ] || [ -z $(grep -w 'websocketurl' $vmconfV7 | sed -e 's/    <string name="websocketurl">\(.*\)<\/string>/\1/') ] ; then
     sed -i 's,\"autostart_services\" value=\"false\",\"autostart_services\" value=\"true\",g' $rgcconf
     sed -i 's,\"boot_startup\" value=\"false\",\"boot_startup\" value=\"true\",g' $rgcconf
@@ -40,7 +98,7 @@ if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print $4}') == "false" ]
 fi
 
 # check vmapper mockgps active and rgc active
-if [ -f "$vmconfV7" ] && [[ $(grep -w 'mockgps' $vmconfV7 | awk -F "\"" '{print $4}') == "true" ]] && [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print $4}') == "true" ]] ;then
+if [ -f "$vmconfV7" ] && [[ $(grep -w 'mockgps' $vmconfV7 | awk -F "\"" '{print tolower($4)}') == "true" ]] && [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "true" ]] ;then
 # echo "deactivate rgc settings and kill rgc"
 am force-stop de.grennith.rgc.remotegpscontroller
 sed -i 's,\"autostart_services\" value=\"true\",\"autostart_services\" value=\"false\",g' $rgcconf
@@ -51,7 +109,7 @@ echo "`date +%Y-%m-%d_%T` VMconf check: vmapper mockgps was active as well as rg
 fi
 
 # check vmapper useApi active and rgc active
-if [ -f "$vmconfV7" ] && [[ $(grep -w 'useApi' $vmconfV7 | awk -F "\"" '{print $4}') == "true" ]] && [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print $4}') == "true" ]] ;then
+if [ -f "$vmconfV7" ] && [[ $(grep -w 'useApi' $vmconfV7 | awk -F "\"" '{print tolower($4)}') == "true" ]] && [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "true" ]] ;then
 #  echo "deactivate rgc settings and kill rgc"
 am force-stop de.grennith.rgc.remotegpscontroller
 sed -i 's,\"autostart_services\" value=\"true\",\"autostart_services\" value=\"false\",g' $rgcconf
@@ -62,7 +120,7 @@ echo "`date +%Y-%m-%d_%T` VMconf check: vmapper useApi was active as well as rgc
 fi
 
 # check rgc deactivated and vmapper mockgps disabled
-if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print $4}') == "false" ]] && [[ $(grep -w 'mockgps' $vmconfV7 | awk -F "\"" '{print $4}') == "false" ]] ;then
+if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "false" ]] && [[ $(grep -w 'mockgps' $vmconfV7 | awk -F "\"" '{print tolower($4)}') == "false" ]] ;then
 sed -i 's,\"mockgps\" value=\"false\",\"mockgps\" value=\"true\",g' $vmconfV7
 am force-stop de.vahrmap.vmapper
 am broadcast -n de.vahrmap.vmapper/.RestartService
@@ -70,7 +128,7 @@ echo "`date +%Y-%m-%d_%T` VMconf check: rgc deactivated and vmapper mockgps disa
 fi
 
 # ensure vmapper mockgps is active for useApi
-if [ -f "$vmconfV7" ] && [[ $(grep -w 'useApi' $vmconfV7 | awk -F "\"" '{print $4}') == "true" ]] && [[ $(grep -w 'mockgps' $vmconfV7 | awk -F "\"" '{print $4}') == "false" ]] ;then
+if [ -f "$vmconfV7" ] && [[ $(grep -w 'useApi' $vmconfV7 | awk -F "\"" '{print tolower($4)}') == "true" ]] && [[ $(grep -w 'mockgps' $vmconfV7 | awk -F "\"" '{print tolower($4)}') == "false" ]] ;then
 sed -i 's,\"mockgps\" value=\"false\",\"mockgps\" value=\"true\",g' $vmconfV7
 am force-stop de.vahrmap.vmapper
 am broadcast -n de.vahrmap.vmapper/.RestartService
@@ -202,6 +260,12 @@ done
 
 
 install_vmapper_wizard(){
+# we first download vmapper
+/system/bin/rm -f /sdcard/Download/vmapper.apk
+until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download" || { echo "`date +%Y-%m-%d_%T` Download vmapper failed, exit script" >> $logfile ; exit 1; } ;do
+  sleep 2
+done
+
 ## pogodroid disable full daemon + stop pogodroid
 sed -i 's,\"full_daemon\" value=\"true\",\"full_daemon\" value=\"false\",g' $pdconf
 chmod 660 $pdconf
@@ -214,8 +278,8 @@ echo "`date +%Y-%m-%d_%T` VM install: pogodroid disabled" >> $logfile
 touch /sdcard/disableautopogodroidupdate
 
 ## Install vmapper
-/system/bin/rm -f /sdcard/Download/vmapper.apk
-/system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download"
+#/system/bin/rm -f /sdcard/Download/vmapper.apk
+#/system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download"
 /system/bin/pm install -r /sdcard/Download/vmapper.apk
 /system/bin/rm -f /sdcard/Download/vmapper.apk
 echo "`date +%Y-%m-%d_%T` VM install: vmapper installed" >> $logfile
@@ -238,15 +302,15 @@ create_vmapper_xml
 am broadcast -n de.vahrmap.vmapper/.RestartService
 sleep 5
 
-## add 55vmapper
-mount -o remount,rw /system
-/system/bin/curl -L --fail --show-error -o /system/etc/init.d/55vmapper -k -s https://raw.githubusercontent.com/v-mapper/vmconf/main/55vmapper
-chmod +x /system/etc/init.d/55vmapper
-mount -o remount,ro /system
-echo "`date +%Y-%m-%d_%T` VM install: 55vmapper added" >> $logfile
+## add 55vmapper, already done at start of script, not needed anymore
+# mount -o remount,rw /system
+# /system/bin/curl -L --fail --show-error -o /system/etc/init.d/55vmapper -k -s https://raw.githubusercontent.com/v-mapper/vmconf/main/55vmapper
+# chmod +x /system/etc/init.d/55vmapper
+# mount -o remount,ro /system
+# echo "`date +%Y-%m-%d_%T` VM install: 55vmapper added" >> $logfile
 
 ## check vmapper mockgps active
-if [ -f "$vmconfV7" ] && [[ $(grep -w 'mockgps' $vmconfV7 | awk -F "\"" '{print $4}') == "true" ]] ;then
+if [ -f "$vmconfV7" ] && [[ $(grep -w 'mockgps' $vmconfV7 | awk -F "\"" '{print tolower($4)}') == "true" ]] ;then
 rgc_to_vm
 fi
 
@@ -284,9 +348,8 @@ else
         else
       echo "`date +%Y-%m-%d_%T` New vmapper version detected in wizard, updating $installedver=>$newver" >> $logfile
       /system/bin/rm -f /sdcard/Download/vmapper.apk
-      until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download" ;do
-       /system/bin/rm -f /sdcard/Download/vmapper.apk
-       sleep 2
+      until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download" || { echo "`date +%Y-%m-%d_%T` Download vmapper failed, exit script" >> $logfile ; exit 1; } ;do
+        sleep 2
       done
 
       # set vmapper to be installed
@@ -308,17 +371,22 @@ if [ "$vm_install" = "install" ]; then
  /system/bin/pm install -r /sdcard/Download/vmapper.apk
  /system/bin/rm -f /sdcard/Download/vmapper.apk
  # new vmapper version in wizzard, so we replace xml
- if [[ -f /sdcard/disableautoxml ]] ;then
-   echo "`date +%Y-%m-%d_%T` Skipping update config.xml" >> $logfile
- else
-   create_vmapper_xml
- fi
+# if [[ -f /sdcard/disableautoxml ]] ;then
+#   echo "`date +%Y-%m-%d_%T` Skipping update config.xml" >> $logfile
+# else
+#   create_vmapper_xml
+# fi
  reboot=1
 fi
 }
 
 
 downgrade_vmapper_wizard(){
+# we download first
+/system/bin/rm -f /sdcard/Download/vmapper.apk
+until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download" || { echo "`date +%Y-%m-%d_%T` Download vmapper failed, exit script" >> $logfile ; exit 1; } ;do
+  sleep 2
+done
 # remove vmapper
 am force-stop com.nianticlabs.pokemongo
 am force-stop de.vahrmap.vmapper
@@ -327,8 +395,8 @@ sleep 2
 echo "`date +%Y-%m-%d_%T` VM downgrade: vmapper removed" >> $logfile
 
 # install vmapper from wizard
-/system/bin/rm -f /sdcard/Download/vmapper.apk
-/system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download"
+#/system/bin/rm -f /sdcard/Download/vmapper.apk
+#/system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download"
 /system/bin/pm install -r /sdcard/Download/vmapper.apk
 /system/bin/rm -f /sdcard/Download/vmapper.apk
 echo "`date +%Y-%m-%d_%T` VM downgrade: vmapper installed" >> $logfile
@@ -362,9 +430,8 @@ installedver="$(dumpsys package com.nianticlabs.pokemongo|awk -F'=' '/versionNam
 if checkupdate "$newver" "$installedver" ;then
  echo "`date +%Y-%m-%d_%T` New pogo version detected in wizard, updating $installedver=>$newver" >> $logfile
  /system/bin/rm -f /sdcard/Download/pogo.apk
- until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/pogo.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/pogo/$arch/download" ;do
-  /system/bin/rm -f /sdcard/Download/pogo.apk
-  sleep
+ until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/pogo.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/pogo/$arch/download" || { echo "`date +%Y-%m-%d_%T` Download pogo failed, exit script" >> $logfile ; exit 1; } ;do
+   sleep 2
  done
 
  # set pogo to be installed
@@ -391,7 +458,9 @@ fi
 
 downgrade_pogo_wizard_no_reboot(){
 /system/bin/rm -f /sdcard/Download/pogo.apk
-/system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/pogo.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/pogo/$arch/download"
+until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/pogo.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/pogo/$arch/download" || { echo "`date +%Y-%m-%d_%T` Download pogo failed, exit script" >> $logfile ; exit 1; } ;do
+  sleep 2
+done
 echo "`date +%Y-%m-%d_%T` PoGo downgrade: pogo downloaded from wizard" >> $logfile
 /system/bin/pm uninstall com.nianticlabs.pokemongo
 echo "`date +%Y-%m-%d_%T` PoGo downgrade: pogo removed" >> $logfile
@@ -413,9 +482,8 @@ installedver="$(dumpsys package de.grennith.rgc.remotegpscontroller 2>/dev/null|
 if checkupdate "$newver" "$installedver" ;then
  echo "`date +%Y-%m-%d_%T` New rgc version detected in wizard, updating $installedver=>$newver" >> $logfile
  rm -f /sdcard/Download/RemoteGpsController.apk
- until curl -o /sdcard/Download/RemoteGpsController.apk  -s -k -L --fail --show-error -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/rgc/download" ;do
-  rm -f /sdcard/Download/RemoteGpsController.apk
-  sleep 2
+ until /system/bin/curl -o /sdcard/Download/RemoteGpsController.apk  -s -k -L --fail --show-error -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/rgc/download" || { echo "`date +%Y-%m-%d_%T` Download rgc failed, exit script" >> $logfile ; exit 1; } ;do
+   sleep 2
  done
 
  # set rgc to be installed
@@ -459,11 +527,11 @@ if [ ! -z "$vm_install" ] && [ ! -z "$rgc_install" ] && [ ! -z "$pogo_install" ]
       /system/bin/pm install -r /sdcard/Download/vmapper.apk
       /system/bin/rm -f /sdcard/Download/vmapper.apk
       # new vmapper version in wizzard, so we replace xml
-      if [[ -f /sdcard/disableautoxml ]] ;then
-        echo "`date +%Y-%m-%d_%T` Skipping update config.xml" >> $logfile
-      else
-        create_vmapper_xml
-      fi
+#      if [[ -f /sdcard/disableautoxml ]] ;then
+#        echo "`date +%Y-%m-%d_%T` Skipping update config.xml" >> $logfile
+#      else
+#        create_vmapper_xml
+#      fi
       reboot=1
     fi
     if [ "$pogo_install" = "install" ]; then
@@ -502,11 +570,11 @@ if [ ! -z "$vm_install" ] && [ ! -z "$rgc_install" ] && [ ! -z "$pogo_install" ]
       /system/bin/pm install -r /sdcard/Download/vmapper.apk
       /system/bin/rm -f /sdcard/Download/vmapper.apk
       # new vmapper version in wizzard, replace xml
-      if [[ -f /sdcard/disableautoxml ]] ;then
-        echo "`date +%Y-%m-%d_%T` Skipping update config.xml" >> $logfile
-      else
-        vmapper_xml
-      fi
+#      if [[ -f /sdcard/disableautoxml ]] ;then
+#        echo "`date +%Y-%m-%d_%T` Skipping update config.xml" >> $logfile
+#      else
+#        vmapper_xml
+#      fi
       # if no pogo update we restart both now
       if [ "$pogo_install" != "install" ];then
         echo "`date +%Y-%m-%d_%T` No pogo update, starting vmapper+pogo" >> $logfile
@@ -538,7 +606,9 @@ vmapper_xml(){
 vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
 vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
 
-/system/bin/curl -k -s -L --fail --show-error -o $vmconf -u $authuser:$authpassword -H "origin: $origin" "$server/vm_conf"
+until /system/bin/curl -k -s -L --fail --show-error -o $vmconf -u $authuser:$authpassword -H "origin: $origin" "$server/vm_conf" || { echo "`date +%Y-%m-%d_%T` Download config.xml failed, exit script" >> $logfile ; exit 1; } ;do
+  sleep 2
+done
 
 chmod 660 $vmconf
 chown $vmuser:$vmuser $vmconf

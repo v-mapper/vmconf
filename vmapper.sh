@@ -200,12 +200,12 @@ if [ $1 != "-nrc" ] ;then
 fi
 
 # temp check on v6 in MADmin => exit
-newver="$(/system/bin/curl -s -k -L -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/noarch" | awk '{print substr($1,2); }')"
-vnew="$(echo $newver | awk '{print substr($1,1,1); }')"
-if [[ "$vnew" = 6 ]] ;then
-echo "`date +%Y-%m-%d_%T` Vmapper $newver detected in wizard, exiting vmapper.sh" >> $logfile
-exit 1
-fi
+#newver="$(/system/bin/curl -s -k -L -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/noarch" | awk '{print substr($1,2); }')"
+#vnew="$(echo $newver | awk '{print substr($1,1,1); }')"
+#if [[ "$vnew" = 6 ]] ;then
+#echo "`date +%Y-%m-%d_%T` Vmapper $newver detected in wizard, exiting vmapper.sh" >> $logfile
+#exit 1
+#fi
 
 
 # set hostname = origin, wait till next reboot for it to take effect

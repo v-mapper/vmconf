@@ -213,7 +213,7 @@ else
 fi
 
 # prevent vmconf causing reboot loop. Bypass check by executing, vmapper.sh -nrc -whatever
-if [ $1 != "-nrc" ] ;then
+if [ -z $1 ] || [ $1 != "-nrc" ] ;then
   if [ $(cat /sdcard/vm.log | grep `date +%Y-%m-%d` | grep rebooted | wc -l) -gt 20 ] ;then
   echo "`date +%Y-%m-%d_%T` Device rebooted over 20 times today, vmapper.sh signing out, see you tomorrow"  >> $logfile
   echo "Device rebooted over 20 times today, vmapper.sh signing out, see you tomorrow.....add -nrc to job or (re)move /sdcard/vm.log then try again"

@@ -309,10 +309,21 @@ sleep 5
 # mount -o remount,ro /system
 # echo "`date +%Y-%m-%d_%T` VM install: 55vmapper added" >> $logfile
 
-## check vmapper mockgps active
-if [ -f "$vmconfV7" ] && [[ $(grep -w 'mockgps' $vmconfV7 | awk -F "\"" '{print tolower($4)}') == "true" ]] ;then
-rgc_to_vm
-fi
+## check vmapper mockgps active, we do not check anymore but disable rgc
+#if [ -f "$vmconfV7" ] && [[ $(grep -w 'mockgps' $vmconfV7 | awk -F "\"" '{print tolower($4)}') == "true" ]] ;then
+#rgc_to_vm
+#fi
+# disable rgc
+sed -i 's,\"autostart_services\" value=\"true\",\"autostart_services\" value=\"false\",g' $rgcconf
+sed -i 's,\"boot_startup\" value=\"true\",\"boot_startup\" value=\"false\",g' $rgcconf
+chmod 660 $rgcconf
+chown $ruser:$ruser $rgcconf
+# disable rgc autoupdate
+touch /sdcard/disableautorgcupdate
+# kill rgc
+am force-stop de.grennith.rgc.remotegpscontroller
+echo "`date +%Y-%m-%d_%T` VM install: rgc disabled" >> $logfile
+
 
 ## Set for reboot device
 reboot=1

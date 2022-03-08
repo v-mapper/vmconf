@@ -633,116 +633,116 @@ monkey -p com.nianticlabs.pokemongo -c android.intent.category.LAUNCHER 1
 }
 
 
-pd_to_vm(){
-vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
-vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
+#pd_to_vm(){
+#vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
+#vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
 # disable pd daemon
-sed -i 's,\"full_daemon\" value=\"true\",\"full_daemon\" value=\"false\",g' $pdconf
-chmod 660 $pdconf
-chown $puser:$puser $pdconf
+#sed -i 's,\"full_daemon\" value=\"true\",\"full_daemon\" value=\"false\",g' $pdconf
+#chmod 660 $pdconf
+#chown $puser:$puser $pdconf
 # disable pd autoupdate
-touch /sdcard/disableautopogodroidupdate
+#touch /sdcard/disableautopogodroidupdate
 
 # enable vm daemon
-sed -i 's,\"daemon\" value=\"false\",\"daemon\" value=\"true\",g' $vmconf
-chmod 660 $vmconf
-chown $vmuser:$vmuser $vmconf
+#sed -i 's,\"daemon\" value=\"false\",\"daemon\" value=\"true\",g' $vmconf
+#chmod 660 $vmconf
+#chown $vmuser:$vmuser $vmconf
 
 # kill pd & start vm
-am force-stop com.mad.pogodroid
-am force-stop de.vahrmap.vmapper
-am broadcast -n de.vahrmap.vmapper/.RestartService
-sleep 5
+#am force-stop com.mad.pogodroid
+#am force-stop de.vahrmap.vmapper
+#am broadcast -n de.vahrmap.vmapper/.RestartService
+#sleep 5
 
-echo "`date +%Y-%m-%d_%T` VM daemon enable and PD daemon disable" >> $logfile
+#echo "`date +%Y-%m-%d_%T` VM daemon enable and PD daemon disable" >> $logfile
 
-reboot=1
-}
+#reboot=1
+#}
 
 
-vm_to_pd(){
-vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
-vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
+#vm_to_pd(){
+#vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
+#vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
 # disable vm daemon
-sed -i 's,\"daemon\" value=\"true\",\"daemon\" value=\"false\",g' $vmconf
-chmod 660 $vmconf
-chown $vmuser:$vmuser $vmconf
+#sed -i 's,\"daemon\" value=\"true\",\"daemon\" value=\"false\",g' $vmconf
+#chmod 660 $vmconf
+#chown $vmuser:$vmuser $vmconf
 
 # enable pd daemon
-sed -i 's,\"full_daemon\" value=\"false\",\"full_daemon\" value=\"true\",g' $pdconf
-chmod 660 $pdconf
-chown $puser:$puser $pdconf
+#sed -i 's,\"full_daemon\" value=\"false\",\"full_daemon\" value=\"true\",g' $pdconf
+#chmod 660 $pdconf
+#chown $puser:$puser $pdconf
 # enable pd autoupdate
-rm -f /sdcard/disableautopogodroidupdate
+#rm -f /sdcard/disableautopogodroidupdate
 
 #kill vm & start pd
-am force-stop de.vahrmap.vmapper
-sleep 2
-monkey -p com.mad.pogodroid 1
-sleep 2
-am start -n com.mad.pogodroid/.SplashPermissionsActivity
-sleep 5
+#am force-stop de.vahrmap.vmapper
+#sleep 2
+#monkey -p com.mad.pogodroid 1
+#sleep 2
+#am start -n com.mad.pogodroid/.SplashPermissionsActivity
+#sleep 5
 
-echo "`date +%Y-%m-%d_%T` VM daemon disable and PD daemon enable" >> $logfile
+#echo "`date +%Y-%m-%d_%T` VM daemon disable and PD daemon enable" >> $logfile
 
-reboot=1
-}
+#reboot=1
+#}
 
-rgc_to_vm(){
-vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
-vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
+#rgc_to_vm(){
+#vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
+#vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
 # disable rgc
-sed -i 's,\"autostart_services\" value=\"true\",\"autostart_services\" value=\"false\",g' $rgcconf
-sed -i 's,\"boot_startup\" value=\"true\",\"boot_startup\" value=\"false\",g' $rgcconf
-chmod 660 $rgcconf
-chown $ruser:$ruser $rgcconf
+#sed -i 's,\"autostart_services\" value=\"true\",\"autostart_services\" value=\"false\",g' $rgcconf
+#sed -i 's,\"boot_startup\" value=\"true\",\"boot_startup\" value=\"false\",g' $rgcconf
+#chmod 660 $rgcconf
+#chown $ruser:$ruser $rgcconf
 # disable rgc autoupdate
-touch /sdcard/disableautorgcupdate
+#touch /sdcard/disableautorgcupdate
 
 # enable vm mockgps
-sed -i 's,\"mockgps\" value=\"false\",\"mockgps\" value=\"true\",g' $vmconf
-chmod 660 $vmconf
-chown $vmuser:$vmuser $vmconf
+#sed -i 's,\"mockgps\" value=\"false\",\"mockgps\" value=\"true\",g' $vmconf
+#chmod 660 $vmconf
+#chown $vmuser:$vmuser $vmconf
 
 # kill rgc & restart vm
-am force-stop de.grennith.rgc.remotegpscontroller
-am force-stop de.vahrmap.vmapper
-am broadcast -n de.vahrmap.vmapper/.RestartService
-sleep 5
+#am force-stop de.grennith.rgc.remotegpscontroller
+#am force-stop de.vahrmap.vmapper
+#am broadcast -n de.vahrmap.vmapper/.RestartService
+#sleep 5
 
-echo "`date +%Y-%m-%d_%T` VM mockgps enable and RGC disable" >> $logfile
+#echo "`date +%Y-%m-%d_%T` VM mockgps enable and RGC disable" >> $logfile
 
-reboot=1
-}
+#reboot=1
+#}
 
-vm_to_rgc(){
-vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
-vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
+#vm_to_rgc(){
+#vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
+#vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
 # disable vm mockgps AND useApi
-sed -i 's,\"mockgps\" value=\"true\",\"mockgps\" value=\"false\",g' $vmconf
-sed -i 's,\"useApi\" value=\"true\",\"useApi\" value=\"false\",g' $vmconf
-chmod 660 $vmconf
-chown $vmuser:$vmuser $vmconf
+#sed -i 's,\"mockgps\" value=\"true\",\"mockgps\" value=\"false\",g' $vmconf
+#sed -i 's,\"useApi\" value=\"true\",\"useApi\" value=\"false\",g' $vmconf
+#chmod 660 $vmconf
+#chown $vmuser:$vmuser $vmconf
 
 # enable rgc
-sed -i 's,\"autostart_services\" value=\"false\",\"autostart_services\" value=\"true\",g' $rgcconf
-sed -i 's,\"boot_startup\" value=\"false\",\"boot_startup\" value=\"true\",g' $rgcconf
-chmod 660 $rgcconf
-chown $ruser:$ruser $rgcconf
+#sed -i 's,\"autostart_services\" value=\"false\",\"autostart_services\" value=\"true\",g' $rgcconf
+#sed -i 's,\"boot_startup\" value=\"false\",\"boot_startup\" value=\"true\",g' $rgcconf
+#chmod 660 $rgcconf
+#chown $ruser:$ruser $rgcconf
 # enable rgc autoupdate
-rm -f /sdcard/disableautorgcupdate
+#rm -f /sdcard/disableautorgcupdate
 
 # restart vm & start rgc
-am force-stop de.vahrmap.vmapper
-am broadcast -n de.vahrmap.vmapper/.RestartService
-sleep 2
-monkey -p de.grennith.rgc.remotegpscontroller 1
-sleep 5
+#am force-stop de.vahrmap.vmapper
+#am broadcast -n de.vahrmap.vmapper/.RestartService
+#sleep 2
+#monkey -p de.grennith.rgc.remotegpscontroller 1
+#sleep 5
 
-echo "`date +%Y-%m-%d_%T` VM mockgps disable and RGC enable" >> $logfile
+#echo "`date +%Y-%m-%d_%T` VM mockgps disable and RGC enable" >> $logfile
 
-reboot=1
-}
+#reboot=1
+#}
 
 force_pogo_update(){
 force_pogo_update=true
@@ -760,10 +760,10 @@ for i in "$@" ;do
  -uanr) update_all_no_reboot ;;
  -uvx) create_vmapper_xml ;;
  -uvxnr) create_vmapper_xml_no_reboot ;;
- -spv) pd_to_vm ;;
- -svp) vm_to_pd ;;
- -srv) rgc_to_vm ;;
- -svr) vm_to_rgc ;;
+# -spv) pd_to_vm ;;
+# -svp) vm_to_pd ;;
+# -srv) rgc_to_vm ;;
+# -svr) vm_to_rgc ;;
  -fp) force_pogo_update ;;
  esac
 done

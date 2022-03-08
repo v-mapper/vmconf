@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 3.06
+# version 3.07
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -78,11 +78,11 @@ fi
 mount -o remount,ro /system
 
 # check v6 and v7/8 present
-if [ -d "/data/data/de.goldjpg.vmapper" ] && [ -d "/data/data/de.vahrmap.vmapper" ] ;then
-  echo "`date +%Y-%m-%d_%T` VMconf check: vmapper v6 and v7/8 installed, removing v6 and execute new install" >> $logfile
-  pm uninstall de.goldjpg.vmapper
-  install_vmapper_wizard
-fi
+#if [ -d "/data/data/de.goldjpg.vmapper" ] && [ -d "/data/data/de.vahrmap.vmapper" ] ;then
+#  echo "`date +%Y-%m-%d_%T` VMconf check: vmapper v6 and v7/8 installed, removing v6 and execute new install" >> $logfile
+#  pm uninstall de.goldjpg.vmapper
+#  install_vmapper_wizard
+#fi
 
 # check rgc deactivated and vmapper not installed (properly) or empty config.xml
 if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "false" ]] ;then
@@ -154,12 +154,12 @@ if [ -f "$vmconfV7" ] && [ ! -z $(grep -w 'postdest' $vmconfV7 | sed -e 's/    <
   authpassword=$(grep -w 'authpassword' $vmconfV7 | sed -e 's/    <string name="authpassword">\(.*\)<\/string>/\1/')
   origin=$(grep -w 'origin' $vmconfV7 | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/')
   echo "`date +%Y-%m-%d_%T` Using vahrmap.vmapper settings" >> $logfile
-elif [ -f "$vmconfV6" ] && [ ! -z $(grep -w 'postdest' $vmconfV6 | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/') ]; then
-  server=$(grep -w 'postdest' $vmconfV6 | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/')
-  authuser=$(grep -w 'authuser' $vmconfV6 | sed -e 's/    <string name="authuser">\(.*\)<\/string>/\1/')
-  authpassword=$(grep -w 'authpassword' $vmconfV6 | sed -e 's/    <string name="authpassword">\(.*\)<\/string>/\1/')
-  origin=$(grep -w 'origin' $vmconfV6 | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/')
-  echo "`date +%Y-%m-%d_%T` Using goldjpg.vmapper settings" >> $logfile
+#elif [ -f "$vmconfV6" ] && [ ! -z $(grep -w 'postdest' $vmconfV6 | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/') ]; then
+#  server=$(grep -w 'postdest' $vmconfV6 | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/')
+#  authuser=$(grep -w 'authuser' $vmconfV6 | sed -e 's/    <string name="authuser">\(.*\)<\/string>/\1/')
+#  authpassword=$(grep -w 'authpassword' $vmconfV6 | sed -e 's/    <string name="authpassword">\(.*\)<\/string>/\1/')
+#  origin=$(grep -w 'origin' $vmconfV6 | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/')
+#  echo "`date +%Y-%m-%d_%T` Using goldjpg.vmapper settings" >> $logfile
 elif [ -f "$pdconf" ] && [ ! -z $(grep -w 'post_origin' $pdconf | sed -e 's/    <string name="post_origin">\(.*\)<\/string>/\1/') ]; then
   server=$(grep -w 'post_destination' $pdconf | sed -e 's/    <string name="post_destination">\(.*\)<\/string>/\1/')
   authuser=$(grep -w 'auth_username' $pdconf | sed -e 's/    <string name="auth_username">\(.*\)<\/string>/\1/')
@@ -326,26 +326,26 @@ vmapper_wizard(){
 newver="$(/system/bin/curl -s -k -L -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/noarch" | awk '{print substr($1,2); }')"
 installedver="$(dumpsys package de.vahrmap.vmapper|awk -F'=' '/versionName/{print $2}'|head -n1 | awk '{print substr($1,2); }')"
 
-if [ "$installedver" = "" ] ;then
-installedver="$(dumpsys package de.goldjpg.vmapper|awk -F'=' '/versionName/{print $2}'|head -n1 | awk '{print substr($1,2); }')"
-fi
+#if [ "$installedver" = "" ] ;then
+#installedver="$(dumpsys package de.goldjpg.vmapper|awk -F'=' '/versionName/{print $2}'|head -n1 | awk '{print substr($1,2); }')"
+#fi
 
 if [ "$newver" = "" ] ;then
 vm_install="skip"
 echo "`date +%Y-%m-%d_%T` Vmapper not found in MADmin, skipping version check" >> $logfile
 else
   if checkupdate "$newver" "$installedver" ;then
-    vold="$(echo $installedver | awk '{print substr($1,1,1); }')"
-    vnew="$(echo $newver | awk '{print substr($1,1,1); }')"
-    if [[ "$vold" = 6 ]] && [[ "$vnew" = 7 ]] ;then
-          echo "`date +%Y-%m-%d_%T` New vmapper version detected in wizard, $installedver=>$newver, oeps we uninstall and install" >> $logfile
-          # Its not a downgrade, but this should work and we cancel the the default update routine
-		  am force-stop de.goldjpg.vmapper
-		  /system/bin/pm uninstall de.goldjpg.vmapper
-		  sqlite3 /data/adb/magisk.db "DELETE FROM policies WHERE package_name = 'de.goldjpg.vmapper'"
-          downgrade_vmapper_wizard
-          vm_install="skip"
-        else
+#    vold="$(echo $installedver | awk '{print substr($1,1,1); }')"
+#    vnew="$(echo $newver | awk '{print substr($1,1,1); }')"
+#    if [[ "$vold" = 6 ]] && [[ "$vnew" = 7 ]] ;then
+#          echo "`date +%Y-%m-%d_%T` New vmapper version detected in wizard, $installedver=>$newver, oeps we uninstall and install" >> $logfile
+#          # Its not a downgrade, but this should work and we cancel the the default update routine
+#		  am force-stop de.goldjpg.vmapper
+#		  /system/bin/pm uninstall de.goldjpg.vmapper
+#		  sqlite3 /data/adb/magisk.db "DELETE FROM policies WHERE package_name = 'de.goldjpg.vmapper'"
+#          downgrade_vmapper_wizard
+#          vm_install="skip"
+#        else
       echo "`date +%Y-%m-%d_%T` New vmapper version detected in wizard, updating $installedver=>$newver" >> $logfile
       /system/bin/rm -f /sdcard/Download/vmapper.apk
       until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download" || { echo "`date +%Y-%m-%d_%T` Download vmapper failed, exit script" >> $logfile ; exit 1; } ;do
@@ -354,7 +354,7 @@ else
 
       # set vmapper to be installed
       vm_install="install"
-    fi
+#    fi
   else
     vm_install="skip"
     echo "`date +%Y-%m-%d_%T` Vmapper already on latest version" >> $logfile

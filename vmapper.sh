@@ -98,42 +98,42 @@ if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == 
 fi
 
 # check vmapper mockgps active and rgc active
-if [ -f "$vmconfV7" ] && [[ $(grep -w 'mockgps' $vmconfV7 | awk -F "\"" '{print tolower($4)}') == "true" ]] && [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "true" ]] ;then
+#if [ -f "$vmconfV7" ] && [[ $(grep -w 'mockgps' $vmconfV7 | awk -F "\"" '{print tolower($4)}') == "true" ]] && [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "true" ]] ;then
 # echo "deactivate rgc settings and kill rgc"
-am force-stop de.grennith.rgc.remotegpscontroller
-sed -i 's,\"autostart_services\" value=\"true\",\"autostart_services\" value=\"false\",g' $rgcconf
-sed -i 's,\"boot_startup\" value=\"true\",\"boot_startup\" value=\"false\",g' $rgcconf
-chmod 660 $rgcconf
-chown $ruser:$ruser $rgcconf
-echo "`date +%Y-%m-%d_%T` VMconf check: vmapper mockgps was active as well as rgc, disabled rgc settings and stopped rgc" >> $logfile
-fi
+#am force-stop de.grennith.rgc.remotegpscontroller
+#sed -i 's,\"autostart_services\" value=\"true\",\"autostart_services\" value=\"false\",g' $rgcconf
+#sed -i 's,\"boot_startup\" value=\"true\",\"boot_startup\" value=\"false\",g' $rgcconf
+#chmod 660 $rgcconf
+#chown $ruser:$ruser $rgcconf
+#echo "`date +%Y-%m-%d_%T` VMconf check: vmapper mockgps was active as well as rgc, disabled rgc settings and stopped rgc" >> $logfile
+#fi
 
 # check vmapper useApi active and rgc active
-if [ -f "$vmconfV7" ] && [[ $(grep -w 'useApi' $vmconfV7 | awk -F "\"" '{print tolower($4)}') == "true" ]] && [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "true" ]] ;then
+#if [ -f "$vmconfV7" ] && [[ $(grep -w 'useApi' $vmconfV7 | awk -F "\"" '{print tolower($4)}') == "true" ]] && [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "true" ]] ;then
 #  echo "deactivate rgc settings and kill rgc"
-am force-stop de.grennith.rgc.remotegpscontroller
-sed -i 's,\"autostart_services\" value=\"true\",\"autostart_services\" value=\"false\",g' $rgcconf
-sed -i 's,\"boot_startup\" value=\"true\",\"boot_startup\" value=\"false\",g' $rgcconf
-chmod 660 $rgcconf
-chown $ruser:$ruser $rgcconf
-echo "`date +%Y-%m-%d_%T` VMconf check: vmapper useApi was active as well as rgc, disabled rgc settings and stopped rgc" >> $logfile
-fi
+#am force-stop de.grennith.rgc.remotegpscontroller
+#sed -i 's,\"autostart_services\" value=\"true\",\"autostart_services\" value=\"false\",g' $rgcconf
+#sed -i 's,\"boot_startup\" value=\"true\",\"boot_startup\" value=\"false\",g' $rgcconf
+#chmod 660 $rgcconf
+#chown $ruser:$ruser $rgcconf
+#echo "`date +%Y-%m-%d_%T` VMconf check: vmapper useApi was active as well as rgc, disabled rgc settings and stopped rgc" >> $logfile
+#fi
 
 # check rgc deactivated and vmapper mockgps disabled
-if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "false" ]] && [[ $(grep -w 'mockgps' $vmconfV7 | awk -F "\"" '{print tolower($4)}') == "false" ]] ;then
-sed -i 's,\"mockgps\" value=\"false\",\"mockgps\" value=\"true\",g' $vmconfV7
-am force-stop de.vahrmap.vmapper
-am broadcast -n de.vahrmap.vmapper/.RestartService
-echo "`date +%Y-%m-%d_%T` VMconf check: rgc deactivated and vmapper mockgps disabled, enabled mockgps and restarted vmapper" >> $logfile
-fi
+#if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "false" ]] && [[ $(grep -w 'mockgps' $vmconfV7 | awk -F "\"" '{print tolower($4)}') == "false" ]] ;then
+#sed -i 's,\"mockgps\" value=\"false\",\"mockgps\" value=\"true\",g' $vmconfV7
+#am force-stop de.vahrmap.vmapper
+#am broadcast -n de.vahrmap.vmapper/.RestartService
+#echo "`date +%Y-%m-%d_%T` VMconf check: rgc deactivated and vmapper mockgps disabled, enabled mockgps and restarted vmapper" >> $logfile
+#fi
 
 # ensure vmapper mockgps is active for useApi
-if [ -f "$vmconfV7" ] && [[ $(grep -w 'useApi' $vmconfV7 | awk -F "\"" '{print tolower($4)}') == "true" ]] && [[ $(grep -w 'mockgps' $vmconfV7 | awk -F "\"" '{print tolower($4)}') == "false" ]] ;then
-sed -i 's,\"mockgps\" value=\"false\",\"mockgps\" value=\"true\",g' $vmconfV7
-am force-stop de.vahrmap.vmapper
-am broadcast -n de.vahrmap.vmapper/.RestartService
-echo "`date +%Y-%m-%d_%T` VMconf check: vmapper useApi activated and vmapper mockgps disabled, enabled mockgps and restarted vmapper" >> $logfile
-fi
+#if [ -f "$vmconfV7" ] && [[ $(grep -w 'useApi' $vmconfV7 | awk -F "\"" '{print tolower($4)}') == "true" ]] && [[ $(grep -w 'mockgps' $vmconfV7 | awk -F "\"" '{print tolower($4)}') == "false" ]] ;then
+#sed -i 's,\"mockgps\" value=\"false\",\"mockgps\" value=\"true\",g' $vmconfV7
+#am force-stop de.vahrmap.vmapper
+#am broadcast -n de.vahrmap.vmapper/.RestartService
+#echo "`date +%Y-%m-%d_%T` VMconf check: vmapper useApi activated and vmapper mockgps disabled, enabled mockgps and restarted vmapper" >> $logfile
+#fi
 
 # check owner of vmapper config.xml
 vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')

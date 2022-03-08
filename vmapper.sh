@@ -14,8 +14,8 @@ puser=$(ls -la /data/data/com.mad.pogodroid/|head -n2|tail -n1|awk '{print $3}')
 pdconf="/data/data/com.mad.pogodroid/shared_prefs/com.mad.pogodroid_preferences.xml"
 ruser=$(ls -la /data/data/de.grennith.rgc.remotegpscontroller/|head -n2|tail -n1|awk '{print $3}')
 rgcconf="/data/data/de.grennith.rgc.remotegpscontroller/shared_prefs/de.grennith.rgc.remotegpscontroller_preferences.xml"
-vmconfV6="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
-vmconfV7="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
+# vmconfV6="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
+vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
 lastResort="/sdcard/vm_last_resort"
 
 # stderr to logfile
@@ -84,21 +84,43 @@ mount -o remount,ro /system
 #  install_vmapper_wizard
 #fi
 
-# check rgc deactivated and vmapper not installed (properly) or empty config.xml
-if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "false" ]] ;then
-  if [ ! -f "$vmconfV7" ] || [ -z $(grep -w 'websocketurl' $vmconfV7 | sed -e 's/    <string name="websocketurl">\(.*\)<\/string>/\1/') ] ; then
+# check rgc status, websocket fallback
+if [ -f "$vmconf" ] && [ ! -z $(grep -w 'websocketurl' $vmconf | sed -e 's/    <string name="websocketurl">\(.*\)<\/string>/\1/') ] ; then
+  if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "true" ]] ;then
+    sed -i 's,\"autostart_services\" value=\"true\",\"autostart_services\" value=\"false\",g' $rgcconf
+    sed -i 's,\"boot_startup\" value=\"true\",\"boot_startup\" value=\"false\",g' $rgcconf
+    chmod 660 $rgcconf
+    chown $ruser:$ruser $rgcconf
+    am force-stop de.grennith.rgc.remotegpscontroller
+    echo "`date +%Y-%m-%d_%T` VMconf check: rgc activated and vmapper installed, disabled rgc" >> $logfile
+  fi
+else
+  if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "false" ]] ;then
     sed -i 's,\"autostart_services\" value=\"false\",\"autostart_services\" value=\"true\",g' $rgcconf
     sed -i 's,\"boot_startup\" value=\"false\",\"boot_startup\" value=\"true\",g' $rgcconf
     chmod 660 $rgcconf
     chown $ruser:$ruser $rgcconf
     monkey -p de.grennith.rgc.remotegpscontroller 1
     reboot=1
-    echo "`date +%Y-%m-%d_%T` VMconf check: rgc deactivated and either vmapper was not installed or config was empty, enabled rgc settings and started rgc " >> $logfile
+    echo "`date +%Y-%m-%d_%T` VMconf check: rgc deactivated and either vmapper was not installed or config was empty, started rgc" >> $logfile
   fi
 fi
 
+# check rgc deactivated and vmapper not installed (properly) or empty config.xml
+#if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "false" ]] ;then
+#  if [ ! -f "$vmconf" ] || [ -z $(grep -w 'websocketurl' $vmconf | sed -e 's/    <string name="websocketurl">\(.*\)<\/string>/\1/') ] ; then
+#    sed -i 's,\"autostart_services\" value=\"false\",\"autostart_services\" value=\"true\",g' $rgcconf
+#    sed -i 's,\"boot_startup\" value=\"false\",\"boot_startup\" value=\"true\",g' $rgcconf
+#    chmod 660 $rgcconf
+#    chown $ruser:$ruser $rgcconf
+#    monkey -p de.grennith.rgc.remotegpscontroller 1
+#    reboot=1
+#    echo "`date +%Y-%m-%d_%T` VMconf check: rgc deactivated and either vmapper was not installed or config was empty, enabled rgc settings and started rgc " >> $logfile
+#  fi
+#fi
+
 # check vmapper mockgps active and rgc active
-#if [ -f "$vmconfV7" ] && [[ $(grep -w 'mockgps' $vmconfV7 | awk -F "\"" '{print tolower($4)}') == "true" ]] && [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "true" ]] ;then
+#if [ -f "$vmconf" ] && [[ $(grep -w 'mockgps' $vmconf | awk -F "\"" '{print tolower($4)}') == "true" ]] && [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "true" ]] ;then
 # echo "deactivate rgc settings and kill rgc"
 #am force-stop de.grennith.rgc.remotegpscontroller
 #sed -i 's,\"autostart_services\" value=\"true\",\"autostart_services\" value=\"false\",g' $rgcconf
@@ -109,7 +131,7 @@ fi
 #fi
 
 # check vmapper useApi active and rgc active
-#if [ -f "$vmconfV7" ] && [[ $(grep -w 'useApi' $vmconfV7 | awk -F "\"" '{print tolower($4)}') == "true" ]] && [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "true" ]] ;then
+#if [ -f "$vmconf" ] && [[ $(grep -w 'useApi' $vmconf | awk -F "\"" '{print tolower($4)}') == "true" ]] && [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "true" ]] ;then
 #  echo "deactivate rgc settings and kill rgc"
 #am force-stop de.grennith.rgc.remotegpscontroller
 #sed -i 's,\"autostart_services\" value=\"true\",\"autostart_services\" value=\"false\",g' $rgcconf
@@ -120,16 +142,16 @@ fi
 #fi
 
 # check rgc deactivated and vmapper mockgps disabled
-#if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "false" ]] && [[ $(grep -w 'mockgps' $vmconfV7 | awk -F "\"" '{print tolower($4)}') == "false" ]] ;then
-#sed -i 's,\"mockgps\" value=\"false\",\"mockgps\" value=\"true\",g' $vmconfV7
+#if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "false" ]] && [[ $(grep -w 'mockgps' $vmconf | awk -F "\"" '{print tolower($4)}') == "false" ]] ;then
+#sed -i 's,\"mockgps\" value=\"false\",\"mockgps\" value=\"true\",g' $vmconf
 #am force-stop de.vahrmap.vmapper
 #am broadcast -n de.vahrmap.vmapper/.RestartService
 #echo "`date +%Y-%m-%d_%T` VMconf check: rgc deactivated and vmapper mockgps disabled, enabled mockgps and restarted vmapper" >> $logfile
 #fi
 
 # ensure vmapper mockgps is active for useApi
-#if [ -f "$vmconfV7" ] && [[ $(grep -w 'useApi' $vmconfV7 | awk -F "\"" '{print tolower($4)}') == "true" ]] && [[ $(grep -w 'mockgps' $vmconfV7 | awk -F "\"" '{print tolower($4)}') == "false" ]] ;then
-#sed -i 's,\"mockgps\" value=\"false\",\"mockgps\" value=\"true\",g' $vmconfV7
+#if [ -f "$vmconf" ] && [[ $(grep -w 'useApi' $vmconf | awk -F "\"" '{print tolower($4)}') == "true" ]] && [[ $(grep -w 'mockgps' $vmconf | awk -F "\"" '{print tolower($4)}') == "false" ]] ;then
+#sed -i 's,\"mockgps\" value=\"false\",\"mockgps\" value=\"true\",g' $vmconf
 #am force-stop de.vahrmap.vmapper
 #am broadcast -n de.vahrmap.vmapper/.RestartService
 #echo "`date +%Y-%m-%d_%T` VMconf check: vmapper useApi activated and vmapper mockgps disabled, enabled mockgps and restarted vmapper" >> $logfile
@@ -138,9 +160,9 @@ fi
 # check owner of vmapper config.xml
 vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
 vmconfiguser=$(ls -la /data/data/de.vahrmap.vmapper/shared_prefs/config.xml |head -n2|tail -n1|awk '{print $3}')
-if [ -f "$vmconfV7" ] && [[ $vmuser != $vmconfiguser ]] ;then
-chmod 660 $vmconfV7
-chown $vmuser:$vmuser $vmconfV7
+if [ -f "$vmconf" ] && [[ $vmuser != $vmconfiguser ]] ;then
+chmod 660 $vmconf
+chown $vmuser:$vmuser $vmconf
 am force-stop de.vahrmap.vmapper
 am broadcast -n de.vahrmap.vmapper/.RestartService
 echo "`date +%Y-%m-%d_%T` VMconf check: vmapper config.xml user incorrect, changed it and restarted vmapper" >> $logfile
@@ -148,11 +170,11 @@ fi
 
 
 # Get MADmin credentials and origin
-if [ -f "$vmconfV7" ] && [ ! -z $(grep -w 'postdest' $vmconfV7 | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/') ] ; then
-  server=$(grep -w 'postdest' $vmconfV7 | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/')
-  authuser=$(grep -w 'authuser' $vmconfV7 | sed -e 's/    <string name="authuser">\(.*\)<\/string>/\1/')
-  authpassword=$(grep -w 'authpassword' $vmconfV7 | sed -e 's/    <string name="authpassword">\(.*\)<\/string>/\1/')
-  origin=$(grep -w 'origin' $vmconfV7 | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/')
+if [ -f "$vmconf" ] && [ ! -z $(grep -w 'postdest' $vmconf | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/') ] ; then
+  server=$(grep -w 'postdest' $vmconf | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/')
+  authuser=$(grep -w 'authuser' $vmconf | sed -e 's/    <string name="authuser">\(.*\)<\/string>/\1/')
+  authpassword=$(grep -w 'authpassword' $vmconf | sed -e 's/    <string name="authpassword">\(.*\)<\/string>/\1/')
+  origin=$(grep -w 'origin' $vmconf | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/')
   echo "`date +%Y-%m-%d_%T` Using vahrmap.vmapper settings" >> $logfile
 #elif [ -f "$vmconfV6" ] && [ ! -z $(grep -w 'postdest' $vmconfV6 | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/') ]; then
 #  server=$(grep -w 'postdest' $vmconfV6 | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/')
@@ -310,7 +332,7 @@ sleep 5
 # echo "`date +%Y-%m-%d_%T` VM install: 55vmapper added" >> $logfile
 
 ## check vmapper mockgps active, we do not check anymore but disable rgc
-#if [ -f "$vmconfV7" ] && [[ $(grep -w 'mockgps' $vmconfV7 | awk -F "\"" '{print tolower($4)}') == "true" ]] ;then
+#if [ -f "$vmconf" ] && [[ $(grep -w 'mockgps' $vmconf | awk -F "\"" '{print tolower($4)}') == "true" ]] ;then
 #rgc_to_vm
 #fi
 # disable rgc

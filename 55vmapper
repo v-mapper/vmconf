@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.0
+# version 2.1
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -8,5 +8,10 @@ fi
 echo "" >> /sdcard/vm.log
 echo "`date +%Y-%m-%d_%T` Device rebooted" >> /sdcard/vm.log
 
-# have vmapper.sh check for updated vmapper version in wizzard
-! [[ -f /sdcard/disableautovmapperupdate ]] && sh -x /system/bin/vmapper.sh -uvw
+# execute vmapper.sh
+if [ -f /sdcard/disableautovmapperupdate ] ; then
+  sh -x /system/bin/vmapper.sh
+else
+  sh -x /system/bin/vmapper.sh -uvw
+fi
+

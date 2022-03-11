@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 3.07
+# version 3.08
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -77,13 +77,6 @@ if [[ $oldsh != $newsh ]] ;then
 fi
 mount -o remount,ro /system
 
-# check v6 and v7/8 present
-#if [ -d "/data/data/de.goldjpg.vmapper" ] && [ -d "/data/data/de.vahrmap.vmapper" ] ;then
-#  echo "`date +%Y-%m-%d_%T` VMconf check: vmapper v6 and v7/8 installed, removing v6 and execute new install" >> $logfile
-#  pm uninstall de.goldjpg.vmapper
-#  install_vmapper_wizard
-#fi
-
 # check rgc status, websocket fallback
 if [ -f "$vmconf" ] && [ ! -z $(grep -w 'websocketurl' $vmconf | sed -e 's/    <string name="websocketurl">\(.*\)<\/string>/\1/') ] ; then
   if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "true" ]] ;then
@@ -106,57 +99,6 @@ else
   fi
 fi
 
-# check rgc deactivated and vmapper not installed (properly) or empty config.xml
-#if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "false" ]] ;then
-#  if [ ! -f "$vmconf" ] || [ -z $(grep -w 'websocketurl' $vmconf | sed -e 's/    <string name="websocketurl">\(.*\)<\/string>/\1/') ] ; then
-#    sed -i 's,\"autostart_services\" value=\"false\",\"autostart_services\" value=\"true\",g' $rgcconf
-#    sed -i 's,\"boot_startup\" value=\"false\",\"boot_startup\" value=\"true\",g' $rgcconf
-#    chmod 660 $rgcconf
-#    chown $ruser:$ruser $rgcconf
-#    monkey -p de.grennith.rgc.remotegpscontroller 1
-#    reboot=1
-#    echo "`date +%Y-%m-%d_%T` VMconf check: rgc deactivated and either vmapper was not installed or config was empty, enabled rgc settings and started rgc " >> $logfile
-#  fi
-#fi
-
-# check vmapper mockgps active and rgc active
-#if [ -f "$vmconf" ] && [[ $(grep -w 'mockgps' $vmconf | awk -F "\"" '{print tolower($4)}') == "true" ]] && [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "true" ]] ;then
-# echo "deactivate rgc settings and kill rgc"
-#am force-stop de.grennith.rgc.remotegpscontroller
-#sed -i 's,\"autostart_services\" value=\"true\",\"autostart_services\" value=\"false\",g' $rgcconf
-#sed -i 's,\"boot_startup\" value=\"true\",\"boot_startup\" value=\"false\",g' $rgcconf
-#chmod 660 $rgcconf
-#chown $ruser:$ruser $rgcconf
-#echo "`date +%Y-%m-%d_%T` VMconf check: vmapper mockgps was active as well as rgc, disabled rgc settings and stopped rgc" >> $logfile
-#fi
-
-# check vmapper useApi active and rgc active
-#if [ -f "$vmconf" ] && [[ $(grep -w 'useApi' $vmconf | awk -F "\"" '{print tolower($4)}') == "true" ]] && [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "true" ]] ;then
-#  echo "deactivate rgc settings and kill rgc"
-#am force-stop de.grennith.rgc.remotegpscontroller
-#sed -i 's,\"autostart_services\" value=\"true\",\"autostart_services\" value=\"false\",g' $rgcconf
-#sed -i 's,\"boot_startup\" value=\"true\",\"boot_startup\" value=\"false\",g' $rgcconf
-#chmod 660 $rgcconf
-#chown $ruser:$ruser $rgcconf
-#echo "`date +%Y-%m-%d_%T` VMconf check: vmapper useApi was active as well as rgc, disabled rgc settings and stopped rgc" >> $logfile
-#fi
-
-# check rgc deactivated and vmapper mockgps disabled
-#if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "false" ]] && [[ $(grep -w 'mockgps' $vmconf | awk -F "\"" '{print tolower($4)}') == "false" ]] ;then
-#sed -i 's,\"mockgps\" value=\"false\",\"mockgps\" value=\"true\",g' $vmconf
-#am force-stop de.vahrmap.vmapper
-#am broadcast -n de.vahrmap.vmapper/.RestartService
-#echo "`date +%Y-%m-%d_%T` VMconf check: rgc deactivated and vmapper mockgps disabled, enabled mockgps and restarted vmapper" >> $logfile
-#fi
-
-# ensure vmapper mockgps is active for useApi
-#if [ -f "$vmconf" ] && [[ $(grep -w 'useApi' $vmconf | awk -F "\"" '{print tolower($4)}') == "true" ]] && [[ $(grep -w 'mockgps' $vmconf | awk -F "\"" '{print tolower($4)}') == "false" ]] ;then
-#sed -i 's,\"mockgps\" value=\"false\",\"mockgps\" value=\"true\",g' $vmconf
-#am force-stop de.vahrmap.vmapper
-#am broadcast -n de.vahrmap.vmapper/.RestartService
-#echo "`date +%Y-%m-%d_%T` VMconf check: vmapper useApi activated and vmapper mockgps disabled, enabled mockgps and restarted vmapper" >> $logfile
-#fi
-
 # check owner of vmapper config.xml
 vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
 vmconfiguser=$(ls -la /data/data/de.vahrmap.vmapper/shared_prefs/config.xml |head -n2|tail -n1|awk '{print $3}')
@@ -176,12 +118,6 @@ if [ -f "$vmconf" ] && [ ! -z $(grep -w 'postdest' $vmconf | sed -e 's/    <stri
   authpassword=$(grep -w 'authpassword' $vmconf | sed -e 's/    <string name="authpassword">\(.*\)<\/string>/\1/')
   origin=$(grep -w 'origin' $vmconf | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/')
   echo "`date +%Y-%m-%d_%T` Using vahrmap.vmapper settings" >> $logfile
-#elif [ -f "$vmconfV6" ] && [ ! -z $(grep -w 'postdest' $vmconfV6 | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/') ]; then
-#  server=$(grep -w 'postdest' $vmconfV6 | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/')
-#  authuser=$(grep -w 'authuser' $vmconfV6 | sed -e 's/    <string name="authuser">\(.*\)<\/string>/\1/')
-#  authpassword=$(grep -w 'authpassword' $vmconfV6 | sed -e 's/    <string name="authpassword">\(.*\)<\/string>/\1/')
-#  origin=$(grep -w 'origin' $vmconfV6 | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/')
-#  echo "`date +%Y-%m-%d_%T` Using goldjpg.vmapper settings" >> $logfile
 elif [ -f "$pdconf" ] && [ ! -z $(grep -w 'post_origin' $pdconf | sed -e 's/    <string name="post_origin">\(.*\)<\/string>/\1/') ]; then
   server=$(grep -w 'post_destination' $pdconf | sed -e 's/    <string name="post_destination">\(.*\)<\/string>/\1/')
   authuser=$(grep -w 'auth_username' $pdconf | sed -e 's/    <string name="auth_username">\(.*\)<\/string>/\1/')
@@ -220,14 +156,6 @@ if [ -z $1 ] || [ $1 != "-nrc" ] ;then
   exit 1
   fi
 fi
-
-# temp check on v6 in MADmin => exit
-#newver="$(/system/bin/curl -s -k -L -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/noarch" | awk '{print substr($1,2); }')"
-#vnew="$(echo $newver | awk '{print substr($1,1,1); }')"
-#if [[ "$vnew" = 6 ]] ;then
-#echo "`date +%Y-%m-%d_%T` Vmapper $newver detected in wizard, exiting vmapper.sh" >> $logfile
-#exit 1
-#fi
 
 
 # set hostname = origin, wait till next reboot for it to take effect
@@ -300,8 +228,6 @@ echo "`date +%Y-%m-%d_%T` VM install: pogodroid disabled" >> $logfile
 touch /sdcard/disableautopogodroidupdate
 
 ## Install vmapper
-#/system/bin/rm -f /sdcard/Download/vmapper.apk
-#/system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download"
 /system/bin/pm install -r /sdcard/Download/vmapper.apk
 /system/bin/rm -f /sdcard/Download/vmapper.apk
 echo "`date +%Y-%m-%d_%T` VM install: vmapper installed" >> $logfile
@@ -324,17 +250,6 @@ create_vmapper_xml
 am broadcast -n de.vahrmap.vmapper/.RestartService
 sleep 5
 
-## add 55vmapper, already done at start of script, not needed anymore
-# mount -o remount,rw /system
-# /system/bin/curl -L --fail --show-error -o /system/etc/init.d/55vmapper -k -s https://raw.githubusercontent.com/v-mapper/vmconf/main/55vmapper
-# chmod +x /system/etc/init.d/55vmapper
-# mount -o remount,ro /system
-# echo "`date +%Y-%m-%d_%T` VM install: 55vmapper added" >> $logfile
-
-## check vmapper mockgps active, we do not check anymore but disable rgc
-#if [ -f "$vmconf" ] && [[ $(grep -w 'mockgps' $vmconf | awk -F "\"" '{print tolower($4)}') == "true" ]] ;then
-#rgc_to_vm
-#fi
 # disable rgc
 sed -i 's,\"autostart_services\" value=\"true\",\"autostart_services\" value=\"false\",g' $rgcconf
 sed -i 's,\"boot_startup\" value=\"true\",\"boot_startup\" value=\"false\",g' $rgcconf
@@ -368,17 +283,6 @@ vm_install="skip"
 echo "`date +%Y-%m-%d_%T` Vmapper not found in MADmin, skipping version check" >> $logfile
 else
   if checkupdate "$newver" "$installedver" ;then
-#    vold="$(echo $installedver | awk '{print substr($1,1,1); }')"
-#    vnew="$(echo $newver | awk '{print substr($1,1,1); }')"
-#    if [[ "$vold" = 6 ]] && [[ "$vnew" = 7 ]] ;then
-#          echo "`date +%Y-%m-%d_%T` New vmapper version detected in wizard, $installedver=>$newver, oeps we uninstall and install" >> $logfile
-#          # Its not a downgrade, but this should work and we cancel the the default update routine
-#		  am force-stop de.goldjpg.vmapper
-#		  /system/bin/pm uninstall de.goldjpg.vmapper
-#		  sqlite3 /data/adb/magisk.db "DELETE FROM policies WHERE package_name = 'de.goldjpg.vmapper'"
-#          downgrade_vmapper_wizard
-#          vm_install="skip"
-#        else
       echo "`date +%Y-%m-%d_%T` New vmapper version detected in wizard, updating $installedver=>$newver" >> $logfile
       /system/bin/rm -f /sdcard/Download/vmapper.apk
       until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download" || { echo "`date +%Y-%m-%d_%T` Download vmapper failed, exit script" >> $logfile ; exit 1; } ;do
@@ -387,7 +291,6 @@ else
 
       # set vmapper to be installed
       vm_install="install"
-#    fi
   else
     vm_install="skip"
     echo "`date +%Y-%m-%d_%T` Vmapper already on latest version" >> $logfile
@@ -403,12 +306,7 @@ if [ "$vm_install" = "install" ]; then
  # install vmapper
  /system/bin/pm install -r /sdcard/Download/vmapper.apk
  /system/bin/rm -f /sdcard/Download/vmapper.apk
- # new vmapper version in wizzard, so we replace xml
-# if [[ -f /sdcard/disableautoxml ]] ;then
-#   echo "`date +%Y-%m-%d_%T` Skipping update config.xml" >> $logfile
-# else
-#   create_vmapper_xml
-# fi
+
  reboot=1
 fi
 }
@@ -428,8 +326,6 @@ sleep 2
 echo "`date +%Y-%m-%d_%T` VM downgrade: vmapper removed" >> $logfile
 
 # install vmapper from wizard
-#/system/bin/rm -f /sdcard/Download/vmapper.apk
-#/system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download"
 /system/bin/pm install -r /sdcard/Download/vmapper.apk
 /system/bin/rm -f /sdcard/Download/vmapper.apk
 echo "`date +%Y-%m-%d_%T` VM downgrade: vmapper installed" >> $logfile
@@ -560,11 +456,7 @@ if [ ! -z "$vm_install" ] && [ ! -z "$rgc_install" ] && [ ! -z "$pogo_install" ]
       /system/bin/pm install -r /sdcard/Download/vmapper.apk
       /system/bin/rm -f /sdcard/Download/vmapper.apk
       # new vmapper version in wizzard, so we replace xml
-#      if [[ -f /sdcard/disableautoxml ]] ;then
-#        echo "`date +%Y-%m-%d_%T` Skipping update config.xml" >> $logfile
-#      else
-#        create_vmapper_xml
-#      fi
+
       reboot=1
     fi
     if [ "$pogo_install" = "install" ]; then
@@ -602,12 +494,6 @@ if [ ! -z "$vm_install" ] && [ ! -z "$rgc_install" ] && [ ! -z "$pogo_install" ]
       # install vmapper
       /system/bin/pm install -r /sdcard/Download/vmapper.apk
       /system/bin/rm -f /sdcard/Download/vmapper.apk
-      # new vmapper version in wizzard, replace xml
-#      if [[ -f /sdcard/disableautoxml ]] ;then
-#        echo "`date +%Y-%m-%d_%T` Skipping update config.xml" >> $logfile
-#      else
-#        vmapper_xml
-#      fi
       # if no pogo update we restart both now
       if [ "$pogo_install" != "install" ];then
         echo "`date +%Y-%m-%d_%T` No pogo update, starting vmapper+pogo" >> $logfile
@@ -666,117 +552,6 @@ monkey -p com.nianticlabs.pokemongo -c android.intent.category.LAUNCHER 1
 }
 
 
-#pd_to_vm(){
-#vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
-#vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
-# disable pd daemon
-#sed -i 's,\"full_daemon\" value=\"true\",\"full_daemon\" value=\"false\",g' $pdconf
-#chmod 660 $pdconf
-#chown $puser:$puser $pdconf
-# disable pd autoupdate
-#touch /sdcard/disableautopogodroidupdate
-
-# enable vm daemon
-#sed -i 's,\"daemon\" value=\"false\",\"daemon\" value=\"true\",g' $vmconf
-#chmod 660 $vmconf
-#chown $vmuser:$vmuser $vmconf
-
-# kill pd & start vm
-#am force-stop com.mad.pogodroid
-#am force-stop de.vahrmap.vmapper
-#am broadcast -n de.vahrmap.vmapper/.RestartService
-#sleep 5
-
-#echo "`date +%Y-%m-%d_%T` VM daemon enable and PD daemon disable" >> $logfile
-
-#reboot=1
-#}
-
-
-#vm_to_pd(){
-#vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
-#vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
-# disable vm daemon
-#sed -i 's,\"daemon\" value=\"true\",\"daemon\" value=\"false\",g' $vmconf
-#chmod 660 $vmconf
-#chown $vmuser:$vmuser $vmconf
-
-# enable pd daemon
-#sed -i 's,\"full_daemon\" value=\"false\",\"full_daemon\" value=\"true\",g' $pdconf
-#chmod 660 $pdconf
-#chown $puser:$puser $pdconf
-# enable pd autoupdate
-#rm -f /sdcard/disableautopogodroidupdate
-
-#kill vm & start pd
-#am force-stop de.vahrmap.vmapper
-#sleep 2
-#monkey -p com.mad.pogodroid 1
-#sleep 2
-#am start -n com.mad.pogodroid/.SplashPermissionsActivity
-#sleep 5
-
-#echo "`date +%Y-%m-%d_%T` VM daemon disable and PD daemon enable" >> $logfile
-
-#reboot=1
-#}
-
-#rgc_to_vm(){
-#vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
-#vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
-# disable rgc
-#sed -i 's,\"autostart_services\" value=\"true\",\"autostart_services\" value=\"false\",g' $rgcconf
-#sed -i 's,\"boot_startup\" value=\"true\",\"boot_startup\" value=\"false\",g' $rgcconf
-#chmod 660 $rgcconf
-#chown $ruser:$ruser $rgcconf
-# disable rgc autoupdate
-#touch /sdcard/disableautorgcupdate
-
-# enable vm mockgps
-#sed -i 's,\"mockgps\" value=\"false\",\"mockgps\" value=\"true\",g' $vmconf
-#chmod 660 $vmconf
-#chown $vmuser:$vmuser $vmconf
-
-# kill rgc & restart vm
-#am force-stop de.grennith.rgc.remotegpscontroller
-#am force-stop de.vahrmap.vmapper
-#am broadcast -n de.vahrmap.vmapper/.RestartService
-#sleep 5
-
-#echo "`date +%Y-%m-%d_%T` VM mockgps enable and RGC disable" >> $logfile
-
-#reboot=1
-#}
-
-#vm_to_rgc(){
-#vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
-#vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
-# disable vm mockgps AND useApi
-#sed -i 's,\"mockgps\" value=\"true\",\"mockgps\" value=\"false\",g' $vmconf
-#sed -i 's,\"useApi\" value=\"true\",\"useApi\" value=\"false\",g' $vmconf
-#chmod 660 $vmconf
-#chown $vmuser:$vmuser $vmconf
-
-# enable rgc
-#sed -i 's,\"autostart_services\" value=\"false\",\"autostart_services\" value=\"true\",g' $rgcconf
-#sed -i 's,\"boot_startup\" value=\"false\",\"boot_startup\" value=\"true\",g' $rgcconf
-#chmod 660 $rgcconf
-#chown $ruser:$ruser $rgcconf
-# enable rgc autoupdate
-#rm -f /sdcard/disableautorgcupdate
-
-# restart vm & start rgc
-#am force-stop de.vahrmap.vmapper
-#am broadcast -n de.vahrmap.vmapper/.RestartService
-#sleep 2
-#monkey -p de.grennith.rgc.remotegpscontroller 1
-#sleep 5
-
-#echo "`date +%Y-%m-%d_%T` VM mockgps disable and RGC enable" >> $logfile
-
-#reboot=1
-#}
-
 force_pogo_update(){
 force_pogo_update=true
 }
@@ -793,10 +568,6 @@ for i in "$@" ;do
  -uanr) update_all_no_reboot ;;
  -uvx) create_vmapper_xml ;;
  -uvxnr) create_vmapper_xml_no_reboot ;;
-# -spv) pd_to_vm ;;
-# -svp) vm_to_pd ;;
-# -srv) rgc_to_vm ;;
-# -svr) vm_to_rgc ;;
  -fp) force_pogo_update ;;
  esac
 done

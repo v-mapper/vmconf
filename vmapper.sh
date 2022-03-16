@@ -327,7 +327,7 @@ if [ ! -z "$vm_install" ] && [ ! -z "$rgc_install" ] && [ ! -z "$pogo_install" ]
       monkey -p de.grennith.rgc.remotegpscontroller 1
     fi
     if [ "$vm_install" = "install" ]; then
-      echo "`date +%Y-%m-%d_%T` Install vmapper and recreate xml" >> $logfile
+      echo "`date +%Y-%m-%d_%T` Install vmapper" >> $logfile
       # kill pogo
       am force-stop com.nianticlabs.pokemongo
       # install vmapper

@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 3.09
+# version 3.10
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -394,7 +394,7 @@ force_pogo_update=true
 ########## Execution
 
 #wait on internet
-until ping -c1 8.8.8.8 >/dev/null 2>/dev/null; do
+until ping -c1 8.8.8.8 >/dev/null 2>/dev/null || ping -c1 1.1.1.1 >/dev/null 2>/dev/null; do
     sleep 10
 done
 echo "`date +%Y-%m-%d_%T` Internet connection available" >> $logfile

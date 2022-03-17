@@ -5,6 +5,7 @@ logfile="/sdcard/vm.log"
 vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
 RUN_EVERY=60
 REBOOT_AFTER=3
+MAX_DAILY_REBOOT=3
 
 #Create logfile if it doesn't exist yet
 if [ ! -e $logfile ] ;then
@@ -38,8 +39,8 @@ i=0
 while true; do
   check_vm
   if (( $i > $REBOOT_AFTER )) ;then
-    if [ $(cat $logfile | grep `date +%Y-%m-%d` | grep VMwatchdog | grep rebooting | wc -l) -gt 3 ] ;then
-      echo "`date +%Y-%m-%d_%T` VMwatchdog: I've already rebooted 3 times today, too tired now, see you tomorrow..."  >> $logfile
+    if [ $(cat $logfile | grep `date +%Y-%m-%d` | grep VMwatchdog | grep rebooting | wc -l) -gt $MAX_DAILY_REBOOT ] ;then
+      echo "`date +%Y-%m-%d_%T` VMwatchdog: I've already rebooted $MAX_DAILY_REBOOT times today, too tired now, see you tomorrow..."  >> $logfile
       sleep $(( 86400 - $(( $(date '+%-H *3600 + %-M *60 + %-S') )) ))
     else
       echo "`date +%Y-%m-%d_%T` VMwatchdog: vmapper not running, tried to restart vmapper $REBOOT_AFTER times, rebooting device"  >> $logfile

@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 3.10
+# version 3.11
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -14,7 +14,6 @@ puser=$(ls -la /data/data/com.mad.pogodroid/|head -n2|tail -n1|awk '{print $3}')
 pdconf="/data/data/com.mad.pogodroid/shared_prefs/com.mad.pogodroid_preferences.xml"
 ruser=$(ls -la /data/data/de.grennith.rgc.remotegpscontroller/|head -n2|tail -n1|awk '{print $3}')
 rgcconf="/data/data/de.grennith.rgc.remotegpscontroller/shared_prefs/de.grennith.rgc.remotegpscontroller_preferences.xml"
-# vmconfV6="/data/data/de.goldjpg.vmapper/shared_prefs/config.xml"
 vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
 lastResort="/sdcard/vm_last_resort"
 
@@ -445,6 +444,31 @@ if [[ $oldsh != $newsh ]] ;then
 fi
 mount -o remount,ro /system
 
+# allign rgc/pd settings with vm
+vm_origin=$(grep -w 'origin' $vmconf | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/')
+rgc_origin=$(grep -w 'websocket_origin' $rgcconf | sed -e 's/    <string name="websocket_origin">\(.*\)<\/string>/\1/')
+pd_origin=$(grep -w 'post_origin' $pdconf | sed -e 's/    <string name="post_origin">\(.*\)<\/string>/\1/')
+vm_ws=$(grep -w 'websocketurl' $vmconf | sed -e 's/    <string name="websocketurl">\(.*\)<\/string>/\1/')
+rgc_ws=$(grep -w 'websocket_uri' $rgcconf | sed -e 's/    <string name="websocket_uri">\(.*\)<\/string>/\1/')
+vm_dest=$(grep -w 'postdest' $vmconf | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/')
+pd_dest=$(grep -w 'post_destination' $pdconf | sed -e 's/    <string name="post_destination">\(.*\)<\/string>/\1/')
+#Check rgc
+if [ -f $vmconf ] && [ -f $rgcconf ] && [[ $vm_origin != $rgc_origin || $vm_ws != $rgc_ws ]] ;then
+  echo "`date +%Y-%m-%d_%T` VMconf check: rgc settings differ from vmapper, adjusting rgc" >> $logfile
+  sed -i 's,\"websocket_origin\">.*<,\"websocket_origin\">'"$vm_origin"'<,g' $rgcconf
+  sed -i 's,\"websocket_uri\">.*<,\"websocket_uri\">'"$vm_ws"'<,g' $rgcconf
+  chmod 660 $rgcconf
+  chown $ruser:$ruser $rgcconf
+fi
+#Check pd
+if [ -f $vmconf ] && [ -f $pdconf ] && [[ $vm_origin != $pd_origin || $vm_dest != $pd_dest ]] ;then
+  echo "`date +%Y-%m-%d_%T` VMconf check: pd settings differ from vmapper, adjusting pd" >> $logfile
+  sed -i 's,\"post_origin\">.*<,\"post_origin\">'"$vm_origin"'<,g' $pdconf
+  sed -i 's,\"post_destination\">.*<,\"post_destination\">'"$vm_dest"'<,g' $pdconf
+  chmod 660 $pdconf
+  chown $puser:$puser $pdconf
+fi
+
 # check rgc status, websocket fallback
 if [ -f "$vmconf" ] && [ ! -z $(grep -w 'websocketurl' $vmconf | sed -e 's/    <string name="websocketurl">\(.*\)<\/string>/\1/') ] ; then
   if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "true" ]] ;then
@@ -463,7 +487,7 @@ else
     chown $ruser:$ruser $rgcconf
     monkey -p de.grennith.rgc.remotegpscontroller 1
     reboot=1
-    echo "`date +%Y-%m-%d_%T` VMconf check: rgc deactivated and either vmapper was not installed or config was empty, started rgc" >> $logfile
+    echo "`date +%Y-%m-%d_%T` VMconf check: rgc deactivated and either vmapper not installed or websocket was empty, started rgc" >> $logfile
   fi
 fi
 

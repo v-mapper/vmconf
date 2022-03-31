@@ -1,0 +1,41 @@
+#!/system/bin/sh
+
+useragent="Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3"
+download(){
+# $1 = url
+# $2 = local path
+# lets see that curl exits successfully
+until /system/bin/curl -s -k -L -A "$useragent" -o "$2" "$1" ;do
+ sleep 25
+done
+}
+
+#Create logfile
+if [ ! -e /sdcard/vm.log ] ;then
+  touch /sdcard/vm.log
+fi
+
+initfile="/system/etc/init.d/42vmapper"
+
+if ! [[ -f "$initfile" ]] ;then
+  echo "`date +%Y-%m-%d_%T` First boot: 42vmapper does not exist yet" >> /sdcard/vm.log
+  mount -o remount,rw /system
+  sleep 20
+
+  CustomRom="$(find /mnt/media_rw/ -iname CustomRom.txt 2>/dev/null)"
+  CustomUrl="$(awk 'NR==1{print $1}' "$CustomRom")"
+  if [[ "$CustomUrl" ]] ;then
+    download "$CustomUrl" "$initfile"
+    chmod +x "$initfile"
+    mount -o remount,ro /system
+    echo "`date +%Y-%m-%d_%T` First boot: downloaded 42vmapper from $CustomUrl" >> /sdcard/vm.log
+  else
+    download https://raw.githubusercontent.com/v-mapper/vmconf/main/42vmapper "$initfile"
+    chmod +x "$initfile"
+    mount -o remount,ro /system
+    echo "`date +%Y-%m-%d_%T` First boot: downloaded 42vmapper from vmconf main" >> /sdcard/vm.log
+  fi
+
+  echo "`date +%Y-%m-%d_%T` First boot: starting 42vmapper for the first time" >> /sdcard/vm.log
+  /system/bin/sh -x "$initfile"
+fi

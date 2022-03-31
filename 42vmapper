@@ -277,6 +277,7 @@ elif [[ -f /data/local/vmconf ]] ;then
 else
   usbfile="$(find /mnt/media_rw/ -name mad_autoconf.txt|head -n1)"
   if [[ "$usbfile" ]] ;then
+    [ -f /mnt/media_rw/useVMCdevelop.txt ] && touch /sdcard/useVMCdevelop
     echo "`date +%Y-%m-%d_%T` 42vmapper: No madmin settings found on device but have usbfile, assuming new install"  >> $logfile
     server="$(awk 'NR==1{print $1}' "$usbfile")"
     auth="$(awk 'NR==2{print $1}' "$usbfile")"
@@ -298,12 +299,19 @@ else
     echo "`date +%Y-%m-%d_%T` 42vmapper: MAC checked, ip is $ip"  >> $logfile
 
     log_msg 2 "Starting install of PoGo and vmapper.sh"
-#    until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/main/vmapper.sh || { echo "`date +%Y-%m-%d_%T` 42vmapper: Download vmapper.sh failed, exit script" >> $logfile ; exit 1; } ;do
-    until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/rom/vmapper.sh ;do
-      sleep 2
-    done
-    chmod +x /system/bin/vmapper.sh
-    echo "`date +%Y-%m-%d_%T` 42vmapper: Installed vmapper.sh"  >> $logfile
+    if [ -f /sdcard/useVMCdevelop ] ;then
+      until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/vmapper.sh || { echo "`date +%Y-%m-%d_%T` 42vmapper: Download vmapper.sh failed, exit script" >> $logfile ; exit 1; } ;do
+        sleep 2
+      done
+      chmod +x /system/bin/vmapper.sh
+      echo "`date +%Y-%m-%d_%T` 42vmapper: Installed vmapper.sh, from vmconf develop !!"  >> $logfile
+    else
+      until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/main/vmapper.sh || { echo "`date +%Y-%m-%d_%T` 42vmapper: Download vmapper.sh failed, exit script" >> $logfile ; exit 1; } ;do
+        sleep 2
+      done
+      chmod +x /system/bin/vmapper.sh
+      echo "`date +%Y-%m-%d_%T` 42vmapper: Installed vmapper.sh"  >> $logfile
+    fi
 
     until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/pogo.apk -u $auth -H "origin: $origin" "$server/mad_apk/pogo/$arch/download" || { echo "`date +%Y-%m-%d_%T` 42vmapper: Download pogo failed, exit script" >> $logfile ; exit 1; } ;do
       sleep 2

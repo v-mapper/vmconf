@@ -478,35 +478,35 @@ if [[ $(basename $0) != "vmapper_new.sh" ]] ;then
     fi
   fi
 # download latest vmapper.sh
-#  oldsh=$(head -2 /system/bin/vmapper.sh | grep '# version' | awk '{ print $NF }')
-#  if [ -f /sdcard/useVMCdevelop ] ;then
-#    until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper_new.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/vmapper.sh || { echo "`date +%Y-%m-%d_%T` Download vmapper.sh failed, exit script" >> $logfile ; exit 1; } ;do
-#      sleep 2
-#    done
-#    chmod +x /system/bin/vmapper_new.sh
-#  else
-#    until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper_new.sh https://raw.githubusercontent.com/v-mapper/vmconf/main/vmapper.sh || { echo "`date +%Y-%m-%d_%T` Download vmapper.sh failed, exit script" >> $logfile ; exit 1; } ;do
-#      sleep 2
-#    done
-#    chmod +x /system/bin/vmapper_new.sh
-#  fi
-#  newsh=$(head -2 /system/bin/vmapper_new.sh | grep '# version' | awk '{ print $NF }')
-#  if [[ $oldsh != $newsh ;then
-#    echo "`date +%Y-%m-%d_%T` vmapper.sh $oldsh=>$newsh" >> $logfile
-#  fi
+  oldsh=$(head -2 /system/bin/vmapper.sh | grep '# version' | awk '{ print $NF }')
+  if [ -f /sdcard/useVMCdevelop ] ;then
+    until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper_new.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/vmapper.sh || { echo "`date +%Y-%m-%d_%T` Download vmapper.sh failed, exit script" >> $logfile ; exit 1; } ;do
+      sleep 2
+    done
+    chmod +x /system/bin/vmapper_new.sh
+  else
+    until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper_new.sh https://raw.githubusercontent.com/v-mapper/vmconf/main/vmapper.sh || { echo "`date +%Y-%m-%d_%T` Download vmapper.sh failed, exit script" >> $logfile ; exit 1; } ;do
+      sleep 2
+    done
+    chmod +x /system/bin/vmapper_new.sh
+  fi
+  newsh=$(head -2 /system/bin/vmapper_new.sh | grep '# version' | awk '{ print $NF }')
+  if [[ $oldsh != $newsh ;then
+    echo "`date +%Y-%m-%d_%T` vmapper.sh $oldsh=>$newsh" >> $logfile
+  fi
 fi
 # mount -o remount,ro /system
 
 
 # check if vmapper.sh was already on latest else restart command
-#if [[ $oldsh != $newsh ]] ;then
-#  echo "`date +%Y-%m-%d_%T` vmapper.sh has been updated, restarting script" >> $logfile
-##  folder=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-#  cp /system/bin/vmapper_new.sh /system/bin/vmapper.sh
-#  mount -o remount,ro /system
-#  /system/bin/vmapper_new.sh $@
-#  exit 1
-#fi
+if [[ $oldsh != $newsh ]] ;then
+  echo "`date +%Y-%m-%d_%T` vmapper.sh has been updated, restarting script" >> $logfile
+#  folder=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+  cp /system/bin/vmapper_new.sh /system/bin/vmapper.sh
+  mount -o remount,ro /system
+  /system/bin/vmapper_new.sh $@
+  exit 1
+fi
 mount -o remount,ro /system
 
 # allign rgc/pd settings with vm

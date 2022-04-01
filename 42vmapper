@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 1.0
+# version 1.1
 
 logfile="/sdcard/vm.log"
 url_magisk="https://github.com/Map-A-Droid/MAD-ATV/raw/master/Magisk-v20.3.zip"
@@ -246,6 +246,10 @@ wait_for_network
 echo "`date +%Y-%m-%d_%T` 42vmapper: Internet connection available" >> $logfile
 
 mount -o remount,rw /system
+
+# remove 55vmapper if exists
+[ -f /system/etc/init.d/55vmapper ] && rm -f /system/etc/init.d/55vmapper
+
 
 if [ -f "$vmconf" ] && [ ! -z $(grep -w 'postdest' $vmconf | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/') ] ; then
   server=$(grep -w 'postdest' $vmconf | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/')

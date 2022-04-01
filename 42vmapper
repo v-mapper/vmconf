@@ -277,7 +277,7 @@ elif [[ -f /data/local/vmconf ]] ;then
 else
   usbfile="$(find /mnt/media_rw/ -name mad_autoconf.txt|head -n1)"
   if [[ "$usbfile" ]] ;then
-    [ -f /mnt/media_rw/useVMCdevelop.txt ] && touch /sdcard/useVMCdevelop
+    [ ! -z $(find /mnt/media_rw/ -name useVMCdevelop.txt|head -n1) ] && touch /sdcard/useVMCdevelop
     echo "`date +%Y-%m-%d_%T` 42vmapper: No madmin settings found on device but have usbfile, assuming new install"  >> $logfile
     server="$(awk 'NR==1{print $1}' "$usbfile")"
     auth="$(awk 'NR==2{print $1}' "$usbfile")"

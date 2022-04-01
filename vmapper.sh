@@ -491,7 +491,7 @@ if [[ $(basename $0) != "vmapper_new.sh" ]] ;then
     chmod +x /system/bin/vmapper_new.sh
   fi
   newsh=$(head -2 /system/bin/vmapper_new.sh | grep '# version' | awk '{ print $NF }')
-  if [[ $oldsh != $newsh ;then
+  if [[ $oldsh != $newsh ]] ;then
     echo "`date +%Y-%m-%d_%T` vmapper.sh $oldsh=>$newsh" >> $logfile
   fi
 fi

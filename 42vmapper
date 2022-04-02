@@ -290,7 +290,7 @@ else
     origin=$(/system/bin/curl -s -k -L --user "$auth" "${server}/autoconfig/${session_id}/origin")
     log_msg 2 "Starting new install for $origin! IP is $ip"
 
-    until /system/bin/curl -k -s -L --fail --show-error -o /data/local/vmconf -u $auth -H "origin: $origin" "$server/vm_conf" || { echo "`date +%Y-%m-%d_%T` Download config.xml failed, exit script" >> $logfile ; exit 1; } ;do
+    until /system/bin/curl -k -s -L --fail --show-error -o /data/local/vmconf -u $auth -H "origin: $origin" "$server/vm_conf" || { echo "`date +%Y-%m-%d_%T` Download config.xml failed for origin=$origin, auth=$auth, server=$server from ip=$ip. Exit script" >> $logfile ; exit 1; } ;do
       sleep 2
     done
     log_msg 2 "VMapper configuration downloaded to /data/local/vmconf"
@@ -304,20 +304,20 @@ else
 
     log_msg 2 "Starting install of PoGo and vmapper.sh"
     if [ -f /sdcard/useVMCdevelop ] ;then
-      until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/vmapper.sh || { echo "`date +%Y-%m-%d_%T` 42vmapper: Download vmapper.sh failed, exit script" >> $logfile ; exit 1; } ;do
+      until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/vmapper.sh || { echo "`date +%Y-%m-%d_%T` 42vmapper: Download vmapper.sh failed for origin=$origin, auth=$auth, server=$server from ip=$ip. Exit script" >> $logfile ; exit 1; } ;do
         sleep 2
       done
       chmod +x /system/bin/vmapper.sh
       echo "`date +%Y-%m-%d_%T` 42vmapper: Installed vmapper.sh, from vmconf develop !!"  >> $logfile
     else
-      until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/main/vmapper.sh || { echo "`date +%Y-%m-%d_%T` 42vmapper: Download vmapper.sh failed, exit script" >> $logfile ; exit 1; } ;do
+      until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/main/vmapper.sh || { echo "`date +%Y-%m-%d_%T` 42vmapper: Download vmapper.sh failed for origin=$origin, auth=$auth, server=$server from ip=$ip. Exit script" >> $logfile ; exit 1; } ;do
         sleep 2
       done
       chmod +x /system/bin/vmapper.sh
       echo "`date +%Y-%m-%d_%T` 42vmapper: Installed vmapper.sh"  >> $logfile
     fi
 
-    until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/pogo.apk -u $auth -H "origin: $origin" "$server/mad_apk/pogo/$arch/download" || { echo "`date +%Y-%m-%d_%T` 42vmapper: Download pogo failed, exit script" >> $logfile ; exit 1; } ;do
+    until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/pogo.apk -u $auth -H "origin: $origin" "$server/mad_apk/pogo/$arch/download" || { echo "`date +%Y-%m-%d_%T` 42vmapper: Download PoGo failed for origin=$origin, auth=$auth, server=$server from ip=$ip. Exit script" >> $logfile ; exit 1; } ;do
       sleep 2
     done
     /system/bin/pm install -r /sdcard/Download/pogo.apk

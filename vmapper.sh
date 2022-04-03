@@ -1,9 +1,10 @@
 #!/system/bin/sh
-# version 4.1
+# version 4.2
 
 #Version checks
-Ver42vmapper="1.2"
+Ver42vmapper="1.3"
 Ver55vmapper="2.1"
+VerATVwebhook="1.0"
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -485,7 +486,7 @@ if [[ $(basename $0) != "vmapper_new.sh" ]] ;then
   fi
 fi
 
-#update 55vmpper and 42vmapper if needed
+#update 55vmpper, 42vmapper and ATVdetailsSender.sh if needed
 if [[ $(basename $0) = "vmapper_new.sh" ]] ;then
 mount -o remount,rw /system
 #download latest 55vmapper if used
@@ -525,6 +526,24 @@ mount -o remount,rw /system
     new42=$(head -2 /system/etc/init.d/42vmapper | grep '# version' | awk '{ print $NF }')
     echo "`date +%Y-%m-%d_%T` 42vmapper $old42=>$new42" >> $logfile
     fi
+  fi
+
+#download latest ATVdetailsSender.sh
+  oldWH=$(head -2 /system/bin/ATVdetailsSender.sh | grep '# version' | awk '{ print $NF }')
+  if [ $VerATVwebhook != $oldWH ] ;then
+    if [ -f /sdcard/useVMCdevelop ] ;then
+      until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/ATVdetailsSender.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/ATVdetailsSender.sh || { echo "`date +%Y-%m-%d_%T` Download ATVdetailsSender.sh failed, exit script" >> $logfile ; exit 1; } ;do
+        sleep 2
+      done
+      chmod +x /system/bin/ATVdetailsSender.sh
+    else
+      until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/ATVdetailsSender.sh https://raw.githubusercontent.com/v-mapper/vmconf/main/ATVdetailsSender.sh || { echo "`date +%Y-%m-%d_%T` Download ATVdetailsSender.sh failed, exit script" >> $logfile ; exit 1; } ;do
+        sleep 2
+      done
+      chmod +x /system/bin/ATVdetailsSender.sh
+    fi
+  newWH=$(head -2 /system/bin/ATVdetailsSender.sh | grep '# version' | awk '{ print $NF }')
+  echo "`date +%Y-%m-%d_%T` ATVdetailsSender.sh $oldWH=>$newWH" >> $logfile
   fi
 mount -o remount,ro /system
 fi
@@ -666,6 +685,17 @@ else
   fi
 fi
 
+# enable ATVdetails webhook sender or restart
+if [ -f /data/local/ATVdetailsWebhook.config ] && [ -f /system/bin/ATVdetailsSender.sh ] && [ -f /sdcard/sendwebhook ] ;then
+  checkWHsender=$(pgrep -pl ATVdetailsSender.sh)
+  if [ -z $checkWHsender ] ;then
+    /system/bin/ATVdetailsSender.sh
+  else
+    pkill -9 $checkWHsender
+    sleep 2
+    /system/bin/ATVdetailsSender.sh
+  fi
+fi
 
 for i in "$@" ;do
  case "$i" in

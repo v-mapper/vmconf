@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 1.2
+# version 1.3
 
 logfile="/sdcard/vm.log"
 url_magisk="https://github.com/Map-A-Droid/MAD-ATV/raw/master/Magisk-v20.3.zip"
@@ -311,18 +311,20 @@ else
     log_msg 2 "Check MAC adress change completed, IP is $ip"
     echo "`date +%Y-%m-%d_%T` 42vmapper: MAC checked, ip is $ip"  >> $logfile
 
-    log_msg 2 "Starting install of PoGo and vmapper.sh"
+    log_msg 2 "Starting install of PoGo, vmapper.sh and ATVdetailsSender.sh"
     if [ -f /sdcard/useVMCdevelop ] ;then
       until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/vmapper.sh || { echo "`date +%Y-%m-%d_%T` 42vmapper: Download vmapper.sh failed for origin=$origin, auth=$auth, server=$server from ip=$ip. Exit script" >> $logfile ; exit 1; } ;do
         sleep 2
       done
       chmod +x /system/bin/vmapper.sh
+      log_msg 2 "vmapper.sh downloaded"
       echo "`date +%Y-%m-%d_%T` 42vmapper: Installed vmapper.sh, from vmconf develop !!"  >> $logfile
     else
       until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/main/vmapper.sh || { echo "`date +%Y-%m-%d_%T` 42vmapper: Download vmapper.sh failed for origin=$origin, auth=$auth, server=$server from ip=$ip. Exit script" >> $logfile ; exit 1; } ;do
         sleep 2
       done
       chmod +x /system/bin/vmapper.sh
+      log_msg 2 "vmapper.sh downloaded"
       echo "`date +%Y-%m-%d_%T` 42vmapper: Installed vmapper.sh"  >> $logfile
     fi
 
@@ -343,7 +345,30 @@ else
     /system/bin/rm -f /sdcard/Download/pogo.apk
     echo "`date +%Y-%m-%d_%T` 42vmapper: Installed PoGo"  >> $logfile
 
+    if [ -f /sdcard/useVMCdevelop ] ;then
+      until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/ATVdetailsSender.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/ATVdetailsSender.sh || { echo "`date +%Y-%m-%d_%T` 42vmapper: Download ATVdetailsSender.sh failed for origin=$origin, auth=$auth, server=$server from ip=$ip. Exit script" >> $logfile ; exit 1; } ;do
+        sleep 2
+      done
+      chmod +x /system/bin/ATVdetailsSender.sh
+      log_msg 2 "ATVdetailsSender.sh downloaded"
+      echo "`date +%Y-%m-%d_%T` 42vmapper: Installed ATVdetailsSender.sh, from vmconf develop !!"  >> $logfile
+    else
+      until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/ATVdetailsSender.sh https://raw.githubusercontent.com/v-mapper/vmconf/main/ATVdetailsSender.sh || { echo "`date +%Y-%m-%d_%T` 42vmapper: Download ATVdetailsSender.sh failed for origin=$origin, auth=$auth, server=$server from ip=$ip. Exit script" >> $logfile ; exit 1; } ;do
+        sleep 2
+      done
+      chmod +x /system/bin/ATVdetailsSender.sh
+      log_msg 2 "ATVdetailsSender.sh downloaded"
+      echo "`date +%Y-%m-%d_%T` 42vmapper: Installed ATVdetailsSender.sh"  >> $logfile
+    fi
   fi
+fi
+
+usbWebhookSender="$(find /mnt/media_rw/ -iname ATVdetailsWebhook.txt 2>/dev/null)"
+if [ !-z $usbWebhookSender ] ;then
+  cp $usbWebhookSender /data/local/ATVdetailsWebhook.config
+  touch /sdcard/sendwebhook
+  log_msg 2 "ATVdetailsSender configurtion copied and enabled"
+  echo "`date +%Y-%m-%d_%T` 42vmapper: ATVdetailsSender configurtion copied and enabled"  >> $logfile
 fi
 
 check_magisk

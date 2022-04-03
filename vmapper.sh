@@ -1,5 +1,9 @@
 #!/system/bin/sh
-# version 4.0
+# version 4.1
+
+#Version checks
+Ver42vmapper="1.2"
+Ver55vmapper="2.1"
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -455,29 +459,9 @@ done
 echo "`date +%Y-%m-%d_%T` Internet connection available" >> $logfile
 
 
-#update 55vmpper and vmapper.sh if needed
-mount -o remount,rw /system
+#download latest vmapper.sh
 if [[ $(basename $0) != "vmapper_new.sh" ]] ;then
-#download latest 55vmapper if used
-  if [[ -f /system/etc/init.d/55vmapper ]] ;then
-    old55=$(head -2 /system/etc/init.d/55vmapper | grep '# version' | awk '{ print $NF }')
-    if [ -f /sdcard/useVMCdevelop ] ;then
-      until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/develop/55vmapper || { echo "`date +%Y-%m-%d_%T` Download 55vmapper failed, exit script" >> $logfile ; exit 1; } ;do
-        sleep 2
-      done
-      chmod +x /system/etc/init.d/55vmapper
-    else
-      until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/main/55vmapper || { echo "`date +%Y-%m-%d_%T` Download 55vmapper failed, exit script" >> $logfile ; exit 1; } ;do
-        sleep 2
-      done
-      chmod +x /system/etc/init.d/55vmapper
-    fi
-    new55=$(head -2 /system/etc/init.d/55vmapper | grep '# version' | awk '{ print $NF }')
-    if [[ $old55 != $new55 ]] ;then
-      echo "`date +%Y-%m-%d_%T` 55vmapper $old55=>$new55" >> $logfile
-    fi
-  fi
-# download latest vmapper.sh
+  mount -o remount,rw /system
   oldsh=$(head -2 /system/bin/vmapper.sh | grep '# version' | awk '{ print $NF }')
   if [ -f /sdcard/useVMCdevelop ] ;then
     until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper_new.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/vmapper.sh || { echo "`date +%Y-%m-%d_%T` Download vmapper.sh failed, exit script" >> $logfile ; exit 1; } ;do
@@ -492,22 +476,65 @@ if [[ $(basename $0) != "vmapper_new.sh" ]] ;then
   fi
   newsh=$(head -2 /system/bin/vmapper_new.sh | grep '# version' | awk '{ print $NF }')
   if [[ $oldsh != $newsh ]] ;then
-    echo "`date +%Y-%m-%d_%T` vmapper.sh $oldsh=>$newsh" >> $logfile
+    echo "`date +%Y-%m-%d_%T` vmapper.sh $oldsh=>$newsh, restarting script" >> $logfile
+#   folder=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+    cp /system/bin/vmapper_new.sh /system/bin/vmapper.sh
+    mount -o remount,ro /system
+    /system/bin/vmapper_new.sh $@
+    exit 1
   fi
 fi
-# mount -o remount,ro /system
 
-
-# check if vmapper.sh was already on latest else restart command
-if [[ $oldsh != $newsh ]] ;then
-  echo "`date +%Y-%m-%d_%T` vmapper.sh has been updated, restarting script" >> $logfile
-#  folder=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-  cp /system/bin/vmapper_new.sh /system/bin/vmapper.sh
-  mount -o remount,ro /system
-  /system/bin/vmapper_new.sh $@
-  exit 1
-fi
+#update 55vmpper and 42vmapper if needed
+if [[ $(basename $0) = "vmapper_new.sh" ]] ;then
+mount -o remount,rw /system
+#download latest 55vmapper if used
+  if [[ -f /system/etc/init.d/55vmapper ]] ;then
+    old55=$(head -2 /system/etc/init.d/55vmapper | grep '# version' | awk '{ print $NF }')
+    if [ $Ver55vmapper != $old55 ] ;then
+      if [ -f /sdcard/useVMCdevelop ] ;then
+        until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/develop/55vmapper || { echo "`date +%Y-%m-%d_%T` Download 55vmapper failed, exit script" >> $logfile ; exit 1; } ;do
+          sleep 2
+        done
+        chmod +x /system/etc/init.d/55vmapper
+      else
+        until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/main/55vmapper || { echo "`date +%Y-%m-%d_%T` Download 55vmapper failed, exit script" >> $logfile ; exit 1; } ;do
+          sleep 2
+        done
+        chmod +x /system/etc/init.d/55vmapper
+      fi
+    new55=$(head -2 /system/etc/init.d/55vmapper | grep '# version' | awk '{ print $NF }')
+    echo "`date +%Y-%m-%d_%T` 55vmapper $old55=>$new55" >> $logfile
+    fi
+  fi
+#download latest 42vmapper if used
+  if [[ -f /system/etc/init.d/42vmapper ]] ;then
+    old42=$(head -2 /system/etc/init.d/42vmapper | grep '# version' | awk '{ print $NF }')
+    if [ $Ver42vmapper != $old42 ] ;then
+      if [ -f /sdcard/useVMCdevelop ] ;then
+        until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/42vmapper https://raw.githubusercontent.com/v-mapper/vmconf/develop/42vmapper || { echo "`date +%Y-%m-%d_%T` Download 42vmapper failed, exit script" >> $logfile ; exit 1; } ;do
+          sleep 2
+        done
+        chmod +x /system/etc/init.d/42vmapper
+      else
+        until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/42vmapper https://raw.githubusercontent.com/v-mapper/vmconf/main/42vmapper || { echo "`date +%Y-%m-%d_%T` Download 42vmapper failed, exit script" >> $logfile ; exit 1; } ;do
+          sleep 2
+        done
+        chmod +x /system/etc/init.d/42vmapper
+      fi
+    new42=$(head -2 /system/etc/init.d/42vmapper | grep '# version' | awk '{ print $NF }')
+    echo "`date +%Y-%m-%d_%T` 42vmapper $old42=>$new42" >> $logfile
+    fi
+  fi
 mount -o remount,ro /system
+fi
+
+# if 42vmapper exist we cannot have 55vmapper
+if [ -f /system/etc/init.d/55vmapper ] && [ -f /system/etc/init.d/42vmapper ] ;then
+  mount -o remount,rw /system
+  rm -f /system/etc/init.d/55vmapper
+  mount -o remount,ro /system
+fi
 
 # allign rgc/pd settings with vm
 [ -f $vmconf ] && vm_origin=$(grep -w 'origin' $vmconf | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/')

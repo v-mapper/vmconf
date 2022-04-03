@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 1.1
+# version 1.2
 
 logfile="/sdcard/vm.log"
 url_magisk="https://github.com/Map-A-Droid/MAD-ATV/raw/master/Magisk-v20.3.zip"
@@ -128,9 +128,18 @@ sleep 2
 }
 
 install_magisk() {
-until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/magisk.zip "$url_magisk" || { echo "`date +%Y-%m-%d_%T` 42vmapper: Download magisk failed, exit script" >> $logfile ; exit 1; } ;do
-  sleep 2
-done
+usbmagisk="$(find /mnt/media_rw/ -iname Magisk-v20.3.zip 2>/dev/null)"
+if [ -z $usbmagisk ] ;then
+  log_msg 2 "Downloading Magisk"
+  echo "`date +%Y-%m-%d_%T` 42vmapper: Downloading Magisk"  >> $logfile
+  until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/magisk.zip "$url_magisk" || { echo "`date +%Y-%m-%d_%T` 42vmapper: Download magisk failed, exit script" >> $logfile ; exit 1; } ;do
+    sleep 2
+  done
+else
+  log_msg 2 "Copy Magisk from usb"
+  echo "`date +%Y-%m-%d_%T` 42vmapper: Copy Magisk from usb"  >> $logfile
+  cp $usbmagisk /sdcard/magisk.zip
+fi
 mkdir -p /cache/recovery
 touch /cache/recovery/command
 echo '--update_package=/sdcard/magisk.zip' >> /cache/recovery/command
@@ -317,9 +326,19 @@ else
       echo "`date +%Y-%m-%d_%T` 42vmapper: Installed vmapper.sh"  >> $logfile
     fi
 
-    until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/pogo.apk -u $auth -H "origin: $origin" "$server/mad_apk/pogo/$arch/download" || { echo "`date +%Y-%m-%d_%T` 42vmapper: Download PoGo failed for origin=$origin, auth=$auth, server=$server from ip=$ip. Exit script" >> $logfile ; exit 1; } ;do
-      sleep 2
-    done
+    pogowizardversion="$(/system/bin/curl -s -k -L -u $auth -H "origin: $origin" "$server/mad_apk/pogo/$arch")"
+    usbpogo="$(find /mnt/media_rw/ -iname *pokemongo*$pogowizardversion*$arch*.apk 2>/dev/null)"
+    if [ -z $usbpogo ] ;then
+      log_msg 2 "Downloading PoGo from wizard"
+      echo "`date +%Y-%m-%d_%T` 42vmapper: Downloading PoGo from wizard"  >> $logfile
+      until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/pogo.apk -u $auth -H "origin: $origin" "$server/mad_apk/pogo/$arch/download" || { echo "`date +%Y-%m-%d_%T` 42vmapper: Download PoGo failed for origin=$origin, auth=$auth, server=$server from ip=$ip. Exit script" >> $logfile ; exit 1; } ;do
+        sleep 2
+      done
+    else
+      log_msg 2 "Copy PoGo from usb"
+      echo "`date +%Y-%m-%d_%T` 42vmapper: Copy PoGo from usb"  >> $logfile
+      cp $usbpogo /sdcard/Download/pogo.apk
+    fi
     /system/bin/pm install -r /sdcard/Download/pogo.apk
     /system/bin/rm -f /sdcard/Download/pogo.apk
     echo "`date +%Y-%m-%d_%T` 42vmapper: Installed PoGo"  >> $logfile
@@ -331,14 +350,26 @@ check_magisk
 
 # Install gapps
 if [[ ! $(pm list packages android.vending) ]] ;then
-  until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/gapps.zip "$url_gapps" || { echo "`date +%Y-%m-%d_%T` 42vmapper: Download gapps failed, exit script" >> $logfile ; exit 1; } ;do
-    sleep 2
-  done
+  usbgapps="$(find /mnt/media_rw/ -iname open_gapps-arm64-7.1-pico-20200715.zip 2>/dev/null)"
+  if [ -z $usbgapps ] ;then
+    log_msg 2 "Downloading Gapps"
+    echo "`date +%Y-%m-%d_%T` 42vmapper: Downloading Gapps"  >> $logfile
+    until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/gapps.zip "$url_gapps" || { echo "`date +%Y-%m-%d_%T` 42vmapper: Download gapps failed, exit script" >> $logfile ; exit 1; } ;do
+      sleep 2
+    done
+  else
+    log_msg 2 "Copy Gapps from usb"
+    echo "`date +%Y-%m-%d_%T` 42vmapper: copy Gapps from usb"  >> $logfile
+    cp $usbgapps /sdcard/gapps.zip
+  fi
   mkdir -p /cache/recovery
   touch /cache/recovery/command
   echo '--update_package=/sdcard/gapps.zip' >> /cache/recovery/command
   cachereboot=1
+  log_msg 2 "Gapps set to be installed"
   echo "`date +%Y-%m-%d_%T` 42vmapper: Gapps set to be installed" >> /sdcard/vm.log
+  log_msg 2 "All files copied from usb, it can be extracted"
+  echo "`date +%Y-%m-%d_%T` 42vmapper: All files copied from usb" >> /sdcard/vm.log
 fi
 
 [[ -d /sdcard/TWRP ]] && rm -rf /sdcard/TWRP
@@ -347,7 +378,7 @@ fi
 ! settings get secure location_providers_allowed|grep -q gps && settings put secure location_providers_allowed +gps
 
 if (( "$cachereboot" )) ;then
-  log_msg "2" "Rebooting into recovery mode for required installations"
+  log_msg 2 "Rebooting into recovery mode for required installations"
   echo "`date +%Y-%m-%d_%T` 42vmapper: Rebooting into recovery mode for required installations" >> /sdcard/vm.log
   echo '--wipe_cache' >> /cache/recovery/command
   reboot recovery

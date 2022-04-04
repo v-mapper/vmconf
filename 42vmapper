@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 1.3
+# version 1.3.1
 
 logfile="/sdcard/vm.log"
 url_magisk="https://github.com/Map-A-Droid/MAD-ATV/raw/master/Magisk-v20.3.zip"
@@ -7,6 +7,7 @@ url_gapps="https://madatv.b-cdn.net/open_gapps-arm64-7.1-pico-20200715.zip"
 ip="$(ifconfig 'eth0'|awk '/inet addr/{print $2}'|cut -d ':' -f 2)"
 vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
 pdconf="/data/data/com.mad.pogodroid/shared_prefs/com.mad.pogodroid_preferences.xml"
+lastResort="/data/local/vm_last_resort"
 
 cachereboot=0
 
@@ -39,7 +40,7 @@ done
 }
 
 case "$(uname -m)" in
- aarch64) arch="arm64_v8a";;
+ aarch64) arch="arm64-v8a";;
  armv8l)  arch="armeabi-v7a";;
 esac
 
@@ -364,7 +365,7 @@ else
 fi
 
 usbWebhookSender="$(find /mnt/media_rw/ -iname ATVdetailsWebhook.txt 2>/dev/null)"
-if [ !-z $usbWebhookSender ] ;then
+if [ ! -z $usbWebhookSender ] ;then
   cp $usbWebhookSender /data/local/ATVdetailsWebhook.config
   touch /sdcard/sendwebhook
   log_msg 2 "ATVdetailsSender configurtion copied and enabled"

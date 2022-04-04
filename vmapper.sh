@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 4.2.1
+# version 4.2.2
 
 #Version checks
 Ver42vmapper="1.3"
@@ -20,7 +20,7 @@ pdconf="/data/data/com.mad.pogodroid/shared_prefs/com.mad.pogodroid_preferences.
 [[ -d /data/data/de.grennith.rgc.remotegpscontroller ]] && ruser=$(ls -la /data/data/de.grennith.rgc.remotegpscontroller/ |head -n2 | tail -n1 | awk '{print $3}')
 rgcconf="/data/data/de.grennith.rgc.remotegpscontroller/shared_prefs/de.grennith.rgc.remotegpscontroller_preferences.xml"
 vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
-lastResort="/sdcard/vm_last_resort"
+lastResort="/data/local/vm_last_resort"
 
 # stderr to logfile
 exec 2>> $logfile
@@ -453,6 +453,9 @@ fi
 
 ########## Execution
 
+#remove old last resort
+rm -f /sdcard/vm_last_resort
+
 #wait on internet
 until ping -c1 8.8.8.8 >/dev/null 2>/dev/null || ping -c1 1.1.1.1 >/dev/null 2>/dev/null; do
     sleep 10
@@ -687,14 +690,14 @@ fi
 
 # enable ATVdetails webhook sender or restart
 if [ -f /data/local/ATVdetailsWebhook.config ] && [ -f /system/bin/ATVdetailsSender.sh ] && [ -f /sdcard/sendwebhook ] ;then
-  checkWHsender=$(pgrep -pl ATVdetailsSender.sh)
+  checkWHsender=$(pgrep -f ATVdetailsSender.sh)
   if [ -z $checkWHsender ] ;then
-    /system/bin/ATVdetailsSender.sh
+    /system/bin/ATVdetailsSender.sh >/dev/null 2>&1 &
     echo "`date +%Y-%m-%d_%T` ATVdetails sender enabled" >> $logfile
   else
-    pkill -9 $checkWHsender
+    kill -9 $checkWHsender
     sleep 2
-    /system/bin/ATVdetailsSender.sh
+    /system/bin/ATVdetailsSender.sh >/dev/null 2>&1 &
     echo "`date +%Y-%m-%d_%T` ATVdetails sender restarted" >> $logfile
   fi
 fi

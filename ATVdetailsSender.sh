@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 1.0
+# version 1.1
 
 source /data/local/ATVdetailsWebhook.config
 
@@ -44,7 +44,7 @@ while true
     postdest=$(grep -w 'postdest' $vmconf | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/')
     fridastarted=$(grep -w 'fridastarted' $vmstore | awk -F "\"" '{print tolower($4)}')
     patchedpid=$(grep -w 'patchedpid' $vmstore | awk -F "\"" '{print tolower($4)}')
-    fridaver=$(grep -w 'fridaver' $vmstore | awk -F "\"" '{print tolower($4)}')
+#    fridaver=$(grep -w 'fridaver' $vmstore | awk -F "\"" '{print tolower($4)}')
     openlucky=$(grep -w 'openlucky' $vmconf | awk -F "\"" '{print tolower($4)}')
     rebootminutes=$(grep -w 'rebootminutes' $vmconf | awk -F "\"" '{print tolower($4)}')
     deviceid=$(grep -w 'deviceid' $vmstore | sed -e 's/    <string name="deviceid">\(.*\)<\/string>/\1/')

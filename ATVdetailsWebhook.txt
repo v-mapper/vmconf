@@ -3,6 +3,6 @@
 ## if no host is specified postdestination from vmapper config will be used
 ## make sure to setup webhook receiver and create table
 ## to enable sending webhooks `touch /sdcard/sendwebhook`, if ATVdetailsWebhook.txt is located on usb for new install it is enabled by default
-WH_RECEIVER_HOST=
+WH_RECEIVER_HOST=""
 WH_RECEIVER_PORT="5555"
 SENDING_INTERVAL_SECONDS=300

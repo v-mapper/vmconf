@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 1.1
+# version 1.2
 
 source /data/local/ATVdetailsWebhook.config
 
@@ -39,7 +39,7 @@ while true
     daemon=$(grep -w 'daemon' $vmconf | awk -F "\"" '{print tolower($4)}')
     authpassword=$(grep -w 'authpassword' $vmconf | sed -e 's/    <string name="authpassword">\(.*\)<\/string>/\1/')
     authuser=$(grep -w 'authuser' $vmconf | sed -e 's/    <string name="authuser">\(.*\)<\/string>/\1/')
-    injector=$(grep -w 'injector' $vmstore | sed -e 's/    <string name="injector">\(.*\)<\/string>/\1/')
+#    injector=$(grep -w 'injector' $vmstore | sed -e 's/    <string name="injector">\(.*\)<\/string>/\1/')
     authid=$(grep -w 'authid' $vmconf | sed -e 's/    <string name="authid">\(.*\)<\/string>/\1/')
     postdest=$(grep -w 'postdest' $vmconf | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/')
     fridastarted=$(grep -w 'fridastarted' $vmstore | awk -F "\"" '{print tolower($4)}')

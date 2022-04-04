@@ -1,0 +1,8 @@
+{
+  "wh_enable_MADrom": [
+    {
+      "TYPE": "jobType.PASSTHROUGH",
+      "SYNTAX": "su -c 'config=\"/data/local/ATVdetailsWebhook.config\" && touch $config && echo \"WH_RECEIVER_HOST=\\\"\\\"\" >> $config && echo \"WH_RECEIVER_PORT=\\\"5555\\\"\" >> $config && echo \"SENDING_INTERVAL_SECONDS=\\\"300\\\"\" >> $config && touch /sdcard/sendwebhook && /system/bin/vmapper.sh'"
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 4.2
+# version 4.2.1
 
 #Version checks
 Ver42vmapper="1.3"
@@ -529,7 +529,7 @@ mount -o remount,rw /system
   fi
 
 #download latest ATVdetailsSender.sh
-  oldWH=$(head -2 /system/bin/ATVdetailsSender.sh | grep '# version' | awk '{ print $NF }')
+  oldWH=$([ -f /system/bin/ATVdetailsSender.sh ] && head -2 /system/bin/ATVdetailsSender.sh | grep '# version' | awk '{ print $NF }' || echo 0)
   if [ $VerATVwebhook != $oldWH ] ;then
     if [ -f /sdcard/useVMCdevelop ] ;then
       until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/ATVdetailsSender.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/ATVdetailsSender.sh || { echo "`date +%Y-%m-%d_%T` Download ATVdetailsSender.sh failed, exit script" >> $logfile ; exit 1; } ;do
@@ -690,10 +690,12 @@ if [ -f /data/local/ATVdetailsWebhook.config ] && [ -f /system/bin/ATVdetailsSen
   checkWHsender=$(pgrep -pl ATVdetailsSender.sh)
   if [ -z $checkWHsender ] ;then
     /system/bin/ATVdetailsSender.sh
+    echo "`date +%Y-%m-%d_%T` ATVdetails sender enabled" >> $logfile
   else
     pkill -9 $checkWHsender
     sleep 2
     /system/bin/ATVdetailsSender.sh
+    echo "`date +%Y-%m-%d_%T` ATVdetails sender restarted" >> $logfile
   fi
 fi
 

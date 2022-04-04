@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 1.2
+# version 1.3
 
 source /data/local/ATVdetailsWebhook.config
 
@@ -56,6 +56,21 @@ while true
     lon=$(grep -w 'lon' $vmstore | sed -e 's/    <string name="lon">\(.*\)<\/string>/\1/')
     catchRare=$(grep -w 'catchRare' $vmconf | awk -F "\"" '{print tolower($4)}')
     overlay=$(grep -w 'overlay' $vmconf | awk -F "\"" '{print tolower($4)}')
+    memTot=$(cat /proc/meminfo | grep MemTotal | awk '{print $2}')
+    memFree=$(cat /proc/meminfo | grep MemFree | awk '{print $2}')
+    memAv=$(cat /proc/meminfo | grep MemAvailable | awk '{print $2}')
+    memPogo=$(dumpsys meminfo 'com.nianticlabs.pokemongo' | grep -m 1 "TOTAL" | awk '{print $2}')
+    memVM=$(dumpsys meminfo 'de.vahrmap.vmapper' | grep -m 1 "TOTAL" | awk '{print $2}')
+    cpuSys=$(top -n 1 | grep -m 1 "System" | awk '{print substr($2, 1, length($2)-2)}')
+    cpuUser=$(top -n 1 | grep -m 1 "User" | awk '{print substr($2, 1, length($2)-2)}')
+    cpuL5=$(dumpsys cpuinfo | grep "Load" | awk '{ print $2 }')
+    cpuL10=$(dumpsys cpuinfo | grep "Load" | awk '{ print $4 }')
+    cpuLavg=$(dumpsys cpuinfo | grep "Load" | awk '{ print $6 }')
+    cpuPogoPct=$(dumpsys cpuinfo | grep 'com.nianticlabs.pokemongo' | awk '{print substr($1, 1, length($1)-1)}')
+    cpuVmPct=$(dumpsys cpuinfo | grep 'de.vahrmap.vmapper' | awk '{print substr($1, 1, length($1)-1)}')
+    diskSysPct=$(df -h | grep /sbin/.magisk/mirror/system | awk '{print substr($5, 1, length($5)-1)}')
+    diskDataPct=$(df -h | grep /sbin/.magisk/mirror/data | awk '{print substr($5, 1, length($5)-1)}')
+    numPogo=$(ls -l /sbin/.magisk/mirror/data/app/ | grep com.nianticlabs.pokemongo | wc -l)
 
     curl -X POST $WH_RECEIVER_HOST:$WH_RECEIVER_PORT/webhook -H "Accept: application/json" -H "Content-Type: application/json" --data-binary @- <<DATA
 {
@@ -77,7 +92,7 @@ while true
     "mace": "${mace}",
     "ip": "${ip}",
     "ext_ip": "${ext_ip}",
-    "bootdelay": "${bootdelay}", 
+    "bootdelay": "${bootdelay}",
     "gzip": "${gzip}",
     "betamode": "${betamode}",
     "selinux": "${selinux}",
@@ -100,7 +115,22 @@ while true
     "lat": "${lat}",
     "lon": "${lon}",
     "catchRare": "${catchRare}",
-    "overlay": "${overlay}"
+    "overlay": "${overlay}",
+    "memTot": "${memTot}",
+    "memFree": "${memFree}",
+    "memAv": "${memAv}",
+    "memPogo": "${memPogo}",
+    "memVM": "${memVM}",
+    "cpuSys": "${cpuSys}",
+    "cpuUser": "${cpuUser}",
+    "cpuL5": "${cpuL5}",
+    "cpuL10": "${cpuL10}",
+    "cpuLavg": "${cpuLavg}",
+    "cpuPogoPct": "${cpuPogoPct}",
+    "cpuVmPct": "${cpuVmPct}",
+    "diskSysPct": "${diskSysPct}",
+    "diskDataPct": "${diskDataPct}",
+    "numPogo": "${numPogo}"
 
 }
 DATA

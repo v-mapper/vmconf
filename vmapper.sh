@@ -2,9 +2,9 @@
 # version 4.2.2
 
 #Version checks
-Ver42vmapper="1.3"
+Ver42vmapper="1.3.1"
 Ver55vmapper="2.1"
-VerATVwebhook="1.0"
+VerATVwebhook="1.3"
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then

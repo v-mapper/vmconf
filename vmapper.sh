@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 4.2.3
+# version 4.2.4
 
 #Version checks
 Ver42vmapper="1.3.1"
@@ -551,11 +551,27 @@ mount -o remount,rw /system
 mount -o remount,ro /system
 fi
 
-# if 42vmapper exist we cannot have 55vmapper
+# "rom" checks
+# if 42mad exists we cannot have 42vmapper
+if [ -f /system/etc/init.d/42mad ] && [ -f /system/etc/init.d/42vmapper ] ;then
+  mount -o remount,rw /system
+  rm -f /system/etc/init.d/42vmapper
+  mount -o remount,ro /system
+  echo "`date +%Y-%m-%d_%T` Removed 42vmapper as 42mad exists, this should not happen!" >> $logfile
+fi
+# if 16mad exists we cannot have 42vmapper
+if [ -f /system/etc/init.d/16mad ] && [ -f /system/etc/init.d/42vmapper ] ;then
+  mount -o remount,rw /system
+  rm -f /system/etc/init.d/42vmapper
+  mount -o remount,ro /system
+  echo "`date +%Y-%m-%d_%T` Removed 42vmapper as 16mad exists, this should not happen!" >> $logfile
+fi
+# if 42vmappers exist we cannot have 55vmapper
 if [ -f /system/etc/init.d/55vmapper ] && [ -f /system/etc/init.d/42vmapper ] ;then
   mount -o remount,rw /system
   rm -f /system/etc/init.d/55vmapper
   mount -o remount,ro /system
+  echo "`date +%Y-%m-%d_%T` Removed 55vmapper as 42vmapper exists, this should not happen!" >> $logfile
 fi
 
 # allign rgc/pd settings with vm

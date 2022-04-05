@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 1.3
+# version 1.4
 
 source /data/local/ATVdetailsWebhook.config
 
@@ -71,6 +71,7 @@ while true
     diskSysPct=$(df -h | grep /sbin/.magisk/mirror/system | awk '{print substr($5, 1, length($5)-1)}')
     diskDataPct=$(df -h | grep /sbin/.magisk/mirror/data | awk '{print substr($5, 1, length($5)-1)}')
     numPogo=$(ls -l /sbin/.magisk/mirror/data/app/ | grep com.nianticlabs.pokemongo | wc -l)
+    RPL=$(($SENDING_INTERVAL_SECONDS/60))
 
     curl -X POST $WH_RECEIVER_HOST:$WH_RECEIVER_PORT/webhook -H "Accept: application/json" -H "Content-Type: application/json" --data-binary @- <<DATA
 {
@@ -130,7 +131,8 @@ while true
     "cpuVmPct": "${cpuVmPct}",
     "diskSysPct": "${diskSysPct}",
     "diskDataPct": "${diskDataPct}",
-    "numPogo": "${numPogo}"
+    "numPogo": "${numPogo}",
+    "RPL": "${RPL}"
 
 }
 DATA

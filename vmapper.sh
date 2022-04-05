@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 4.2.4
+# version 4.2.5
 
 #Version checks
 Ver42vmapper="1.3.1"
@@ -118,6 +118,21 @@ if [ -f "$rgcconf" ] ;then
   # kill rgc
   am force-stop de.grennith.rgc.remotegpscontroller
   echo "`date +%Y-%m-%d_%T` VM install: rgc disabled" >> $logfile
+fi
+
+# add 55vmapper for new install on MADrom
+if [ -f /system/etc/init.d/42mad ] || [ -f /system/etc/init.d/16mad ] && [ ! -f /system/etc/init.d/55vmapper ] ;then
+  if [ -f /sdcard/useVMCdevelop ] ;then
+    until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/develop/55vmapper || { echo "`date +%Y-%m-%d_%T` Download 55vmapper failed, exit script" >> $logfile ; exit 1; } ;do
+      sleep 2
+    done
+    chmod +x /system/etc/init.d/55vmapper
+  else
+    until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/main/55vmapper || { echo "`date +%Y-%m-%d_%T` Download 55vmapper failed, exit script" >> $logfile ; exit 1; } ;do
+      sleep 2
+    done
+    chmod +x /system/etc/init.d/55vmapper
+  fi
 fi
 
 ## Set for reboot device

@@ -1,7 +1,8 @@
 #!/system/bin/sh
-# version 1.4
+# version 1.5
 
 source /data/local/ATVdetailsWebhook.config
+logfile="/sdcard/vm.log"
 
 if [ -z $WH_RECEIVER_HOST ] ;then
   WH_RECEIVER_HOST=$(grep -w 'postdest' /data/data/de.vahrmap.vmapper/shared_prefs/config.xml | sed -e 's/    <string name="postdest">\(.*\):.*<\/string>/\1/' )
@@ -13,6 +14,8 @@ vmstore=/data/data/de.vahrmap.vmapper/shared_prefs/store.xml
 
 while true
   do
+    [ ! -f /sdcard/sendwebhook ] && echo "`date +%Y-%m-%d_%T` WHsender: sender stopped" >> $logfile && exit 1
+
     datetime=`date "+%Y-%m-%d %T"`
     origin=$(grep -w 'origin' $vmconf | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/')
     arch=$(uname -m)
@@ -26,7 +29,7 @@ while true
     vm_update=$([ -f /sdcard/disableautovmapperupdate ] && echo disabled || echo enabled)
     temperature=$(cat /sys/class/thermal/thermal_zone0/temp | cut -c -2)
     magisk=$(magisk -c | sed 's/:.*//')
-    magisk_modules=$(ls -1 /sbin/.magisk/img 2>/dev/null)
+    magisk_modules=$(ls -1 /sbin/.magisk/img | xargs | sed -e 's/ /, /g' 2>/dev/null)
     macw=$([ -d /sys/class/net/wlan0 ] && ifconfig wlan0 |grep 'HWaddr' |awk '{ print ($NF) }' || echo 'na')
     mace=$(ifconfig eth0 |grep 'HWaddr' |awk '{ print ($NF) }')
     ip=$(ifconfig wlan0 |grep 'inet addr' |cut -d ':' -f2 |cut -d ' ' -f1 && ifconfig eth0 |grep 'inet addr' |cut -d ':' -f2 |cut -d ' ' -f1)
@@ -72,6 +75,8 @@ while true
     diskDataPct=$(df -h | grep /sbin/.magisk/mirror/data | awk '{print substr($5, 1, length($5)-1)}')
     numPogo=$(ls -l /sbin/.magisk/mirror/data/app/ | grep com.nianticlabs.pokemongo | wc -l)
     RPL=$(($SENDING_INTERVAL_SECONDS/60))
+
+#    set -o posix; set | sort
 
     curl -X POST $WH_RECEIVER_HOST:$WH_RECEIVER_PORT/webhook -H "Accept: application/json" -H "Content-Type: application/json" --data-binary @- <<DATA
 {

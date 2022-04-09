@@ -1,10 +1,10 @@
 #!/system/bin/sh
-# version 4.2.6
+# version 4.2.7
 
 #Version checks
 Ver42vmapper="1.3.1"
 Ver55vmapper="2.1"
-VerATVwebhook="1.5"
+VerATVwebhook="1.6"
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then

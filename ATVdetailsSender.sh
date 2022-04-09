@@ -181,7 +181,7 @@ while true
     "vm_Gtoken": "${vm_Gtoken}",
     "vm_Ptoken": "${vm_Ptoken}",
     "vm_PtokenMaster": "${vm_PtokenMaster}",
-    "vm_died": "$vm_died{}"
+    "vm_died": "${vm_died}"
 
 }
 DATA

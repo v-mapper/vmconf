@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 1.5
+# version 1.6
 
 source /data/local/ATVdetailsWebhook.config
 logfile="/sdcard/vm.log"
@@ -11,22 +11,28 @@ fi
 #Configs
 vmconf=/data/data/de.vahrmap.vmapper/shared_prefs/config.xml
 vmstore=/data/data/de.vahrmap.vmapper/shared_prefs/store.xml
+vmlog=/sdcard/vm.log
+vmapperlog=/sdcard/vmapper.log
 
 while true
   do
     [ ! -f /sdcard/sendwebhook ] && echo "`date +%Y-%m-%d_%T` WHsender: sender stopped" >> $logfile && exit 1
 
+# generic
     datetime=`date "+%Y-%m-%d %T"`
+    RPL=$(($SENDING_INTERVAL_SECONDS/60))
     origin=$(grep -w 'origin' $vmconf | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/')
     arch=$(uname -m)
     productmodel=$(getprop ro.product.model)
     vm_script=$(head -2 /system/bin/vmapper.sh | grep '# version' | awk '{ print $NF }')
     vmapper55=$([ -f /system/etc/init.d/55vmapper ] && head -2 /system/etc/init.d/55vmapper | grep '# version' | awk '{ print $NF }' || echo 'na')
     vmapper42=$([ -f /system/etc/init.d/42vmapper ] && head -2 /system/etc/init.d/42vmapper | grep '# version' | awk '{ print $NF }' || echo 'na')
+    whversion=$([ -f /system/bin/ATVdetailsSender.sh ] && head -2 /system/bin/ATVdetailsSender.sh | grep '# version' | awk '{ print $NF }' || echo 'na')
     pogo=$(dumpsys package com.nianticlabs.pokemongo | grep versionName | head -n1 | sed 's/ *versionName=//')
     vmapper=$(dumpsys package de.vahrmap.vmapper | grep versionName | head -n1 | sed 's/ *versionName=//')
     pogo_update=$([ -f /sdcard/disableautopogoupdate ] && echo disabled || echo enabled)
     vm_update=$([ -f /sdcard/disableautovmapperupdate ] && echo disabled || echo enabled)
+    wh_enabled=$([ -f /sdcard/sendwebhook ] && echo 'enabled' || echo 'disabled')
     temperature=$(cat /sys/class/thermal/thermal_zone0/temp | cut -c -2)
     magisk=$(magisk -c | sed 's/:.*//')
     magisk_modules=$(ls -1 /sbin/.magisk/img | xargs | sed -e 's/ /, /g' 2>/dev/null)
@@ -36,6 +42,7 @@ while true
     ext_ip=$(curl -k -s https://ifconfig.me/)
     hostname=$(getprop net.hostname)
     bootdelay=$(grep -w 'bootdelay' $vmconf | awk -F "\"" '{print tolower($4)}')
+# settings
     gzip=$(grep -w 'gzip' $vmconf | awk -F "\"" '{print tolower($4)}')
     betamode=$(grep -w 'betamode' $vmconf | awk -F "\"" '{print tolower($4)}')
     selinux=$(grep -w 'selinux' $vmconf | awk -F "\"" '{print tolower($4)}')
@@ -59,6 +66,7 @@ while true
     lon=$(grep -w 'lon' $vmstore | sed -e 's/    <string name="lon">\(.*\)<\/string>/\1/')
     catchRare=$(grep -w 'catchRare' $vmconf | awk -F "\"" '{print tolower($4)}')
     overlay=$(grep -w 'overlay' $vmconf | awk -F "\"" '{print tolower($4)}')
+# atv
     memTot=$(cat /proc/meminfo | grep MemTotal | awk '{print $2}')
     memFree=$(cat /proc/meminfo | grep MemFree | awk '{print $2}')
     memAv=$(cat /proc/meminfo | grep MemAvailable | awk '{print $2}')
@@ -74,23 +82,44 @@ while true
     diskSysPct=$(df -h | grep /sbin/.magisk/mirror/system | awk '{print substr($5, 1, length($5)-1)}')
     diskDataPct=$(df -h | grep /sbin/.magisk/mirror/data | awk '{print substr($5, 1, length($5)-1)}')
     numPogo=$(ls -l /sbin/.magisk/mirror/data/app/ | grep com.nianticlabs.pokemongo | wc -l)
-    RPL=$(($SENDING_INTERVAL_SECONDS/60))
+# vm.log
+    vmc_reboot=$(grep 'Device rebooted' $vmlog | wc -l)
+# vmapper.log
+    vm_patcher_restart=$(grep 'Patcher (re)started' $vmapperlog | wc -l)
+    vm_pogo_restart=$(grep 'Restarting game' $vmapperlog | wc -l)
+    vm_crash_dialog=$(grep 'Found crash dialog' $vmapperlog | wc -l)
+    vm_injection=$(grep 'Injection successful' $vmapperlog | wc -l)
+    vm_injectTimeout=$(grep 'Injection timeout' $vmapperlog | wc -l)
+    vm_consent=$(grep 'consent dialog' $vmapperlog | wc -l)
+    vm_ws_stop_pogo=$(grep 'WS: stopped app' $vmapperlog | wc -l)
+    vm_ws_start_pogo=$(grep 'WS: started' $vmapperlog | wc -l)
+    vm_authStart=$(grep 'Starting authentication' $vmapperlog | wc -l)
+    vm_authSuccess=$(grep 'Authentication was successful' $vmapperlog | wc -l)
+    vm_authFailed=$(grep 'Login failed' $vmapperlog | wc -l)
+    vm_Gtoken=$(grep 'New Google auth token is needed' $vmapperlog | wc -l)
+    vm_Ptoken=$(grep 'New PTC auth token is needed' $vmapperlog | wc -l)
+    vm_PtokenMaster=$(grep 'New PTC master token is needed' $vmapperlog | wc -l)
+    vm_died=$(grep 'The service died. We will restart' $vmapperlog | wc -l)
+
 
 #    set -o posix; set | sort
 
     curl -X POST $WH_RECEIVER_HOST:$WH_RECEIVER_PORT/webhook -H "Accept: application/json" -H "Content-Type: application/json" --data-binary @- <<DATA
 {
     "datetime": "${datetime}",
+    "RPL": "${RPL}",
     "origin": "${origin}",
     "arch": "${arch}",
     "productmodel": "${productmodel}",
     "vm_script": "${vm_script}",
     "vmapper55": "${vmapper55}",
     "vmapper42": "${vmapper42}",
+    "whversion": "${whversion}",
     "pogo": "${pogo}",
     "vmapper": "${vmapper}",
     "pogo_update": "${pogo_update}",
     "vm_update": "${vm_update}",
+    "wh_enabled": "${wh_enabled}",
     "temperature": "${temperature}",
     "magisk": "${magisk}",
     "magisk_modules": "${magisk_modules}",
@@ -137,7 +166,22 @@ while true
     "diskSysPct": "${diskSysPct}",
     "diskDataPct": "${diskDataPct}",
     "numPogo": "${numPogo}",
-    "RPL": "${RPL}"
+    "vmc_reboot": "${vmc_reboot}",
+    "vm_patcher_restart": "${vm_patcher_restart}",
+    "vm_pogo_restart": "${vm_pogo_restart}",
+    "vm_crash_dialog": "${vm_crash_dialog}",
+    "vm_injection": "${vm_injection}",
+    "vm_injectTimeout": "${vm_injectTimeout}",
+    "vm_consent": "${vm_consent}",
+    "vm_ws_stop_pogo": "${vm_ws_stop_pogo}",
+    "vm_ws_start_pogo": "${vm_ws_start_pogo}",
+    "vm_authStart": "${vm_authStart}",
+    "vm_authSuccess": "${vm_authSuccess}",
+    "vm_authFailed": "${vm_authFailed}",
+    "vm_Gtoken": "${vm_Gtoken}",
+    "vm_Ptoken": "${vm_Ptoken}",
+    "vm_PtokenMaster": "${vm_PtokenMaster}",
+    "vm_died": "${vm_died}"
 
 }
 DATA

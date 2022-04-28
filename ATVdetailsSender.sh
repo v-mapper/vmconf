@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 1.6
+# version 1.7
 
 source /data/local/ATVdetailsWebhook.config
 logfile="/sdcard/vm.log"
@@ -104,7 +104,7 @@ while true
 
 #    set -o posix; set | sort
 
-    curl -X POST $WH_RECEIVER_HOST:$WH_RECEIVER_PORT/webhook -H "Accept: application/json" -H "Content-Type: application/json" --data-binary @- <<DATA
+    curl -k -X POST $WH_RECEIVER_HOST:$WH_RECEIVER_PORT/webhook -H "Accept: application/json" -H "Content-Type: application/json" --data-binary @- <<DATA
 {
     "datetime": "${datetime}",
     "RPL": "${RPL}",

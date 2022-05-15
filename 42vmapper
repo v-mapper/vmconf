@@ -4,7 +4,6 @@
 logfile="/sdcard/vm.log"
 url_magisk="https://github.com/Map-A-Droid/MAD-ATV/raw/master/Magisk-v20.3.zip"
 url_gapps="https://madatv.b-cdn.net/open_gapps-arm64-7.1-pico-20200715.zip"
-ip="$(ifconfig 'eth0'|awk '/inet addr/{print $2}'|cut -d ':' -f 2)"
 vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
 pdconf="/data/data/com.mad.pogodroid/shared_prefs/com.mad.pogodroid_preferences.xml"
 lastResort="/data/local/vm_last_resort"
@@ -37,6 +36,7 @@ wait_for_network() {
 until ping -c1 8.8.8.8 >/dev/null 2>/dev/null || ping -c1 1.1.1.1 >/dev/null 2>/dev/null; do
     sleep 10
 done
+ip="$(ifconfig 'eth0'|awk '/inet addr/{print $2}'|cut -d ':' -f 2)"
 }
 
 case "$(uname -m)" in
@@ -308,7 +308,6 @@ else
 
     checkmac
     wait_for_network
-    ip="$(ifconfig 'eth0'|awk '/inet addr/{print $2}'|cut -d ':' -f 2)"
     log_msg 2 "Check MAC adress change completed, IP is $ip"
     echo "`date +%Y-%m-%d_%T` 42vmapper: MAC checked, ip is $ip"  >> $logfile
 

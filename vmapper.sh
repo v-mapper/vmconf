@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 4.2.8
+# version 4.2.9
 
 #Version checks
 Ver42vmapper="1.3.1"
@@ -122,17 +122,36 @@ fi
 
 # add 55vmapper for new install on MADrom
 if [ -f /system/etc/init.d/42mad ] || [ -f /system/etc/init.d/16mad ] && [ ! -f /system/etc/init.d/55vmapper ] ;then
+  mount -o remount,rw /system
   if [ -f /sdcard/useVMCdevelop ] ;then
-    until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/develop/55vmapper || { echo "`date +%Y-%m-%d_%T` Download 55vmapper failed, exit script" >> $logfile ; exit 1; } ;do
+    until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/develop/55vmapper || { echo "`date +%Y-%m-%d_%T` VM install: download 55vmapper failed, exit script" >> $logfile ; exit 1; } ;do
       sleep 2
     done
     chmod +x /system/etc/init.d/55vmapper
   else
-    until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/main/55vmapper || { echo "`date +%Y-%m-%d_%T` Download 55vmapper failed, exit script" >> $logfile ; exit 1; } ;do
+    until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/main/55vmapper || { echo "`date +%Y-%m-%d_%T` VM install: download 55vmapper failed, exit script" >> $logfile ; exit 1; } ;do
       sleep 2
     done
     chmod +x /system/etc/init.d/55vmapper
   fi
+#  mount -o remount,ro /system
+  echo "`date +%Y-%m-%d_%T` VM install: 55vmapper installed" >> $logfile
+fi
+
+# add webhooksender
+if [ -f /sdcard/useVMCdevelop ] ;then
+#  mount -o remount,rw /system
+  until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/ATVdetailsSender.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/ATVdetailsSender.sh || { echo "`date +%Y-%m-%d_%T` VM install: download ATVdetailsSender.sh failed, exit script" >> $logfile ; exit 1; } ;do
+    sleep 2
+  done
+  chmod +x /system/bin/ATVdetailsSender.sh
+else
+  until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/ATVdetailsSender.sh https://raw.githubusercontent.com/v-mapper/vmconf/main/ATVdetailsSender.sh || { echo "`date +%Y-%m-%d_%T` VM install: download ATVdetailsSender.sh failed, exit script" >> $logfile ; exit 1; } ;do
+    sleep 2
+  done
+  chmod +x /system/bin/ATVdetailsSender.sh
+  echo "`date +%Y-%m-%d_%T` VM install: webhook sender installed" >> $logfile
+  mount -o remount,ro /system
 fi
 
 ## Set for reboot device

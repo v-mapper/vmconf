@@ -382,8 +382,16 @@ usbWebhookSender="$(find /mnt/media_rw/ -iname ATVdetailsWebhook.txt 2>/dev/null
 if [ ! -z $usbWebhookSender ] ;then
   cp $usbWebhookSender /data/local/ATVdetailsWebhook.config
   touch /sdcard/sendwebhook
-  log_msg 2 "ATVdetailsSender configurtion copied and enabled"
-  echo "`date +%Y-%m-%d_%T` 42vmapper: ATVdetailsSender configurtion copied and enabled"  >> $logfile
+  log_msg 2 "ATVdetailsSender configuration copied from usb and enabled"
+  echo "`date +%Y-%m-%d_%T` 42vmapper: ATVdetailsSender configuration copied from usb and enabled"  >> $logfile
+fi
+
+customWebhookSender="/system/etc/ATVdetailsWebhook.config"
+if [[ -f "$customWebhookSender" ]] ;then
+  cp "$customWebhookSender" "/data/local/ATVdetailsWebhook.config"
+  touch /sdcard/sendwebhook
+  log_msg 2 "ATVdetailsSender configuration copied from custom rom and enabled"
+  echo "`date +%Y-%m-%d_%T` 42vmapper: ATVdetailsSender configuration copied from custom rom and enabled"  >> $logfile
 fi
 
 check_magisk

@@ -18,6 +18,13 @@ fi
 initfile="/system/etc/init.d/42vmapper"
 
 if ! [[ -f "$initfile" ]] ;then
+  #Handle custom rom with vmapper config file
+  customConfig="/system/etc/vm_custom_config"
+  if [[ -f "$customConfig" ]] ;then
+    cp "$customConfig" "/data/local/vm_custom_config"
+    echo "`date +%Y-%m-%d_%T` First boot: found custom rom vmapper config file - copied to /data/local/vm_custom_config" >> /sdcard/vm.log
+  fi
+
   echo "`date +%Y-%m-%d_%T` First boot: 42vmapper does not exist yet" >> /sdcard/vm.log
   mount -o remount,rw /system
   sleep 20

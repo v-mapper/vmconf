@@ -12,6 +12,6 @@ echo "`date +%Y-%m-%d_%T` Device rebooted" >> /sdcard/vm.log
 if [ -f /sdcard/disableautovmapperupdate ] ; then
   sh -x /system/bin/vmapper.sh
 else
-  sh -x /system/bin/vmapper.sh -uvw
+  sh -x /system/bin/vmapper.sh -ua
 fi
 

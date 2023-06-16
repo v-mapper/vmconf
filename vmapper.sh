@@ -323,88 +323,6 @@ if [ "$rgc_install" = "install" ] ;then
 fi
 }
 
-update_all(){
-rgc_wizard
-vmapper_wizard
-pogo_wizard
-if [ ! -z "$vm_install" ] && [ ! -z "$rgc_install" ] && [ ! -z "$pogo_install" ] ;then
-    echo "`date +%Y-%m-%d_%T` All updates checked and downloaded if needed" >> $logfile
-    if [ "$rgc_install" = "install" ]; then
-      echo "`date +%Y-%m-%d_%T` Installing rgc" >> $logfile
-      # install rgc
-      /system/bin/pm install -r /sdcard/Download/RemoteGpsController.apk
-      /system/bin/rm -f /sdcard/Download/RemoteGpsController.apk
-      reboot=1
-    fi
-    if [ "$vm_install" = "install" ] ;then
-      echo "`date +%Y-%m-%d_%T` Installing vmapper" >> $logfile
-      # install vmapper
-      /system/bin/pm install -r /sdcard/Download/vmapper.apk
-      /system/bin/rm -f /sdcard/Download/vmapper.apk
-      # new vmapper version in wizzard, so we replace xml
-
-      reboot=1
-    fi
-    if [ "$pogo_install" = "install" ] ;then
-      echo "`date +%Y-%m-%d_%T` Installing pogo" >> $logfile
-      # install pogo
-      /system/bin/pm install -r /sdcard/Download/pogo.apk
-      /system/bin/rm -f /sdcard/Download/pogo.apk
-      reboot=1
-    fi
-    if [ "$vm_install" != "install" ] && [ "$pogo_install" != "install" ] && [ "$rgc_install" != "install" ]; then
-      echo "`date +%Y-%m-%d_%T` Nothing to install, no reboot" >> $logfile
-    fi
-fi
-}
-
-update_all_no_reboot(){
-rgc_wizard
-vmapper_wizard
-pogo_wizard
-if [ ! -z "$vm_install" ] && [ ! -z "$rgc_install" ] && [ ! -z "$pogo_install" ] ;then
-    echo "`date +%Y-%m-%d_%T` All updates checked and downloaded if needed" >> $logfile
-    if [ "$rgc_install" = "install" ] ;then
-      echo "`date +%Y-%m-%d_%T` Install and start rgc" >> $logfile
-      # install rgc
-      /system/bin/pm install -r /sdcard/Download/RemoteGpsController.apk
-      /system/bin/rm -f /sdcard/Download/RemoteGpsController.apk
-      # start rgc
-      monkey -p de.grennith.rgc.remotegpscontroller 1
-    fi
-    if [ "$vm_install" = "install" ] ;then
-      echo "`date +%Y-%m-%d_%T` Install vmapper" >> $logfile
-      # kill pogo
-      am force-stop com.nianticlabs.pokemongo
-      # install vmapper
-      /system/bin/pm install -r /sdcard/Download/vmapper.apk
-      /system/bin/rm -f /sdcard/Download/vmapper.apk
-      # if no pogo update we restart both now
-      if [ "$pogo_install" != "install" ] ;then
-        echo "`date +%Y-%m-%d_%T` No pogo update, starting vmapper+pogo" >> $logfile
-        am force-stop de.vahrmap.vmapper
-        am broadcast -n de.vahrmap.vmapper/.RestartService
-        sleep 5
-        monkey -p com.nianticlabs.pokemongo -c android.intent.category.LAUNCHER 1
-      fi
-    fi
-    if [ "$pogo_install" = "install" ] ;then
-      echo "`date +%Y-%m-%d_%T` Install pogo, restart vmapper and start pogo" >> $logfile
-      # install pogo
-      /system/bin/pm install -r /sdcard/Download/pogo.apk
-      /system/bin/rm -f /sdcard/Download/pogo.apk
-      # restart vmapper + start pogo
-      am force-stop de.vahrmap.vmapper
-      am broadcast -n de.vahrmap.vmapper/.RestartService
-      sleep 5
-      monkey -p com.nianticlabs.pokemongo -c android.intent.category.LAUNCHER 1
-    fi
-    if [ "$vm_install" != "install" ] && [ "$pogo_install" != "install" ] && [ "$rgc_install" != "install" ]; then
-      echo "`date +%Y-%m-%d_%T` Nothing to install" >> $logfile
-    fi
-fi
-}
-
 vmapper_xml(){
 vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
 vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
@@ -437,7 +355,7 @@ force_pogo_update(){
 force_pogo_update=true
 }
 
-42vmapper_autoupdate(){
+update_all(){
 if [ -f /sdcard/disableautovmapperupdate ] ;then
   echo "`date +%Y-%m-%d_%T` VMapper auto update disabled, skipping version check" >> $logfile
 else
@@ -781,8 +699,6 @@ for i in "$@" ;do
  -dpwnr) downgrade_pogo_wizard_no_reboot ;;
  -urw) update_rgc_wizard ;;
  -ua) update_all ;;
- -uanr) update_all_no_reboot ;;
- -42up) 42vmapper_autoupdate ;;
  -uvx) create_vmapper_xml ;;
  -uvxnr) create_vmapper_xml_no_reboot ;;
  -fp) force_pogo_update ;;

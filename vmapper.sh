@@ -442,7 +442,7 @@ if [[ $(basename $0) != "vmapper_new.sh" ]] ;then
   fi
 fi
 
-#update 55vmpper, 42vmapper, Ver56vmwatchdog and ATVdetailsSender.sh if needed
+#update 55vmpper, 42vmapper, 56vmwatchdog and ATVdetailsSender.sh if needed
 if [[ $(basename $0) = "vmapper_new.sh" ]] ;then
 mount -o remount,rw /system
 

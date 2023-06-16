@@ -1,9 +1,10 @@
 #!/system/bin/sh
-# version 4.2.12
+# version 4.3.0
 
 #Version checks
-Ver42vmapper="1.4.0"
-Ver55vmapper="2.1"
+Ver42vmapper="1.5.0"
+Ver55vmapper="2.2"
+Ver56vmwatchdog="1.1"
 VerATVwebhook="1.7"
 
 #Create logfile
@@ -441,9 +442,10 @@ if [[ $(basename $0) != "vmapper_new.sh" ]] ;then
   fi
 fi
 
-#update 55vmpper, 42vmapper and ATVdetailsSender.sh if needed
+#update 55vmpper, 42vmapper, Ver56vmwatchdog and ATVdetailsSender.sh if needed
 if [[ $(basename $0) = "vmapper_new.sh" ]] ;then
 mount -o remount,rw /system
+
 #download latest 55vmapper if used
   if [[ -f /system/etc/init.d/55vmapper ]] ;then
     old55=$(head -2 /system/etc/init.d/55vmapper | grep '# version' | awk '{ print $NF }')
@@ -463,6 +465,7 @@ mount -o remount,rw /system
     echo "`date +%Y-%m-%d_%T` 55vmapper $old55=>$new55" >> $logfile
     fi
   fi
+
 #download latest 42vmapper if used
   if [[ -f /system/etc/init.d/42vmapper ]] ;then
     old42=$(head -2 /system/etc/init.d/42vmapper | grep '# version' | awk '{ print $NF }')
@@ -480,6 +483,26 @@ mount -o remount,rw /system
       fi
     new42=$(head -2 /system/etc/init.d/42vmapper | grep '# version' | awk '{ print $NF }')
     echo "`date +%Y-%m-%d_%T` 42vmapper $old42=>$new42" >> $logfile
+    fi
+  fi
+
+#download latest 56vmwatchdog if used
+  if [[ -f /system/etc/init.d/56vmwatchdog ]] ;then
+    old56=$(head -2 /system/etc/init.d/56vmwatchdog | grep '# version' | awk '{ print $NF }')
+    if [ $Ver56vmwatchdog != $old56 ] ;then
+      if [ -f /sdcard/useVMCdevelop ] ;then
+        until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/56vmwatchdog https://raw.githubusercontent.com/v-mapper/vmconf/develop/56vmwatchdog || { echo "`date +%Y-%m-%d_%T` Download 56vmwatchdog failed, exit script" >> $logfile ; exit 1; } ;do
+          sleep 2
+        done
+        chmod +x /system/etc/init.d/56vmwatchdog
+      else
+        until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/56vmwatchdog https://raw.githubusercontent.com/v-mapper/vmconf/main/56vmwatchdog || { echo "`date +%Y-%m-%d_%T` Download 56vmwatchdog failed, exit script" >> $logfile ; exit 1; } ;do
+          sleep 2
+        done
+        chmod +x /system/etc/init.d/56vmwatchdog
+      fi
+    new56=$(head -2 /system/etc/init.d/56vmwatchdog | grep '# version' | awk '{ print $NF }')
+    echo "`date +%Y-%m-%d_%T` 56vmwatchdog $old56=>$new56" >> $logfile
     fi
   fi
 

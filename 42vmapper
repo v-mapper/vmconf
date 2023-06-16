@@ -7,6 +7,7 @@ url_gapps="https://madatv.b-cdn.net/open_gapps-arm64-7.1-pico-20200715.zip"
 vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
 pdconf="/data/data/com.mad.pogodroid/shared_prefs/com.mad.pogodroid_preferences.xml"
 lastResort="/data/local/vm_last_resort"
+customConfig="/data/local/vm_custom_config"
 
 cachereboot=0
 
@@ -290,11 +291,25 @@ elif [[ -f /data/local/vmconf ]] ;then
   echo "`date +%Y-%m-%d_%T` 42vmapper: Using settings stored in /data/local/vmconf"  >> $logfile
 else
   usbfile="$(find /mnt/media_rw/ -name mad_autoconf.txt|head -n1)"
-  if [[ "$usbfile" ]] ;then
+  if [[ "$usbfile" ]] || [ -f "$customConfig" ] ;then
     [ ! -z $(find /mnt/media_rw/ -name useVMCdevelop.txt|head -n1) ] && touch /sdcard/useVMCdevelop
-    echo "`date +%Y-%m-%d_%T` 42vmapper: No madmin settings found on device but have usbfile, assuming new install"  >> $logfile
-    server="$(awk 'NR==1{print $1}' "$usbfile")"
-    auth="$(awk 'NR==2{print $1}' "$usbfile")"
+    if [[ "$usbfile" ]] ;then
+      echo "`date +%Y-%m-%d_%T` 42vmapper: No madmin settings found on device but have usbfile, assuming new install"  >> $logfile
+      server="$(awk 'NR==1{print $1}' "$usbfile")"
+      auth="$(awk 'NR==2{print $1}' "$usbfile")"
+    else
+      echo "`date +%Y-%m-%d_%T` 42vmapper: No madmin settings found on device but have vm_custom_config file, assuming new install"  >> $logfile
+      server=$(awk '{print $1}' "$customConfig")
+      authuser=$(awk '{print $2}' "$customConfig")
+      authpassword=$(awk '{print $3}' "$customConfig")
+      proxy=$(awk '{print $4}' "$customConfig")
+      if [[ "$proxy" ]] ;then
+        echo "`date +%Y-%m-%d_%T` 42vmapper: Found custom proxy setting - copying to settings global "  >> $logfile
+        settings put global http_proxy "$proxy"
+        echo "`date +%Y-%m-%d_%T` 42vmapper: Copied custom proxy setting $proxy"  >> $logfile
+      fi
+      auth="$authuser:$authpassword"
+    fi
 
     check_session
     origin=$(/system/bin/curl -s -k -L --user "$auth" "${server}/autoconfig/${session_id}/origin")
@@ -393,8 +408,8 @@ if [[ ! $(pm list packages android.vending) ]] ;then
   cachereboot=1
   log_msg 2 "Gapps set to be installed"
   echo "`date +%Y-%m-%d_%T` 42vmapper: Gapps set to be installed" >> /sdcard/vm.log
-  log_msg 2 "All files copied from usb, it can be extracted"
-  echo "`date +%Y-%m-%d_%T` 42vmapper: All files copied from usb" >> /sdcard/vm.log
+  log_msg 2 "All files downloaded or copied from usb, it can be extracted"
+  echo "`date +%Y-%m-%d_%T` 42vmapper: All files downloaded or copied from usb" >> /sdcard/vm.log
 fi
 
 [[ -d /sdcard/TWRP ]] && rm -rf /sdcard/TWRP

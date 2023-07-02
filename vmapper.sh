@@ -141,7 +141,7 @@ fi
 
 # add webhooksender
 if [ -f /sdcard/useVMCdevelop ] ;then
-#  mount -o remount,rw /system
+  mount -o remount,rw /system
   until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/ATVdetailsSender.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/ATVdetailsSender.sh || { echo "`date +%Y-%m-%d_%T` VM install: download ATVdetailsSender.sh failed, exit script" >> $logfile ; exit 1; } ;do
     sleep 2
   done

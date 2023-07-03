@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 4.4.1
+# version 4.4.2
 
 #Version checks
 Ver42vmapper="1.5.0"
@@ -140,7 +140,7 @@ if [ -f /system/etc/init.d/42mad ] || [ -f /system/etc/init.d/16mad ] && [ ! -f 
 fi
 
 # add 56vmwatchdog for new install on MADrom
-if [ -f /system/etc/init.d/42mad ] || [ -f /system/etc/init.d/16mad ] && [ ! -f /system/etc/init.d/56vmwatchdog ] ;then
+if [ ! -f /system/etc/init.d/56vmwatchdog ] ;then
   mount -o remount,rw /system
   if [ -f /sdcard/useVMCdevelop ] ;then
     until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/56vmwatchdog https://raw.githubusercontent.com/v-mapper/vmconf/develop/56vmwatchdog || { echo "`date +%Y-%m-%d_%T` VM install: download 56vmwatchdog failed, exit script" >> $logfile ; exit 1; } ;do

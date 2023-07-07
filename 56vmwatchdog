@@ -35,6 +35,8 @@ check_vm() {
 vm_running=$(ps | grep de.vahrmap.vmapper | awk -F. '{ print $NF }')
 }
 
+echo "`date +%Y-%m-%d_%T` VMwatchdog Started" >> $logfile
+
 i=0
 
 while true; do

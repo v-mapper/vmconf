@@ -27,6 +27,7 @@ while true
     vm_script=$(head -2 /system/bin/vmapper.sh | grep '# version' | awk '{ print $NF }')
     vmapper55=$([ -f /system/etc/init.d/55vmapper ] && head -2 /system/etc/init.d/55vmapper | grep '# version' | awk '{ print $NF }' || echo 'na')
     vmapper42=$([ -f /system/etc/init.d/42vmapper ] && head -2 /system/etc/init.d/42vmapper | grep '# version' | awk '{ print $NF }' || echo 'na')
+    vmwatchdog56=$([ -f /system/etc/init.d/56vmwatchdog ] && head -2 /system/etc/init.d/56vmwatchdog | grep '# version' | awk '{ print $NF }' || echo 'na')
     whversion=$([ -f /system/bin/ATVdetailsSender.sh ] && head -2 /system/bin/ATVdetailsSender.sh | grep '# version' | awk '{ print $NF }' || echo 'na')
     pogo=$(dumpsys package com.nianticlabs.pokemongo | grep versionName | head -n1 | sed 's/ *versionName=//')
     vmapper=$(dumpsys package de.vahrmap.vmapper | grep versionName | head -n1 | sed 's/ *versionName=//')
@@ -114,6 +115,7 @@ while true
     "vm_script": "${vm_script}",
     "vmapper55": "${vmapper55}",
     "vmapper42": "${vmapper42}",
+    "vmwatchdog56": "${vmwatchdog56}",
     "whversion": "${whversion}",
     "pogo": "${pogo}",
     "vmapper": "${vmapper}",

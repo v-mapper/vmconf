@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 1.4.0
+# version 1.5.0
 
 logfile="/sdcard/vm.log"
 url_magisk="https://github.com/Map-A-Droid/MAD-ATV/raw/master/Magisk-v20.3.zip"
@@ -451,4 +451,4 @@ fi
 
 mount -o remount,ro /system
 # check for updates / execute vmapper.sh
-/system/bin/vmapper.sh -nrc -42up
+/system/bin/vmapper.sh -ua

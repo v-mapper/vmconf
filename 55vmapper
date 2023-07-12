@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.1
+# version 2.2
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -12,6 +12,6 @@ echo "`date +%Y-%m-%d_%T` Device rebooted" >> /sdcard/vm.log
 if [ -f /sdcard/disableautovmapperupdate ] ; then
   sh -x /system/bin/vmapper.sh
 else
-  sh -x /system/bin/vmapper.sh -uvw
+  sh -x /system/bin/vmapper.sh -ua
 fi
 

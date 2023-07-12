@@ -1,9 +1,10 @@
 #!/system/bin/sh
-# version 4.2.12
+# version 4.4.3
 
 #Version checks
-Ver42vmapper="1.4.0"
-Ver55vmapper="2.1"
+Ver42vmapper="1.5.0"
+Ver55vmapper="2.2"
+Ver56vmwatchdog="1.3"
 VerATVwebhook="1.7"
 
 #Create logfile
@@ -138,9 +139,27 @@ if [ -f /system/etc/init.d/42mad ] || [ -f /system/etc/init.d/16mad ] && [ ! -f 
   echo "`date +%Y-%m-%d_%T` VM install: 55vmapper installed" >> $logfile
 fi
 
+# add 56vmwatchdog for new install on MADrom
+if [ ! -f /system/etc/init.d/56vmwatchdog ] ;then
+  mount -o remount,rw /system
+  if [ -f /sdcard/useVMCdevelop ] ;then
+    until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/56vmwatchdog https://raw.githubusercontent.com/v-mapper/vmconf/develop/56vmwatchdog || { echo "`date +%Y-%m-%d_%T` VM install: download 56vmwatchdog failed, exit script" >> $logfile ; exit 1; } ;do
+      sleep 2
+    done
+    chmod +x /system/etc/init.d/56vmwatchdog
+  else
+    until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/56vmwatchdog https://raw.githubusercontent.com/v-mapper/vmconf/main/56vmwatchdog || { echo "`date +%Y-%m-%d_%T` VM install: download 56vmwatchdog failed, exit script" >> $logfile ; exit 1; } ;do
+      sleep 2
+    done
+    chmod +x /system/etc/init.d/56vmwatchdog
+  fi
+#  mount -o remount,ro /system
+  echo "`date +%Y-%m-%d_%T` VM install: 56vmwatchdog installed" >> $logfile
+fi
+
 # add webhooksender
 if [ -f /sdcard/useVMCdevelop ] ;then
-#  mount -o remount,rw /system
+  mount -o remount,rw /system
   until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/ATVdetailsSender.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/ATVdetailsSender.sh || { echo "`date +%Y-%m-%d_%T` VM install: download ATVdetailsSender.sh failed, exit script" >> $logfile ; exit 1; } ;do
     sleep 2
   done
@@ -323,88 +342,6 @@ if [ "$rgc_install" = "install" ] ;then
 fi
 }
 
-update_all(){
-rgc_wizard
-vmapper_wizard
-pogo_wizard
-if [ ! -z "$vm_install" ] && [ ! -z "$rgc_install" ] && [ ! -z "$pogo_install" ] ;then
-    echo "`date +%Y-%m-%d_%T` All updates checked and downloaded if needed" >> $logfile
-    if [ "$rgc_install" = "install" ]; then
-      echo "`date +%Y-%m-%d_%T` Installing rgc" >> $logfile
-      # install rgc
-      /system/bin/pm install -r /sdcard/Download/RemoteGpsController.apk
-      /system/bin/rm -f /sdcard/Download/RemoteGpsController.apk
-      reboot=1
-    fi
-    if [ "$vm_install" = "install" ] ;then
-      echo "`date +%Y-%m-%d_%T` Installing vmapper" >> $logfile
-      # install vmapper
-      /system/bin/pm install -r /sdcard/Download/vmapper.apk
-      /system/bin/rm -f /sdcard/Download/vmapper.apk
-      # new vmapper version in wizzard, so we replace xml
-
-      reboot=1
-    fi
-    if [ "$pogo_install" = "install" ] ;then
-      echo "`date +%Y-%m-%d_%T` Installing pogo" >> $logfile
-      # install pogo
-      /system/bin/pm install -r /sdcard/Download/pogo.apk
-      /system/bin/rm -f /sdcard/Download/pogo.apk
-      reboot=1
-    fi
-    if [ "$vm_install" != "install" ] && [ "$pogo_install" != "install" ] && [ "$rgc_install" != "install" ]; then
-      echo "`date +%Y-%m-%d_%T` Nothing to install, no reboot" >> $logfile
-    fi
-fi
-}
-
-update_all_no_reboot(){
-rgc_wizard
-vmapper_wizard
-pogo_wizard
-if [ ! -z "$vm_install" ] && [ ! -z "$rgc_install" ] && [ ! -z "$pogo_install" ] ;then
-    echo "`date +%Y-%m-%d_%T` All updates checked and downloaded if needed" >> $logfile
-    if [ "$rgc_install" = "install" ] ;then
-      echo "`date +%Y-%m-%d_%T` Install and start rgc" >> $logfile
-      # install rgc
-      /system/bin/pm install -r /sdcard/Download/RemoteGpsController.apk
-      /system/bin/rm -f /sdcard/Download/RemoteGpsController.apk
-      # start rgc
-      monkey -p de.grennith.rgc.remotegpscontroller 1
-    fi
-    if [ "$vm_install" = "install" ] ;then
-      echo "`date +%Y-%m-%d_%T` Install vmapper" >> $logfile
-      # kill pogo
-      am force-stop com.nianticlabs.pokemongo
-      # install vmapper
-      /system/bin/pm install -r /sdcard/Download/vmapper.apk
-      /system/bin/rm -f /sdcard/Download/vmapper.apk
-      # if no pogo update we restart both now
-      if [ "$pogo_install" != "install" ] ;then
-        echo "`date +%Y-%m-%d_%T` No pogo update, starting vmapper+pogo" >> $logfile
-        am force-stop de.vahrmap.vmapper
-        am broadcast -n de.vahrmap.vmapper/.RestartService
-        sleep 5
-        monkey -p com.nianticlabs.pokemongo -c android.intent.category.LAUNCHER 1
-      fi
-    fi
-    if [ "$pogo_install" = "install" ] ;then
-      echo "`date +%Y-%m-%d_%T` Install pogo, restart vmapper and start pogo" >> $logfile
-      # install pogo
-      /system/bin/pm install -r /sdcard/Download/pogo.apk
-      /system/bin/rm -f /sdcard/Download/pogo.apk
-      # restart vmapper + start pogo
-      am force-stop de.vahrmap.vmapper
-      am broadcast -n de.vahrmap.vmapper/.RestartService
-      sleep 5
-      monkey -p com.nianticlabs.pokemongo -c android.intent.category.LAUNCHER 1
-    fi
-    if [ "$vm_install" != "install" ] && [ "$pogo_install" != "install" ] && [ "$rgc_install" != "install" ]; then
-      echo "`date +%Y-%m-%d_%T` Nothing to install" >> $logfile
-    fi
-fi
-}
-
 vmapper_xml(){
 vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
 vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
@@ -437,7 +374,7 @@ force_pogo_update(){
 force_pogo_update=true
 }
 
-42vmapper_autoupdate(){
+update_all(){
 if [ -f /sdcard/disableautovmapperupdate ] ;then
   echo "`date +%Y-%m-%d_%T` VMapper auto update disabled, skipping version check" >> $logfile
 else
@@ -523,9 +460,10 @@ if [[ $(basename $0) != "vmapper_new.sh" ]] ;then
   fi
 fi
 
-#update 55vmpper, 42vmapper and ATVdetailsSender.sh if needed
+#update 55vmpper, 42vmapper, 56vmwatchdog and ATVdetailsSender.sh if needed
 if [[ $(basename $0) = "vmapper_new.sh" ]] ;then
 mount -o remount,rw /system
+
 #download latest 55vmapper if used
   if [[ -f /system/etc/init.d/55vmapper ]] ;then
     old55=$(head -2 /system/etc/init.d/55vmapper | grep '# version' | awk '{ print $NF }')
@@ -545,6 +483,7 @@ mount -o remount,rw /system
     echo "`date +%Y-%m-%d_%T` 55vmapper $old55=>$new55" >> $logfile
     fi
   fi
+
 #download latest 42vmapper if used
   if [[ -f /system/etc/init.d/42vmapper ]] ;then
     old42=$(head -2 /system/etc/init.d/42vmapper | grep '# version' | awk '{ print $NF }')
@@ -562,6 +501,26 @@ mount -o remount,rw /system
       fi
     new42=$(head -2 /system/etc/init.d/42vmapper | grep '# version' | awk '{ print $NF }')
     echo "`date +%Y-%m-%d_%T` 42vmapper $old42=>$new42" >> $logfile
+    fi
+  fi
+
+#download latest 56vmwatchdog if used
+  if [[ -f /system/etc/init.d/56vmwatchdog ]] ;then
+    old56=$(head -2 /system/etc/init.d/56vmwatchdog | grep '# version' | awk '{ print $NF }')
+    if [ $Ver56vmwatchdog != $old56 ] ;then
+      if [ -f /sdcard/useVMCdevelop ] ;then
+        until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/56vmwatchdog https://raw.githubusercontent.com/v-mapper/vmconf/develop/56vmwatchdog || { echo "`date +%Y-%m-%d_%T` Download 56vmwatchdog failed, exit script" >> $logfile ; exit 1; } ;do
+          sleep 2
+        done
+        chmod +x /system/etc/init.d/56vmwatchdog
+      else
+        until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/56vmwatchdog https://raw.githubusercontent.com/v-mapper/vmconf/main/56vmwatchdog || { echo "`date +%Y-%m-%d_%T` Download 56vmwatchdog failed, exit script" >> $logfile ; exit 1; } ;do
+          sleep 2
+        done
+        chmod +x /system/etc/init.d/56vmwatchdog
+      fi
+    new56=$(head -2 /system/etc/init.d/56vmwatchdog | grep '# version' | awk '{ print $NF }')
+    echo "`date +%Y-%m-%d_%T` 56vmwatchdog $old56=>$new56" >> $logfile
     fi
   fi
 
@@ -781,8 +740,6 @@ for i in "$@" ;do
  -dpwnr) downgrade_pogo_wizard_no_reboot ;;
  -urw) update_rgc_wizard ;;
  -ua) update_all ;;
- -uanr) update_all_no_reboot ;;
- -42up) 42vmapper_autoupdate ;;
  -uvx) create_vmapper_xml ;;
  -uvxnr) create_vmapper_xml_no_reboot ;;
  -fp) force_pogo_update ;;

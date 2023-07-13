@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 1.5.0
+# version 1.5.1
 
 logfile="/sdcard/vm.log"
 url_magisk="https://github.com/Map-A-Droid/MAD-ATV/raw/master/Magisk-v20.3.zip"
@@ -268,7 +268,7 @@ if [ -f "$vmconf" ] && [ ! -z $(grep -w 'postdest' $vmconf | sed -e 's/    <stri
   authpassword=$(grep -w 'authpassword' $vmconf | sed -e 's/    <string name="authpassword">\(.*\)<\/string>/\1/')
   auth="$authuser:$authpassword"
   origin=$(grep -w 'origin' $vmconf | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/')
-  pm disable-user com.android.vending
+  #pm disable-user com.android.vending
   [[ -f /sdcard/reg_session ]] && check_session
   echo "`date +%Y-%m-%d_%T` 42vmapper: Using vahrmap.vmapper settings" >> $logfile
 elif [ -f "$lastResort" ]; then
@@ -276,7 +276,7 @@ elif [ -f "$lastResort" ]; then
   authuser=$(awk '{print $2}' "$lastResort")
   authpassword=$(awk '{print $3}' "$lastResort")
   auth="$authuser:$authpassword"
-  pm disable-user com.android.vending
+  #pm disable-user com.android.vending
   [[ -f /sdcard/reg_session ]] && check_session
   origin=$(awk '{print $4}' "$lastResort")
   echo "`date +%Y-%m-%d_%T` 42vmapper: Using settings stored in /sdcard/vm_last_resort"  >> $logfile
@@ -286,7 +286,7 @@ elif [[ -f /data/local/vmconf ]] ;then
   authpassword=$(grep -w 'authpassword' /data/local/vmconf | sed -e 's/    <string name="authpassword">\(.*\)<\/string>/\1/')
   auth="$authuser:$authpassword"
   origin=$(grep -w 'origin' /data/local/vmconf | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/')
-  pm disable-user com.android.vending
+  #pm disable-user com.android.vending
   check_session
   echo "`date +%Y-%m-%d_%T` 42vmapper: Using settings stored in /data/local/vmconf"  >> $logfile
 else

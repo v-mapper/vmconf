@@ -1,10 +1,10 @@
 #!/system/bin/sh
-# version 4.4.3
+# version 4.4.4
 
 #Version checks
 Ver42vmapper="1.5.0"
 Ver55vmapper="2.2"
-Ver56vmwatchdog="1.3"
+Ver56vmwatchdog="1.3.1"
 VerATVwebhook="1.7"
 
 #Create logfile
@@ -672,7 +672,7 @@ elif [[ -f /data/local/vmconf ]] ;then
   authpassword=$(grep -w 'authpassword' /data/local/vmconf | sed -e 's/    <string name="authpassword">\(.*\)<\/string>/\1/')
   auth="$authuser:$authpassword"
   origin=$(grep -w 'origin' /data/local/vmconf | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/')
-  pm disable-user com.android.vending
+  #pm disable-user com.android.vending
   echo "`date +%Y-%m-%d_%T` Using settings stored in /data/local/vmconf"  >> $logfile
 else
   echo "`date +%Y-%m-%d_%T` No settings found to connect to MADmin, exiting vmapper.sh" >> $logfile

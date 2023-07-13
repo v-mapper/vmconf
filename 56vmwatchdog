@@ -66,6 +66,8 @@ while true; do
    history_line_2=$(tail -n4 $vmhistory | cut -d";" -f2-4 | head -n1)
 
   check_vm
+  check_playstore
+
   if (( $i > $REBOOT_AFTER )) ;then
     if [ $(cat $logfile | grep `date +%Y-%m-%d` | grep VMwatchdog | grep rebooting | wc -l) -gt $MAX_DAILY_REBOOT ] ;then
       echo "`date +%Y-%m-%d_%T` VMwatchdog: I've already rebooted $MAX_DAILY_REBOOT times today, too tired now, see you tomorrow..."  >> $logfile

@@ -1,10 +1,10 @@
 #!/system/bin/sh
-# version 4.4.5
+# version 4.4.6
 
 #Version checks
 Ver42vmapper="1.5.1"
 Ver55vmapper="2.2"
-Ver56vmwatchdog="1.3.1"
+Ver56vmwatchdog="1.3.2"
 VerATVwebhook="1.7"
 
 #Create logfile

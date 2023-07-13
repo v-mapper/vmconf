@@ -16,7 +16,7 @@ VMapper rom will allow for copy of PoGo, Magisk and Gapps from usb to speed up t
 
 Usage ATVdetailsSender:<BR>
 1 create sql table ATVsummary, already done for Stats users<BR>
-2 setup webhook receiver, [repo](https://github.com/dkmur/ATVdetailsWHreceiver)<BR>
+2 setup webhook receiver, [repo](https://github.com/v-mapper/rdmVM/tree/main/wh_receiver)<BR>
 3 make sure config file is present on atv `/data/local/ATVdetailsWebhook.config`<BR>
 4 enable webhooks to be send on atv ``touch /sdcard/sendwebhook``<BR>
 notes:

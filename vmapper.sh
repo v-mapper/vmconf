@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 4.4.8
+# version 4.5.0
 
 #Version checks
 Ver42vmapper="1.5.1"
@@ -44,13 +44,32 @@ case "$(uname -m)" in
  armv8l)  arch="armeabi-v7a";;
 esac
 
+# Initial Install of 56vmwatchdog 
+if [ ! -f /system/etc/init.d/56vmwatchdog ] ;then
+  mount -o remount,rw /system
+  if [ -f /sdcard/useVMCdevelop ] ;then
+    until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/56vmwatchdog https://raw.githubusercontent.com/v-mapper/vmconf/develop/56vmwatchdog || { echo "`date +%Y-%m-%d_%T` VM install: download 56vmwatchdog failed, exit script" >> $logfile ; exit 1; } ;do
+      sleep 2
+    done
+    chmod +x /system/etc/init.d/56vmwatchdog
+  else
+    until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/56vmwatchdog https://raw.githubusercontent.com/v-mapper/vmconf/main/56vmwatchdog || { echo "`date +%Y-%m-%d_%T` VM install: download 56vmwatchdog failed, exit script" >> $logfile ; exit 1; } ;do
+      sleep 2
+    done
+    chmod +x /system/etc/init.d/56vmwatchdog
+  fi
+#  mount -o remount,ro /system
+  echo "`date +%Y-%m-%d_%T` VM install: 56vmwatchdog installed" >> $logfile
+fi
+
+
 checkupdate(){
 # $1 = new version
 # $2 = installed version
 ! [[ "$2" ]] && return 0 # for first installs
 i=1
 #we start at 1 and go until number of . so we can use our counter as awk position
-places=$(awk -F. '{print NF+1}' <<< "$1")
+places=$(awk -F. '{print NF+1}' < "$1")
 while (( "$i" < "$places" )) ;do
  npos=$(awk -v pos=$i -F. '{print $pos}' <<< "$1")
  ipos=$(awk -v pos=$i -F. '{print $pos}' <<< "$2")

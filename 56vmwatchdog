@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 1.3.3
+# version 1.3.4
 
 logfile="/sdcard/vm.log"
 vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
@@ -80,6 +80,8 @@ while true; do
   elif [ -z "$playstore" ] ;then
     echo "`date +%Y-%m-%d_%T` VMwatchdog: Playstore disabled, enabling" >> $logfile
     pm enable com.android.vending
+    sleep 60
+    reboot
 
   elif [ -z "$vm_running" ] ;then
     echo "`date +%Y-%m-%d_%T` VMwatchdog: vmapper not running, restarting" >> $logfile 

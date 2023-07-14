@@ -69,7 +69,7 @@ checkupdate(){
 ! [[ "$2" ]] && return 0 # for first installs
 i=1
 #we start at 1 and go until number of . so we can use our counter as awk position
-places=$(awk -F. '{print NF+1}' < "$1")
+places=$(awk -F. '{print NF+1}' <<< "$1")
 while (( "$i" < "$places" )) ;do
  npos=$(awk -v pos=$i -F. '{print $pos}' <<< "$1")
  ipos=$(awk -v pos=$i -F. '{print $pos}' <<< "$2")

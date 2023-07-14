@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 1.3
+# version 1.3.3
 
 logfile="/sdcard/vm.log"
 vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
@@ -35,6 +35,11 @@ check_vm() {
 vm_running=$(ps | grep de.vahrmap.vmapper | awk -F. '{ print $NF }')
 }
 
+check_playstore() {
+playstore=$(ps | grep com.android.vending | awk -F. '{ print $NF }')
+}
+
+
 echo "`date +%Y-%m-%d_%T` VMwatchdog Started" >> $logfile
 
 i=0
@@ -61,6 +66,8 @@ while true; do
    history_line_2=$(tail -n4 $vmhistory | cut -d";" -f2-4 | head -n1)
 
   check_vm
+  check_playstore
+
   if (( $i > $REBOOT_AFTER )) ;then
     if [ $(cat $logfile | grep `date +%Y-%m-%d` | grep VMwatchdog | grep rebooting | wc -l) -gt $MAX_DAILY_REBOOT ] ;then
       echo "`date +%Y-%m-%d_%T` VMwatchdog: I've already rebooted $MAX_DAILY_REBOOT times today, too tired now, see you tomorrow..."  >> $logfile
@@ -69,6 +76,10 @@ while true; do
       echo "`date +%Y-%m-%d_%T` VMwatchdog: vmapper not running, tried to restart vmapper $REBOOT_AFTER times, rebooting device"  >> $logfile
       reboot
     fi
+
+  elif [ -z "$playstore" ] ;then
+    echo "`date +%Y-%m-%d_%T` VMwatchdog: Playstore disabled, enabling" >> $logfile
+    pm enable com.android.vending
 
   elif [ -z "$vm_running" ] ;then
     echo "`date +%Y-%m-%d_%T` VMwatchdog: vmapper not running, restarting" >> $logfile 

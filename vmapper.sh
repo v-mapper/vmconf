@@ -1,10 +1,10 @@
 #!/system/bin/sh
-# version 4.5.0
+# version 4.6.1
 
 #Version checks
 Ver42vmapper="1.5.1"
 Ver55vmapper="2.2"
-Ver56vmwatchdog="1.3.4"
+Ver56vmwatchdog="1.3.5"
 VerATVwebhook="1.7"
 
 #Create logfile
@@ -30,6 +30,12 @@ exec 2>> $logfile
 echo "" >> $logfile
 echo "`date +%Y-%m-%d_%T` ## Executing $(basename $0) $@" >> $logfile
 
+#Check if using Develop or main
+if [ -f /sdcard/useVMCdevelop ] ;then
+	branch="develop"
+else
+	branch="main"
+fi
 
 ########## Functions
 
@@ -47,17 +53,10 @@ esac
 # Initial Install of 56vmwatchdog 
 if [ ! -f /system/etc/init.d/56vmwatchdog ] ;then
   mount -o remount,rw /system
-  if [ -f /sdcard/useVMCdevelop ] ;then
-    until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/56vmwatchdog https://raw.githubusercontent.com/v-mapper/vmconf/develop/56vmwatchdog || { echo "`date +%Y-%m-%d_%T` VM install: download 56vmwatchdog failed, exit script" >> $logfile ; exit 1; } ;do
-      sleep 2
-    done
-    chmod +x /system/etc/init.d/56vmwatchdog
-  else
-    until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/56vmwatchdog https://raw.githubusercontent.com/v-mapper/vmconf/main/56vmwatchdog || { echo "`date +%Y-%m-%d_%T` VM install: download 56vmwatchdog failed, exit script" >> $logfile ; exit 1; } ;do
-      sleep 2
-    done
-    chmod +x /system/etc/init.d/56vmwatchdog
-  fi
+  until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/56vmwatchdog https://raw.githubusercontent.com/v-mapper/vmconf/$branch/56vmwatchdog || { echo "`date +%Y-%m-%d_%T` VM install: download 56vmwatchdog failed, exit script" >> $logfile ; exit 1; } ;do
+    sleep 2
+  done
+  chmod +x /system/etc/init.d/56vmwatchdog
 #  mount -o remount,ro /system
   echo "`date +%Y-%m-%d_%T` VM install: 56vmwatchdog installed" >> $logfile
 fi
@@ -143,17 +142,10 @@ fi
 # add 55vmapper for new install on MADrom
 if [ -f /system/etc/init.d/42mad ] || [ -f /system/etc/init.d/16mad ] && [ ! -f /system/etc/init.d/55vmapper ] ;then
   mount -o remount,rw /system
-  if [ -f /sdcard/useVMCdevelop ] ;then
-    until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/develop/55vmapper || { echo "`date +%Y-%m-%d_%T` VM install: download 55vmapper failed, exit script" >> $logfile ; exit 1; } ;do
+  until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/$branch/55vmapper || { echo "`date +%Y-%m-%d_%T` VM install: download 55vmapper failed, exit script" >> $logfile ; exit 1; } ;do
       sleep 2
-    done
-    chmod +x /system/etc/init.d/55vmapper
-  else
-    until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/main/55vmapper || { echo "`date +%Y-%m-%d_%T` VM install: download 55vmapper failed, exit script" >> $logfile ; exit 1; } ;do
-      sleep 2
-    done
-    chmod +x /system/etc/init.d/55vmapper
-  fi
+  done
+  chmod +x /system/etc/init.d/55vmapper
 #  mount -o remount,ro /system
   echo "`date +%Y-%m-%d_%T` VM install: 55vmapper installed" >> $logfile
 fi
@@ -161,36 +153,22 @@ fi
 # add 56vmwatchdog for new install on MADrom
 if [ ! -f /system/etc/init.d/56vmwatchdog ] ;then
   mount -o remount,rw /system
-  if [ -f /sdcard/useVMCdevelop ] ;then
-    until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/56vmwatchdog https://raw.githubusercontent.com/v-mapper/vmconf/develop/56vmwatchdog || { echo "`date +%Y-%m-%d_%T` VM install: download 56vmwatchdog failed, exit script" >> $logfile ; exit 1; } ;do
+  until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/56vmwatchdog https://raw.githubusercontent.com/v-mapper/vmconf/$branch/56vmwatchdog || { echo "`date +%Y-%m-%d_%T` VM install: download 56vmwatchdog failed, exit script" >> $logfile ; exit 1; } ;do
       sleep 2
-    done
-    chmod +x /system/etc/init.d/56vmwatchdog
-  else
-    until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/56vmwatchdog https://raw.githubusercontent.com/v-mapper/vmconf/main/56vmwatchdog || { echo "`date +%Y-%m-%d_%T` VM install: download 56vmwatchdog failed, exit script" >> $logfile ; exit 1; } ;do
-      sleep 2
-    done
-    chmod +x /system/etc/init.d/56vmwatchdog
-  fi
+  done
+  chmod +x /system/etc/init.d/56vmwatchdog
 #  mount -o remount,ro /system
   echo "`date +%Y-%m-%d_%T` VM install: 56vmwatchdog installed" >> $logfile
 fi
 
 # add webhooksender
-if [ -f /sdcard/useVMCdevelop ] ;then
-  mount -o remount,rw /system
-  until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/ATVdetailsSender.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/ATVdetailsSender.sh || { echo "`date +%Y-%m-%d_%T` VM install: download ATVdetailsSender.sh failed, exit script" >> $logfile ; exit 1; } ;do
+mount -o remount,rw /system
+until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/ATVdetailsSender.sh https://raw.githubusercontent.com/v-mapper/vmconf/$branch/ATVdetailsSender.sh || { echo "`date +%Y-%m-%d_%T` VM install: download ATVdetailsSender.sh failed, exit script" >> $logfile ; exit 1; } ;do
     sleep 2
-  done
-  chmod +x /system/bin/ATVdetailsSender.sh
-else
-  until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/ATVdetailsSender.sh https://raw.githubusercontent.com/v-mapper/vmconf/main/ATVdetailsSender.sh || { echo "`date +%Y-%m-%d_%T` VM install: download ATVdetailsSender.sh failed, exit script" >> $logfile ; exit 1; } ;do
-    sleep 2
-  done
-  chmod +x /system/bin/ATVdetailsSender.sh
-  echo "`date +%Y-%m-%d_%T` VM install: webhook sender installed" >> $logfile
-  mount -o remount,ro /system
-fi
+done
+chmod +x /system/bin/ATVdetailsSender.sh
+echo "`date +%Y-%m-%d_%T` VM install: webhook sender installed" >> $logfile
+mount -o remount,ro /system
 
 ## Set for reboot device
 reboot=1
@@ -457,17 +435,10 @@ echo "`date +%Y-%m-%d_%T` Internet connection available" >> $logfile
 if [[ $(basename $0) != "vmapper_new.sh" ]] ;then
   mount -o remount,rw /system
   oldsh=$(head -2 /system/bin/vmapper.sh | grep '# version' | awk '{ print $NF }')
-  if [ -f /sdcard/useVMCdevelop ] ;then
-    until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper_new.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/vmapper.sh || { echo "`date +%Y-%m-%d_%T` Download vmapper.sh failed, exit script" >> $logfile ; exit 1; } ;do
+  until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper_new.sh https://raw.githubusercontent.com/v-mapper/vmconf/$branch/vmapper.sh || { echo "`date +%Y-%m-%d_%T` Download vmapper.sh failed, exit script" >> $logfile ; exit 1; } ;do
       sleep 2
-    done
-    chmod +x /system/bin/vmapper_new.sh
-  else
-    until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper_new.sh https://raw.githubusercontent.com/v-mapper/vmconf/main/vmapper.sh || { echo "`date +%Y-%m-%d_%T` Download vmapper.sh failed, exit script" >> $logfile ; exit 1; } ;do
-      sleep 2
-    done
-    chmod +x /system/bin/vmapper_new.sh
-  fi
+  done
+  chmod +x /system/bin/vmapper_new.sh
   newsh=$(head -2 /system/bin/vmapper_new.sh | grep '# version' | awk '{ print $NF }')
   if [[ $oldsh != $newsh ]] ;then
     echo "`date +%Y-%m-%d_%T` vmapper.sh $oldsh=>$newsh, restarting script" >> $logfile
@@ -487,17 +458,10 @@ mount -o remount,rw /system
   if [[ -f /system/etc/init.d/55vmapper ]] ;then
     old55=$(head -2 /system/etc/init.d/55vmapper | grep '# version' | awk '{ print $NF }')
     if [ $Ver55vmapper != $old55 ] ;then
-      if [ -f /sdcard/useVMCdevelop ] ;then
-        until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/develop/55vmapper || { echo "`date +%Y-%m-%d_%T` Download 55vmapper failed, exit script" >> $logfile ; exit 1; } ;do
-          sleep 2
-        done
-        chmod +x /system/etc/init.d/55vmapper
-      else
-        until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/main/55vmapper || { echo "`date +%Y-%m-%d_%T` Download 55vmapper failed, exit script" >> $logfile ; exit 1; } ;do
-          sleep 2
-        done
-        chmod +x /system/etc/init.d/55vmapper
-      fi
+      until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/55vmapper https://raw.githubusercontent.com/v-mapper/vmconf/$branch/55vmapper || { echo "`date +%Y-%m-%d_%T` Download 55vmapper failed, exit script" >> $logfile ; exit 1; } ;do
+        sleep 2
+      done
+      chmod +x /system/etc/init.d/55vmapper
     new55=$(head -2 /system/etc/init.d/55vmapper | grep '# version' | awk '{ print $NF }')
     echo "`date +%Y-%m-%d_%T` 55vmapper $old55=>$new55" >> $logfile
     fi
@@ -507,17 +471,10 @@ mount -o remount,rw /system
   if [[ -f /system/etc/init.d/42vmapper ]] ;then
     old42=$(head -2 /system/etc/init.d/42vmapper | grep '# version' | awk '{ print $NF }')
     if [ $Ver42vmapper != $old42 ] ;then
-      if [ -f /sdcard/useVMCdevelop ] ;then
-        until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/42vmapper https://raw.githubusercontent.com/v-mapper/vmconf/develop/42vmapper || { echo "`date +%Y-%m-%d_%T` Download 42vmapper failed, exit script" >> $logfile ; exit 1; } ;do
-          sleep 2
-        done
-        chmod +x /system/etc/init.d/42vmapper
-      else
-        until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/42vmapper https://raw.githubusercontent.com/v-mapper/vmconf/main/42vmapper || { echo "`date +%Y-%m-%d_%T` Download 42vmapper failed, exit script" >> $logfile ; exit 1; } ;do
-          sleep 2
-        done
-        chmod +x /system/etc/init.d/42vmapper
-      fi
+      until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/42vmapper https://raw.githubusercontent.com/v-mapper/vmconf/$branch/42vmapper || { echo "`date +%Y-%m-%d_%T` Download 42vmapper failed, exit script" >> $logfile ; exit 1; } ;do
+      sleep 2
+      done
+      chmod +x /system/etc/init.d/42vmapper
     new42=$(head -2 /system/etc/init.d/42vmapper | grep '# version' | awk '{ print $NF }')
     echo "`date +%Y-%m-%d_%T` 42vmapper $old42=>$new42" >> $logfile
     fi
@@ -527,17 +484,10 @@ mount -o remount,rw /system
   if [[ -f /system/etc/init.d/56vmwatchdog ]] ;then
     old56=$(head -2 /system/etc/init.d/56vmwatchdog | grep '# version' | awk '{ print $NF }')
     if [ $Ver56vmwatchdog != $old56 ] ;then
-      if [ -f /sdcard/useVMCdevelop ] ;then
-        until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/56vmwatchdog https://raw.githubusercontent.com/v-mapper/vmconf/develop/56vmwatchdog || { echo "`date +%Y-%m-%d_%T` Download 56vmwatchdog failed, exit script" >> $logfile ; exit 1; } ;do
-          sleep 2
-        done
-        chmod +x /system/etc/init.d/56vmwatchdog
-      else
-        until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/56vmwatchdog https://raw.githubusercontent.com/v-mapper/vmconf/main/56vmwatchdog || { echo "`date +%Y-%m-%d_%T` Download 56vmwatchdog failed, exit script" >> $logfile ; exit 1; } ;do
-          sleep 2
-        done
-        chmod +x /system/etc/init.d/56vmwatchdog
-      fi
+      until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/56vmwatchdog https://raw.githubusercontent.com/v-mapper/vmconf/$branch/56vmwatchdog || { echo "`date +%Y-%m-%d_%T` Download 56vmwatchdog failed, exit script" >> $logfile ; exit 1; } ;do
+        sleep 2
+      done
+      chmod +x /system/etc/init.d/56vmwatchdog
     new56=$(head -2 /system/etc/init.d/56vmwatchdog | grep '# version' | awk '{ print $NF }')
     echo "`date +%Y-%m-%d_%T` 56vmwatchdog $old56=>$new56" >> $logfile
     fi
@@ -546,17 +496,10 @@ mount -o remount,rw /system
 #download latest ATVdetailsSender.sh
   oldWH=$([ -f /system/bin/ATVdetailsSender.sh ] && head -2 /system/bin/ATVdetailsSender.sh | grep '# version' | awk '{ print $NF }' || echo 0)
   if [ $VerATVwebhook != $oldWH ] ;then
-    if [ -f /sdcard/useVMCdevelop ] ;then
-      until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/ATVdetailsSender.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/ATVdetailsSender.sh || { echo "`date +%Y-%m-%d_%T` Download ATVdetailsSender.sh failed, exit script" >> $logfile ; exit 1; } ;do
-        sleep 2
-      done
-      chmod +x /system/bin/ATVdetailsSender.sh
-    else
-      until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/ATVdetailsSender.sh https://raw.githubusercontent.com/v-mapper/vmconf/main/ATVdetailsSender.sh || { echo "`date +%Y-%m-%d_%T` Download ATVdetailsSender.sh failed, exit script" >> $logfile ; exit 1; } ;do
-        sleep 2
-      done
-      chmod +x /system/bin/ATVdetailsSender.sh
-    fi
+    until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/ATVdetailsSender.sh https://raw.githubusercontent.com/v-mapper/vmconf/$branch/ATVdetailsSender.sh || { echo "`date +%Y-%m-%d_%T` Download ATVdetailsSender.sh failed, exit script" >> $logfile ; exit 1; } ;do
+      sleep 2
+    done
+    chmod +x /system/bin/ATVdetailsSender.sh
   newWH=$(head -2 /system/bin/ATVdetailsSender.sh | grep '# version' | awk '{ print $NF }')
   echo "`date +%Y-%m-%d_%T` ATVdetailsSender.sh $oldWH=>$newWH" >> $logfile
   fi

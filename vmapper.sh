@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 4.6.1
+# version 4.6.2
 
 #Version checks
 Ver42vmapper="1.5.2"

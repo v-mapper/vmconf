@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 1.7
+# version 1.7.1
 
 source /data/local/ATVdetailsWebhook.config
 logfile="/sdcard/vm.log"
@@ -33,6 +33,7 @@ while true
     vmapper=$(dumpsys package de.vahrmap.vmapper | grep versionName | head -n1 | sed 's/ *versionName=//')
     pogo_update=$([ -f /sdcard/disableautopogoupdate ] && echo disabled || echo enabled)
     vm_update=$([ -f /sdcard/disableautovmapperupdate ] && echo disabled || echo enabled)
+    playstore=$([ -n "$(ps | grep com.android.vending)" ] && echo 'enabled' || echo 'disabled')
     wh_enabled=$([ -f /sdcard/sendwebhook ] && echo 'enabled' || echo 'disabled')
     temperature=$(cat /sys/class/thermal/thermal_zone0/temp | cut -c -2)
     magisk=$(magisk -c | sed 's/:.*//')
@@ -121,6 +122,7 @@ while true
     "vmapper": "${vmapper}",
     "pogo_update": "${pogo_update}",
     "vm_update": "${vm_update}",
+    "playstore": "${playstore}",
     "wh_enabled": "${wh_enabled}",
     "temperature": "${temperature}",
     "magisk": "${magisk}",

@@ -63,25 +63,11 @@ if [ ! -f /system/etc/init.d/56vmwatchdog ] ;then
   echo "`date +%Y-%m-%d_%T` VM install: 56vmwatchdog installed" >> $logfile
 fi
 
-
 checkupdate(){
-# $1 = new version
-# $2 = installed version
-! [[ "$2" ]] && return 0 # for first installs
-i=1
-#we start at 1 and go until number of . so we can use our counter as awk position
-places=$(awk -F. '{print NF+1}' <<< "$1")
-while (( "$i" < "$places" )) ;do
- npos=$(awk -v pos=$i -F. '{print $pos}' <<< "$1")
- ipos=$(awk -v pos=$i -F. '{print $pos}' <<< "$2")
- case "$(( $npos - $ipos ))" in
-  -*) return 1 ;;
-   0) ;;
-   *) return 0 ;;
- esac
- i=$((i+1))
- false
-done
+	function ver { printf "%03d%03d%03d%03d" $(echo "$1" | tr '.' ' '); }
+	if [ $(ver $1) -lt $(ver $2) ]; then
+		return 1
+	fi
 }
 
 install_vmapper_wizard(){

@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 1.7.1
+# version 1.7.2
 
 source /data/local/ATVdetailsWebhook.config
 logfile="/sdcard/vm.log"
@@ -42,6 +42,7 @@ while true
     mace=$(ifconfig eth0 |grep 'HWaddr' |awk '{ print ($NF) }')
     ip=$(ifconfig wlan0 |grep 'inet addr' |cut -d ':' -f2 |cut -d ' ' -f1 && ifconfig eth0 |grep 'inet addr' |cut -d ':' -f2 |cut -d ' ' -f1)
     ext_ip=$(curl -k -s https://ifconfig.me/)
+    proxy=$(settings list global | grep "http_proxy=" | awk -F= '{ print $NF }')
     hostname=$(getprop net.hostname)
     bootdelay=$(grep -w 'bootdelay' $vmconf | awk -F "\"" '{print tolower($4)}')
 # settings
@@ -131,6 +132,7 @@ while true
     "mace": "${mace}",
     "ip": "${ip}",
     "ext_ip": "${ext_ip}",
+    "proxy": "${proxy}",
     "bootdelay": "${bootdelay}",
     "gzip": "${gzip}",
     "betamode": "${betamode}",

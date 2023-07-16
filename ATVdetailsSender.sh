@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 1.7
+# version 1.7.2
 
 source /data/local/ATVdetailsWebhook.config
 logfile="/sdcard/vm.log"
@@ -33,6 +33,7 @@ while true
     vmapper=$(dumpsys package de.vahrmap.vmapper | grep versionName | head -n1 | sed 's/ *versionName=//')
     pogo_update=$([ -f /sdcard/disableautopogoupdate ] && echo disabled || echo enabled)
     vm_update=$([ -f /sdcard/disableautovmapperupdate ] && echo disabled || echo enabled)
+    playstore=$([ -n "$(ps | grep com.android.vending)" ] && echo 'enabled' || echo 'disabled')
     wh_enabled=$([ -f /sdcard/sendwebhook ] && echo 'enabled' || echo 'disabled')
     temperature=$(cat /sys/class/thermal/thermal_zone0/temp | cut -c -2)
     magisk=$(magisk -c | sed 's/:.*//')
@@ -41,6 +42,7 @@ while true
     mace=$(ifconfig eth0 |grep 'HWaddr' |awk '{ print ($NF) }')
     ip=$(ifconfig wlan0 |grep 'inet addr' |cut -d ':' -f2 |cut -d ' ' -f1 && ifconfig eth0 |grep 'inet addr' |cut -d ':' -f2 |cut -d ' ' -f1)
     ext_ip=$(curl -k -s https://ifconfig.me/)
+    proxy=$(settings list global | grep "http_proxy=" | awk -F= '{ print $NF }')
     hostname=$(getprop net.hostname)
     bootdelay=$(grep -w 'bootdelay' $vmconf | awk -F "\"" '{print tolower($4)}')
 # settings
@@ -121,6 +123,7 @@ while true
     "vmapper": "${vmapper}",
     "pogo_update": "${pogo_update}",
     "vm_update": "${vm_update}",
+    "playstore": "${playstore}",
     "wh_enabled": "${wh_enabled}",
     "temperature": "${temperature}",
     "magisk": "${magisk}",
@@ -129,6 +132,7 @@ while true
     "mace": "${mace}",
     "ip": "${ip}",
     "ext_ip": "${ext_ip}",
+    "proxy": "${proxy}",
     "bootdelay": "${bootdelay}",
     "gzip": "${gzip}",
     "betamode": "${betamode}",

@@ -2,7 +2,7 @@
 # version 4.6.3
 
 #Version checks
-Ver42vmapper="1.5.3"
+Ver42vmapper="1.5.2"
 Ver55vmapper="2.2"
 Ver56vmwatchdog="1.3.7"
 VerATVwebhook="1.7"

@@ -1,8 +1,8 @@
 #!/system/bin/sh
-# version 4.7.0
+# version 4.7.1
 
 #Version checks
-Ver42vmapper="1.5.2"
+Ver42vmapper="1.5.3"
 Ver55vmapper="2.2"
 Ver56vmwatchdog="1.3.8"
 VerATVwebhook="1.7.2"

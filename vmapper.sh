@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 4.7.0
+# version 4.7.1
 
 #Version checks
 Ver42vmapper="1.5.2"
@@ -66,7 +66,9 @@ fi
 checkupdate(){
    function ver { printf "%03d%03d%03d%03d" $(echo "$1" | tr '.' ' '); }
    if [ $(ver $1) -lt $(ver $2) ]; then
-      return 1
+      need_update=1
+   else
+      need_update=0
    fi
 }
 
@@ -176,7 +178,8 @@ vmapper_wizard(){
       vm_install="skip"
       echo "`date +%Y-%m-%d_%T` Vmapper not found in MADmin, skipping version check" >> $logfile
    else
-      if checkupdate "$newver" "$installedver" ;then
+      checkupdate "$installedver" "$newver"
+      if [ $need_update -eq 1 ]; then
 	 echo "`date +%Y-%m-%d_%T` New vmapper version detected in wizard, updating $installedver=>$newver" >> $logfile
 	 /system/bin/rm -f /sdcard/Download/vmapper.apk
 	 until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download" || { echo "`date +%Y-%m-%d_%T` Download vmapper failed, exit" >> $logfile ; exit 1; } ;do
@@ -246,7 +249,8 @@ pogo_wizard(){
    fi
    installedver="$(dumpsys package com.nianticlabs.pokemongo|awk -F'=' '/versionName/{print $2}')"
 
-   if checkupdate "$newver" "$installedver" ;then
+   checkupdate "$installedver" "$newver"
+   if [ $need_update -eq 1 ]; then
       echo "`date +%Y-%m-%d_%T` New pogo version detected in wizard, updating $installedver=>$newver" >> $logfile
       /system/bin/rm -f /sdcard/Download/pogo.apk
       until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/pogo.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/pogo/$arch/download" || { echo "`date +%Y-%m-%d_%T` Download pogo failed, exit" >> $logfile ; exit 1; } ;do

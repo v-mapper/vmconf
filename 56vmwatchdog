@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 1.3.8
+# version 1.3.9
 
 logfile="/sdcard/vm.log"
 vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
@@ -54,6 +54,13 @@ while true; do
      exit
    fi
 
+   #Stop Monitoring during the night
+   if [[ "$currenttime" > "00:00" ]] && [[ "$currenttime" < "6:30" ]]; then
+	  active_monitor=0
+   else
+	  active_monitor=1
+   fi
+
    #Get History Last Update
    if [ -f $vmhistory ] ;then
      current_epoch=$(date +%s)
@@ -101,7 +108,7 @@ while true; do
       i=0
     fi
 
-  elif [ -f $vmhistory ] && [ $history_diff -gt 300 ] ;then
+  elif [ -f $vmhistory ] && [ $history_diff -gt 300 ] && [ $active_monitor == 1 ] ;then
     echo "`date +%Y-%m-%d_%T` VMwatchdog: History not updated for 5 minutes, restarting service" >> $logfile
     am broadcast -n de.vahrmap.vmapper/.RestartService --ez autostart true
     i=$((i+1))

@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 4.7.1
+# version 4.7.2
 
 #Version checks
 Ver42vmapper="1.5.2"
@@ -64,12 +64,20 @@ if [ ! -f /system/etc/init.d/56vmwatchdog ] ;then
 fi
 
 checkupdate(){
-   function ver { printf "%03d%03d%03d%03d" $(echo "$1" | tr '.' ' '); }
+
+   function ver {
+      for i in $(echo "$1" | tr '.' ' ')
+      do
+         echo $i | awk '{ printf("%03d", $1) }';
+      done
+   }
+
    if [ $(ver $1) -lt $(ver $2) ]; then
       need_update=1
    else
       need_update=0
    fi
+
 }
 
 install_vmapper_wizard(){

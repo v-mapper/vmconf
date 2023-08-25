@@ -24,7 +24,7 @@ notes:
 - steps 3+4 for MADrom devices, example job in repo ``enableWHsenderMADrom.json``<BR> 
 
 
-## **Advanced feature (optional)**
+## **Advanced feature (optional) - Requires VMapper Roms V2 or above**
 > ⚠️ The steps below are not required to set up your devices. Following these you understand you are now building your own personal ROM file for your own use what has built in personal and sensitive data (as server adresses, usernames and passwords) that should not be shared so proceed at your own risk. ⚠️<BR>
 <BR>
 Adds possibility of flashing with a custom rom (based on vmapper rom) with a config file containing MADmin ip and credentials, and optionally a proxy address so devices can be flashed and directly setup without usb flashdrive.<BR>

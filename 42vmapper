@@ -386,7 +386,7 @@ if [ ! -z $usbWebhookSender ] ;then
   echo "`date +%Y-%m-%d_%T` 42vmapper: ATVdetailsSender configuration copied from usb and enabled"  >> $logfile
 fi
 
-customWebhookSender="/system/etc/ATVdetailsWebhook.config"
+customWebhookSender="/system/etc/ATVdetailsWebhook.*"
 if [[ -f "$customWebhookSender" ]] ;then
   cp "$customWebhookSender" "/data/local/ATVdetailsWebhook.config"
   touch /sdcard/sendwebhook

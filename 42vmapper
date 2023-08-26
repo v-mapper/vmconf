@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 1.5.2
+# version 1.5.3
 
 logfile="/sdcard/vm.log"
 url_magisk="https://github.com/Map-A-Droid/MAD-ATV/raw/master/Magisk-v20.3.zip"

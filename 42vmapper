@@ -1,9 +1,13 @@
 #!/system/bin/sh
-# version 1.5.2
+# version 1.5.3
+
+#Version checks
+VerMagisk="23.0"
+VerGapps="20220215"
 
 logfile="/sdcard/vm.log"
-url_magisk="https://github.com/Map-A-Droid/MAD-ATV/raw/master/Magisk-v20.3.zip"
-url_gapps="https://madatv.b-cdn.net/open_gapps-arm64-7.1-pico-20200715.zip"
+url_magisk="https://github.com/v-mapper/vmconf/releases/download/roms/Magisk-v$VerMagisk.apk"
+url_gapps="https://github.com/v-mapper/vmconf/releases/download/roms/open_gapps-arm64-7.1-pico-$VerGapps.zip"
 vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
 pdconf="/data/data/com.mad.pogodroid/shared_prefs/com.mad.pogodroid_preferences.xml"
 lastResort="/data/local/vm_last_resort"
@@ -115,36 +119,52 @@ log_msg 2 "Starting Magisk repackaging"
 echo "`date +%Y-%m-%d_%T` 42vmapper: Starting Magisk repackaging" >> /sdcard/vm.log
 monkey -p com.topjohnwu.magisk 1
 sleep 30
-input tap 39 42
-sleep 5
-input tap 150 537
-sleep 5
-input tap 315 552
-sleep 5
+input tap 1244 45
+sleep 6
+input keyevent 61
+sleep 2
+input keyevent 61
+sleep 2
+input keyevent 61
+sleep 2
+input keyevent 61
+sleep 2
+input keyevent 61
+sleep 2
+input keyevent 61
+sleep 2
+input keyevent 61
+sleep 2
+input keyevent 61
+sleep 2
 input keyevent 61
 sleep 2
 input keyevent 61
 sleep 2
 input keyevent 66
+sleep 5
+input tap 1178 326
+sleep 30
+input keyevent 4
 sleep 2
 }
 
 install_magisk() {
-usbmagisk="$(find /mnt/media_rw/ -iname Magisk-v20.3.zip 2>/dev/null)"
+usbmagisk="$(find /mnt/media_rw/ -iname Magisk-v$VerMagisk.apk 2>/dev/null)"
 if [ -z $usbmagisk ] ;then
   log_msg 2 "Downloading Magisk"
   echo "`date +%Y-%m-%d_%T` 42vmapper: Downloading Magisk"  >> $logfile
-  until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/magisk.zip "$url_magisk" || { echo "`date +%Y-%m-%d_%T` 42vmapper: Download magisk failed, exit script" >> $logfile ; exit 1; } ;do
+  until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/magisk.apk "$url_magisk" || { echo "`date +%Y-%m-%d_%T` 42vmapper: Download magisk failed, exit script" >> $logfile ; exit 1; } ;do
     sleep 2
   done
 else
   log_msg 2 "Copy Magisk from usb"
   echo "`date +%Y-%m-%d_%T` 42vmapper: Copy Magisk from usb"  >> $logfile
-  cp $usbmagisk /sdcard/magisk.zip
+  cp $usbmagisk /sdcard/magisk.apk
 fi
 mkdir -p /cache/recovery
 touch /cache/recovery/command
-echo '--update_package=/sdcard/magisk.zip' >> /cache/recovery/command
+echo '--update_package=/sdcard/magisk.apk' >> /cache/recovery/command
 echo "`date +%Y-%m-%d_%T` 42vmapper: Magisk set to be installed" >> /sdcard/vm.log
 cachereboot=1
 }
@@ -154,8 +174,7 @@ check_magisk(){
 if [[ -f /sbin/magisk ]] ;then
   log_msg 2 "Setting Magisk permissions"
   echo "`date +%Y-%m-%d_%T` 42vmapper: Setting Magisk permissions" >> /sdcard/vm.log
-  /sbin/magiskhide --add com.nianticlabs.pokemongo
-  [[ -f /sdcard/magisk.zip ]] && rm /sdcard/magisk.zip
+  /sbin/magiskhide --add com.nianticlabs.pokemongo &>/dev/null
   [[ -f /sdcard/smali.zip ]] && rm /sdcard/smali.zip
   #check if shell has su root
   suid="$(id -u shell)"
@@ -165,19 +184,41 @@ if [[ -f /sbin/magisk ]] ;then
     magisk --sqlite "INSERT INTO policies (uid,package_name,policy,until,logging,notification) VALUES($suid,'com.android.shell',2,0,1,1)"
     echo "`date +%Y-%m-%d_%T` 42vmapper: Shell granted su root access" >> /sdcard/vm.log
   fi
+# Enable MagiskHide which is disabled by default since v20.4
+  if ! magiskhide status &>/dev/null; then
+    log_msg 2 "Enabling MagiskHide"
+    echo "`date +%Y-%m-%d_%T` 42vmapper: Enabling MagiskHide" >> /sdcard/vm.log
+    magiskhide enable
+  fi
 fi
 # Install magisk.  If it already exists, check for an update
 if ! [[ -f /sbin/magisk ]] ;then
   log_msg 2 "Preparing Magisk installation"
   echo "`date +%Y-%m-%d_%T` 42vmapper: Preparing Magisk installation" >> /sdcard/vm.log
-  touch /sdcard/magisk_repackage
   install_magisk
-elif ! magisk -c|grep -q "$magisk_ver"; then
+elif ! magisk -c|grep -q "$VerMagisk" ;then
   log_msg 2 "Updating Magisk"
   echo "`date +%Y-%m-%d_%T` 42vmapper: Magisk update required" >> /sdcard/vm.log
   touch /sdcard/magisk_update
   install_magisk
-elif [[ -f /sdcard/magisk_repackage ]] ;then
+elif [[ -f /sdcard/magisk_update ]] ;then
+  while [[ $(pm list packages com.topjohnwu.magisk) ]] ;do
+    pm uninstall com.topjohnwu.magisk
+    echo "`date +%Y-%m-%d_%T` 42vmapper: Magisk updated - uninstalling unhidden version" >> /sdcard/vm.log
+    sleep 3
+  done
+  rm -f /sdcard/magisk.apk
+  rm -f /sdcard/magisk_update
+elif [[ -f /sdcard/magisk.apk ]] ;then #check if magisk apk hasn't been installed yet
+  log_msg 2 "Installing Magisk apk..."
+  echo "`date +%Y-%m-%d_%T` 42vmapper: Installing Magisk apk..." >> /sdcard/vm.log
+  pm install -t -r /sdcard/magisk.apk
+  touch /sdcard/magisk_repackage
+  rm /sdcard/magisk.apk
+  log_msg 2 "...and deleting the apk afterwards"
+fi
+# Check for Magisk Manager repack
+if [[ -f /sdcard/magisk_repackage ]] ;then
   log_msg 2 "Magisk repackaging required"
   echo "`date +%Y-%m-%d_%T` 42vmapper: Magisk repackaging required" >> /sdcard/vm.log
   # After installation the manager may not be fully installed.  Wait for it to show then repackage
@@ -193,19 +234,17 @@ elif [[ -f /sdcard/magisk_repackage ]] ;then
       echo "`date +%Y-%m-%d_%T` 42vmapper: Attempting to repackage Magisk" >> /sdcard/vm.log
       repack_magisk
     fi
+    if [ $r -gt 50 ]; then
+      log_msg 2 "Magisk repackaging stuck - rebooting"
+      echo "`date +%Y-%m-%d_%T` 42vmapper: Magisk repackaging stuck - rebooting" >> /sdcard/vm.log
+      reboot
+    fi
     r=$((r+1))
   done
   log_msg 2 "Magisk successfully repackaged"
   echo "`date +%Y-%m-%d_%T` 42vmapper: Magisk successfully repackaged" >> /sdcard/vm.log
   rm -f /sdcard/magisk_repackage
   sleep 10
-elif [[ -f /sdcard/magisk_update ]] ;then
-  while [[ $(pm list packages com.topjohnwu.magisk) ]] ;do
-    pm uninstall com.topjohnwu.magisk
-    echo "`date +%Y-%m-%d_%T` 42vmapper: Magisk uninstalled" >> /sdcard/vm.log
-    sleep 3
-  done
-  rm -f /sdcard/magisk_update
 elif [[ $(pm list packages com.topjohnwu.magisk) ]] ;then
   log_msg 4 "Magisk manager is installed and not repackaged, this should not happen."
   echo "`date +%Y-%m-%d_%T` 42vmapper: Magisk installed and not repackaged, this should not happen" >> /sdcard/vm.log
@@ -398,7 +437,7 @@ check_magisk
 
 # Install gapps
 if [[ ! $(pm list packages android.vending) ]] ;then
-  usbgapps="$(find /mnt/media_rw/ -iname open_gapps-arm64-7.1-pico-20200715.zip 2>/dev/null)"
+  usbgapps="$(find /mnt/media_rw/ -iname open_gapps-arm64-7.1-pico-20220215.zip 2>/dev/null)"
   if [ -z $usbgapps ] ;then
     log_msg 2 "Downloading Gapps"
     echo "`date +%Y-%m-%d_%T` 42vmapper: Downloading Gapps"  >> $logfile
@@ -418,6 +457,28 @@ if [[ ! $(pm list packages android.vending) ]] ;then
   echo "`date +%Y-%m-%d_%T` 42vmapper: Gapps set to be installed" >> /sdcard/vm.log
   log_msg 2 "All files downloaded or copied from usb, it can be extracted"
   echo "`date +%Y-%m-%d_%T` 42vmapper: All files downloaded or copied from usb" >> /sdcard/vm.log
+fi
+
+# Update gapps
+if [[ -f "/system/etc/g.prop" ]] && [ $(cat /system/etc/g.prop | grep 'version' | awk -F= '{ print $NF }') -ne "$VerGapps" ] ;then
+  usbgapps="$(find /mnt/media_rw/ -iname open_gapps-arm64-7.1-pico-20220215.zip 2>/dev/null)"
+  if [ -z $usbgapps ] ;then
+    log_msg 2 "Downloading Gapps"
+    echo "`date +%Y-%m-%d_%T` 42vmapper: Downloading Gapps"  >> $logfile
+    until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/gapps.zip "$url_gapps" || { echo "`date +%Y-%m-%d_%T` 42vmapper: Download gapps failed, exit script" >> $logfile ; exit 1; } ;do
+      sleep 2
+    done
+  else
+    log_msg 2 "Copy Gapps from usb"
+    echo "`date +%Y-%m-%d_%T` 42vmapper: copy Gapps from usb"  >> $logfile
+    cp $usbgapps /sdcard/gapps.zip
+  fi
+  mkdir -p /cache/recovery
+  touch /cache/recovery/command
+  echo '--update_package=/sdcard/gapps.zip' >> /cache/recovery/command
+  cachereboot=1
+  log_msg 2 "Gapps set to be updated"
+  echo "`date +%Y-%m-%d_%T` 42vmapper: Gapps set to be updated" >> /sdcard/vm.log
 fi
 
 [[ -d /sdcard/TWRP ]] && rm -rf /sdcard/TWRP
@@ -448,6 +509,11 @@ if ! [[ -f "$vmconf" ]] && [[ "$session_id" ]] ;then
   echo "`date +%Y-%m-%d_%T` 42vmapper: Starting install of vmapper" >> /sdcard/vm.log
   /system/bin/vmapper.sh -nrc -ivw
 fi
+
+# Enable PlayStore for validate play integrity accounts
+log_msg 2 "Enable PlayStore for validate play integrity"
+echo "`date +%Y-%m-%d_%T` 42vmapper: Enable PlayStore for validate play integrity" >> /sdcard/vm.log
+pm enable com.android.vending
 
 # Close autoconfig session
 if [[ -f /sdcard/reg_session ]] && [[ -f "$vmconf" ]] ;then

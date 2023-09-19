@@ -1,8 +1,8 @@
 #!/system/bin/sh
-# version 4.7.2
+# version 4.7.4
 
 #Version checks
-Ver42vmapper="1.5.2"
+Ver42vmapper="1.5.3"
 Ver55vmapper="2.2"
 Ver56vmwatchdog="1.3.9"
 VerATVwebhook="1.7.2"
@@ -52,17 +52,6 @@ case "$(uname -m)" in
    armv8l)  arch="armeabi-v7a";;
 esac
 
-# Initial Install of 56vmwatchdog 
-if [ ! -f /system/etc/init.d/56vmwatchdog ] ;then
-   mount -o remount,rw /system
-   until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/56vmwatchdog $branch/56vmwatchdog || { echo "`date +%Y-%m-%d_%T` VM install: download 56vmwatchdog failed, exit" >> $logfile ; exit 1; } ;do
-      sleep 2
-   done
-   chmod +x /system/etc/init.d/56vmwatchdog
-   #  mount -o remount,ro /system
-   echo "`date +%Y-%m-%d_%T` VM install: 56vmwatchdog installed" >> $logfile
-fi
-
 checkupdate(){
 
    function ver {
@@ -102,6 +91,7 @@ install_vmapper_wizard(){
    am force-stop com.nianticlabs.pokemongo
 
    ## Install vmapper
+   settings put global package_verifier_user_consent -1
    /system/bin/pm install -r /sdcard/Download/vmapper.apk
    /system/bin/rm -f /sdcard/Download/vmapper.apk
    echo "`date +%Y-%m-%d_%T` VM install: vmapper installed" >> $logfile
@@ -430,6 +420,16 @@ until ping -c1 8.8.8.8 >/dev/null 2>/dev/null || ping -c1 1.1.1.1 >/dev/null 2>/
 done
 echo "`date +%Y-%m-%d_%T` Internet connection available" >> $logfile
 
+# Initial Install of 56vmwatchdog
+if [ ! -f /system/etc/init.d/56vmwatchdog ] ;then
+   mount -o remount,rw /system
+   until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/56vmwatchdog $branch/56vmwatchdog || { echo "`date +%Y-%m-%d_%T` VM install: download 56vmwatchdog failed, exit" >> $logfile ; exit 1; } ;do
+      sleep 2
+   done
+   chmod +x /system/etc/init.d/56vmwatchdog
+   #  mount -o remount,ro /system
+   echo "`date +%Y-%m-%d_%T` VM install: 56vmwatchdog installed" >> $logfile
+fi
 
 #download latest vmapper.sh
 if [[ $(basename $0) != "vmapper_new.sh" ]] ;then

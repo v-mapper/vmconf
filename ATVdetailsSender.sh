@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 1.8.2
+# version 1.8.3
 
 source /data/local/ATVdetailsWebhook.config
 logfile="/sdcard/vm.log"
@@ -111,7 +111,10 @@ while true
     vm_PtokenMaster=$(grep 'New PTC master token is needed' $vmapperlog | wc -l)
     vm_died=$(grep 'The service died. We will restart' $vmapperlog | wc -l)
 
-    [[ -z cpuPogoPct ]] && cpuPogoPct=0
+    [[ -z $memPogo ]] && memPogo=0
+    [[ -z $memVM ]] && memVM=0
+    [[ -z $cpuPogoPct ]] && cpuPogoPct=0
+    [[ -z $cpuVmPct ]] && cpuVmPct=0
 
 #    set -o posix; set | sort
 

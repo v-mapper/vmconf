@@ -5,7 +5,7 @@
 Ver42vmapper="1.5.3"
 Ver55vmapper="2.2"
 Ver56vmwatchdog="1.3.9"
-VerATVwebhook="1.7.2"
+VerATVwebhook="1.8.0"
 
 github_url="https://raw.githubusercontent.com/v-mapper/vmconf"
 

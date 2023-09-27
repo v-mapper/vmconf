@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 1.8.1
+# version 1.8.2
 
 source /data/local/ATVdetailsWebhook.config
 logfile="/sdcard/vm.log"

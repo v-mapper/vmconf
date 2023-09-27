@@ -1,11 +1,11 @@
 #!/system/bin/sh
-# version 4.8.1
+# version 4.8.2
 
 #Version checks
 Ver42vmapper="1.5.3"
 Ver55vmapper="2.2"
 Ver56vmwatchdog="1.3.9"
-VerATVwebhook="1.8.1"
+VerATVwebhook="1.8.2"
 
 github_url="https://raw.githubusercontent.com/v-mapper/vmconf"
 

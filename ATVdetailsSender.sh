@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 1.7.2
+# version 1.8.0
 
 source /data/local/ATVdetailsWebhook.config
 logfile="/sdcard/vm.log"
@@ -74,6 +74,13 @@ while true
     memFree=$(cat /proc/meminfo | grep MemFree | awk '{print $2}')
     memAv=$(cat /proc/meminfo | grep MemAvailable | awk '{print $2}')
     memPogo=$(dumpsys meminfo 'com.nianticlabs.pokemongo' | grep -m 1 "TOTAL" | awk '{print $2}')
+
+    memVM=0
+    for process in $(ps | grep de.vahrmap.vmapper | awk '{print $2 }') ;do
+       processmem=$(dumpsys meminfo $process | grep -m 1 "TOTAL" | awk '{print $2}')
+       memVM=$(( memVM + processmem ))
+    done
+
     memVM=$(dumpsys meminfo 'de.vahrmap.vmapper' | grep -m 1 "TOTAL" | awk '{print $2}')
     cpuSys=$(top -n 1 | grep -m 1 "System" | awk '{print substr($2, 1, length($2)-2)}')
     cpuUser=$(top -n 1 | grep -m 1 "User" | awk '{print substr($2, 1, length($2)-2)}')

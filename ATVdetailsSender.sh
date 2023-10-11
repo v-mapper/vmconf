@@ -45,6 +45,7 @@ while true
     proxy=$(settings list global | grep "http_proxy=" | awk -F= '{ print $NF }')
     hostname=$(getprop net.hostname)
     bootdelay=$(grep -w 'bootdelay' $vmconf | awk -F "\"" '{print tolower($4)}')
+    android_version=$(getprop ro.build.version.release)
 # settings
     gzip=$(grep -w 'gzip' $vmconf | awk -F "\"" '{print tolower($4)}')
     betamode=$(grep -w 'betamode' $vmconf | awk -F "\"" '{print tolower($4)}')
@@ -145,6 +146,7 @@ while true
     "ext_ip": "${ext_ip}",
     "proxy": "${proxy}",
     "bootdelay": "${bootdelay}",
+    "android_version": "${android_version}",
     "gzip": "${gzip}",
     "betamode": "${betamode}",
     "selinux": "${selinux}",

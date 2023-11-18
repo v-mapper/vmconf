@@ -224,14 +224,14 @@ if [ -f $initdir/init_done ]; then
 
       log_msg 2 "Starting install of PoGo, vmapper.sh and ATVdetailsSender.sh"
       if [ -f /sdcard/useVMCdevelop ] ;then
-        until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/vmapper.sh || { echo "`date +%Y-%m-%d_%T` 49vmapper: Download vmapper.sh failed for origin=$origin, auth=$auth, server=$server from ip=$ip. Exit script" >> $logfile ; exit 1; } ;do
+        until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop9/scrips/vmapper.sh || { echo "`date +%Y-%m-%d_%T` 49vmapper: Download vmapper.sh failed for origin=$origin, auth=$auth, server=$server from ip=$ip. Exit script" >> $logfile ; exit 1; } ;do
           sleep 2
         done
         chmod +x /system/bin/vmapper.sh
         log_msg 2 "vmapper.sh downloaded"
         echo "`date +%Y-%m-%d_%T` 49vmapper: Installed vmapper.sh, from vmconf develop !!"  >> $logfile
       else
-        until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper.sh https://raw.githubusercontent.com/ReuschelCGN/aconf/vconf/scrips/vmapper.sh || { echo "`date +%Y-%m-%d_%T` 49vmapper: Download vmapper.sh failed for origin=$origin, auth=$auth, server=$server from ip=$ip. Exit script" >> $logfile ; exit 1; } ;do
+        until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/main9/scrips/vmapper.sh || { echo "`date +%Y-%m-%d_%T` 49vmapper: Download vmapper.sh failed for origin=$origin, auth=$auth, server=$server from ip=$ip. Exit script" >> $logfile ; exit 1; } ;do
           sleep 2
         done
         chmod +x /system/bin/vmapper.sh

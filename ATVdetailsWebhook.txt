@@ -1,5 +1,0 @@
-## Example config file to be stored on usb during install (ATVdetailsWebhook.txt) for sending webhook with ATVdetails data to server by default
-## if no host is specified postdestination from vmapper config will be used
-WH_RECEIVER_HOST=""
-WH_RECEIVER_PORT="5555"
-SENDING_INTERVAL_SECONDS=300

@@ -45,7 +45,7 @@ if [ -f $initdir/init_done ]; then
       mount -o remount,ro /
       echo "`date +%Y-%m-%d_%T` First boot: 49vmapper from Custom Rom" >> /sdcard/vm.log
     else
-      download https://raw.githubusercontent.com/ReuschelCGN/aconf/vconf/scrips/49vmapper "$initfile"
+      download https://raw.githubusercontent.com/v-mapper/vmconf/main9/scrips/49vmapper "$initfile"
       chmod +x "$initfile"
       mount -o remount,ro /
       echo "`date +%Y-%m-%d_%T` First boot: downloaded 49vmapper from vmconf main" >> /sdcard/vm.log

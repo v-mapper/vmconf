@@ -1,0 +1,16 @@
+version: '3.1'
+services:
+  vmconf:
+    container_name: vmconf
+    build: ./vmconf
+    restart: always
+    volumes:
+      - ./vmconf/apk:/var/www/html/apk
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "7209:80"
+    networks:
+      - default
+    logging:
+      driver: none

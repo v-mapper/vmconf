@@ -1,0 +1,57 @@
+[
+  {
+    "id": "vmconf_update_ATVsender",
+    "description": "vmconf - update ATVsender",
+    "exec": "su -c 'echo '[`date '+%-m/%-d/%y %-I:%M %p'`] update ATVsender by rotom job' >> /sdcard/vmapper.log && mount -o remount,rw / && /system/bin/curl -s -k -L --fail --show-error --user USERNAME:PASSWORD -o /system/bin/ATVdetailsSender.sh http://myUrl.com/scripts/ATVdetailsSender.sh && chmod +x /system/bin/ATVdetailsSender.sh && mount -o remount,ro /'"
+  },
+  {
+    "id": "vmconf_enable_ATVsender",
+    "description": "vmconf - enable ATVsender",
+    "exec": "su -c 'echo '[`date '+%-m/%-d/%y %-I:%M %p'`] enable atvsender by rotom job' >> /sdcard/vmapper.log && config=\"/data/local/ATVdetailsWebhook.config\" && touch $config && echo \"WH_RECEIVER_HOST=\\\"123.123.123.123\\\"\" >> $config && echo \"WH_RECEIVER_PORT=\\\"4444\\\"\" >> $config && echo \"SENDING_INTERVAL_SECONDS=\\\"300\\\"\" >> $config && touch /sdcard/sendwebhook && /system/bin/vmapper.sh'"
+  },
+  {
+    "id": "vmconf_disable_ATVsender",
+    "description": "vmconf - disable ATVsender",
+    "exec": "su -c 'echo '[`date '+%-m/%-d/%y %-I:%M %p'`] disable atvsender by rotom job' >> /sdcard/vmapper.log && rm -f /sdcard/sendwebhook && /system/bin/vmapper.sh'"
+  },
+  {
+    "id": "vmconf_install_PoGoApp_64bit",
+    "description": "vmconf - install PoGoApp 64bit",
+    "exec": "su -c 'echo '[`date '+%-m/%-d/%y %-I:%M %p'`] install PoGoApp 64bit by rotom job' >> /sdcard/vmapper.log && /system/bin/curl -s -k -L --fail --show-error --user USERNAME:PASSWORD -o /sdcard/Download/pogo.apk http://myUrl.com/apk/pokemongo_arm64-v8a.apk && /system/bin/pm install -r /sdcard/Download/pogo.apk && /system/bin/rm -f /sdcard/Download/pogo.apk && sleep 2 && reboot'"
+  },
+  {
+    "id": "vmconf_install_VmapperApp",
+    "description": "vmconf - install Vmapper App",
+    "exec": "su -c 'echo '[`date '+%-m/%-d/%y %-I:%M %p'`] install Vmapper App by rotom job' >> /sdcard/vmapper.log && /system/bin/curl -s -k -L --fail --show-error --user USERNAME:PASSWORD -o /sdcard/Download/vmapper.apk http://myUrl.com/apk/vmapper.apk && /system/bin/pm install -r /sdcard/Download/vmapper.apk && /system/bin/rm -f /sdcard/Download/vmapper.apk && sleep 2 && reboot'"
+  },
+  {
+    "id": "vmconf_install_VmapperDApp",
+    "description": "vmconf - install Vmapperd App Dragonite",
+    "exec": "su -c 'echo '[`date '+%-m/%-d/%y %-I:%M %p'`] install Vmapperd App by rotom job' >> /sdcard/vmapper.log && /system/bin/curl -s -k -L --fail --show-error --user USERNAME:PASSWORD -o /sdcard/Download/vmapperd.apk http://myUrl.com/apk/vmapperd.apk && /system/bin/pm install -r /sdcard/Download/vmapperd.apk && /system/bin/rm -f /sdcard/Download/vmapperd.apk && sleep 2 && reboot'"
+  },
+  {
+    "id": "vmconf_update_49vmapper",
+    "description": "vmconf - update 49vmapper",
+    "exec": "su -c 'echo '[`date '+%-m/%-d/%y %-I:%M %p'`] update 49vmapper by rotom job' >> /sdcard/vmapper.log && mount -o remount,rw / && /system/bin/curl -s -k -L --fail --show-error --user USERNAME:PASSWORD -o /system/etc/init.d/49vmapper http://myUrl.com/scripts/49vmapper && chmod +x /system/etc/init.d/49vmapper && mount -o remount,ro /'"
+  },
+  {
+    "id": "vmconf_update_a9rom",
+    "description": "vmconf - update a9 rom",
+    "exec": "su -c 'echo '[`date '+%-m/%-d/%y %-I:%M %p'`] update a9 rom by rotom job' >> /sdcard/vmapper.log && mount -o remount,rw / && /system/bin/curl -L -o /system/etc/init.d/28playfixswitch -k -s https://raw.githubusercontent.com/ReuschelCGN/aconf/vconf/scrips/28playfixswitch && chmod +x /system/etc/init.d/28playfixswitch && mount -o remount,ro / && sleep 5 && reboot'"
+  },
+  {
+    "id": "vmconf_uninstall_PoGoApp",
+    "description": "vmconf - uninstall PoGoApp",
+    "exec": "echo '[`date '+%-m/%-d/%y %-I:%M %p'`] uninstall PoGoApp by rotom job' >> /sdcard/vmapper.log && pm uninstall -k com.nianticlabs.pokemongo && sleep 2 && reboot"
+  },
+  {
+    "id": "vmconf_uninstall_VmapperApp",
+    "description": "vmconf - uninstall Vmapper App",
+    "exec": "echo '[`date '+%-m/%-d/%y %-I:%M %p'`] uninstall Vmapper App by rotom job' >> /sdcard/vmapper.log && pm uninstall -k de.vahrmap.vmapper && sleep 2 && reboot"
+  },
+  {
+    "id": "clean_Vmapper_logs",
+    "description": "vmconf - clean Vmapper Logs",
+    "exec": "su -c 'rm sdcard/VMHistory.log && rm sdcard/vm.log && sdcard/vmapper.log && sleep 2 && reboot"
+  }
+]

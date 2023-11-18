@@ -1,0 +1,149 @@
+#!/system/bin/sh
+# version 1.0.2
+
+useragent='Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0'
+initdir='/sdcard/initrom'
+pifnewver="13.0"
+pifver=$([ -f /data/adb/modules/playintegrityfix/module.prop ] && head -3 /data/adb/modules/playintegrityfix/module.prop | grep 'version=' | cut -c 10-13 || echo '12.0')
+url_playintegrityfix="https://github.com/ReuschelCGN/aconf/releases/download/v2/PlayIntegrityFix.zip"
+logfile=$initdir/rom_install.log
+
+########## Init preparations ##########
+wait_for_sdcard() {
+    i=0
+    while [ $i -lt 20 -a ! -d /sdcard/Download ]; do
+        sleep 1
+        i=`expr $i + 1`
+    done
+}
+
+wait_for_sdcard
+
+if [ ! -f $initdir ]; then
+    mkdir -p $initdir
+fi
+
+touch "$logfile"
+exec >>"$logfile" 2>&1
+
+log() {
+    line="`date +'[%Y-%m-%dT%H:%M:%S %Z]'` $@"
+    echo "$line"
+}
+
+########## Functions ##########
+download(){
+until /system/bin/curl -s -k -L -A "$useragent" -o "$2" "$1" ;do
+    sleep 15
+done
+}
+
+wait_for_network() {
+    i=0
+    got_net=0
+    while [ $i -lt 20 ]; do
+        if [ $i -gt 0 ]; then
+            sleep 60
+        fi
+        i=`expr $i + 1`
+        ping -c1 -W 5 8.8.8.8 > /dev/null 2>&1
+        if [ $? -eq 0 ]; then
+            got_net=1
+            break
+        fi
+    done
+    if [ $got_net -eq 0 ]; then
+        log 'Failed to get network'
+        exit 1
+    fi
+}
+
+switch_magisk_modules() {
+    if [ -n "$url_playintegrityfix" -a ! -f /sdcard/Download/playintegrityfix.zip ]; then
+        log 'Download des PlayIntegrityFix Modul'
+        download "$url_playintegrityfix" /sdcard/Download/playintegrityfix.zip
+        sleep 5
+    else
+        log 'PlayIntegrityFix Download schon vorhanden, oder fehlgeschlagen.'
+    fi
+    if [ -f /sdcard/Download/safetynetfix.zip ]; then
+        log 'delete SafetynetFix Modul'
+        rm /sdcard/Download/safetynetfix.zip
+    fi
+    if [ -f /data/adb/modules/safetynet-fix ]; then
+        log 'remove SafetynetFix Modul'
+        su -c 'rm -rf /data/adb/modules/safetynet-fix'
+        sleep 10
+    fi
+    if [ -f /sdcard/Download/playintegrityfix.zip -a ! -f /data/adb/modules/playintegrityfix ]; then
+        log 'Installiere das PlayIntegrityFix Modul'
+        su -c 'magisk --install-module /sdcard/Download/playintegrityfix.zip'
+        sleep 10
+        touch $initdir/playintegrityfix_done
+    else
+        log 'PlayIntegrityFix Zip fehlt, oder Modul schon vorhanden.'
+    fi
+}
+
+checkupdate(){
+   function ver {
+      for i in $(echo "$1" | tr '.' ' ')
+      do
+         echo $i | awk '{ printf("%03d", $1) }';
+      done
+   }
+
+   if [ $(ver $1) -lt $(ver $2) ]; then
+      need_update=1
+   else
+      need_update=0
+   fi
+}
+
+update_magisk_modules() {
+    if [ -f /sdcard/Download/playintegrityfix.zip ]; then
+        log 'delete old PlayIntegrityFix Modul'
+        rm /sdcard/Download/playintegrityfix.zip
+        rm $initdir/playintegrityfix_done
+        sleep 2
+    fi
+    if [ -n "$url_playintegrityfix" -a ! -f /sdcard/Download/playintegrityfix.zip ]; then
+        log 'Redownload des PlayIntegrityFix Modul'
+        download "$url_playintegrityfix" /sdcard/Download/playintegrityfix.zip
+        sleep 5
+    else
+        log 'PlayIntegrityFix Download schon vorhanden, oder fehlgeschlagen.'
+    fi
+    if [ -f /data/adb/modules/playintegrityfix ]; then
+        log 'remove PlayIntegrityFix Modul'
+        su -c 'rm -rf /data/adb/modules/playintegrityfix'
+        sleep 10
+    fi
+    if [ -f /sdcard/Download/playintegrityfix.zip -a ! -f /data/adb/modules/playintegrityfix ]; then
+        log 'Installiere das aktualisierte PlayIntegrityFix Modul'
+        su -c 'magisk --install-module /sdcard/Download/playintegrityfix.zip'
+        sleep 10
+        touch $initdir/playintegrityfix_done
+    else
+        log 'PlayIntegrityFix Zip fehlt, oder Modul schon vorhanden.'
+    fi
+}
+
+checkupdate "$pifver" "$pifnewver"
+
+if [ -f $initdir/safetynetfix_done -a ! -f $initdir/playintegrityfix_done -a -f $initdir/magisk_settings_done ]; then
+    switch_magisk_modules
+    sleep 4
+    rm $initdir/safetynetfix_done
+    log 'Magisk Moduleswitch abgeschlossen!'
+    reboot
+fi
+
+if [ -f $initdir/playintegrityfix_done -a -f $initdir/magisk_settings_done -a $need_update -eq 1 ]; then
+    update_magisk_modules
+    sleep 4
+    log 'Magisk Modulesupdate abgeschlossen!'
+    reboot
+fi
+
+exit 0

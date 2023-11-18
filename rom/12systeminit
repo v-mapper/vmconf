@@ -1,0 +1,253 @@
+#!/system/bin/sh
+# version 2.0.6
+
+useragent='Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0'
+magisk='/sbin/magisk'
+initdir='/sdcard/initrom'
+url_playintegrityfix='https://github.com/ReuschelCGN/aconf/releases/download/v2/PlayIntegrityFix.zip'
+logfile=$initdir/rom_install.log
+
+########## Init preparations ##########
+wait_for_sdcard() {
+    i=0
+    while [ $i -lt 20 -a ! -d /sdcard/Download ]; do
+        sleep 1
+        i=`expr $i + 1`
+    done
+}
+
+wait_for_sdcard
+
+if [ ! -f $initdir ]; then
+    mkdir -p $initdir
+fi
+
+touch "$logfile"
+exec >>"$logfile" 2>&1
+
+log() {
+    line="`date +'[%Y-%m-%dT%H:%M:%S %Z]'` $@"
+    echo "$line"
+}
+
+########## Functions ##########
+download(){
+until /system/bin/curl -s -k -L -A "$useragent" -o "$2" "$1" ;do
+    sleep 15
+done
+}
+
+wait_for_network() {
+    i=0
+    got_net=0
+    while [ $i -lt 20 ]; do
+        if [ $i -gt 0 ]; then
+            sleep 60
+        fi
+        i=`expr $i + 1`
+        ping -c1 -W 5 8.8.8.8 > /dev/null 2>&1
+        if [ $? -eq 0 ]; then
+            got_net=1
+            break
+        fi
+    done
+    if [ $got_net -eq 0 ]; then
+        log 'Failed to get network'
+        exit 1
+    fi
+}
+
+do_settings() {
+    settings put global policy_control 'immersive.navigation=*'
+    settings put global policy_control 'immersive.null=*'
+    settings put secure immersive_mode_confirmations confirmed
+    settings put global heads_up_notifications_enabled 0
+    svc wifi disable
+    settings put global bluetooth_disabled_profiles 1
+    settings put global bluetooth_on 0
+    settings put global package_verifier_user_consent -1
+    setprop persist.sys.timezone "Europe/Madrid"
+    settings put global time_zone "Europe/Madrid"
+    settings put global ntp_server europe.pool.ntp.org
+    settings put system time_12_24 24
+    settings put global auto_time 1
+}
+
+setup_magisk_settings() {
+    # Ermittlung der Anzahl von Einträgen in der Denylist
+    denylist_count=$(magisk --sqlite 'select count(*) from denylist' | awk -F= '{ print $2 }')
+    # Root-Zugriff für die Shell einrichten
+    shell_uid=$(id -u shell)
+    magisk --sqlite "REPLACE INTO policies (uid, policy, until, logging, notification) VALUES ($shell_uid, 2, 0, 1, 1);"
+    # Aktivieren von Zygisk
+    magisk --sqlite "REPLACE INTO settings (key, value) VALUES ('zygisk', 1);"
+    # Aktivieren der Denylist
+    magisk --sqlite "REPLACE INTO settings (key, value) VALUES ('denylist', 1);"
+    # Hinzufügen von Paketen zur Denylist
+    packages=("com.android.vending" "com.google.android.gms" "com.google.android.gms.setup" "com.google.android.gms.policy_sidecar_o" "com.google.android.gsf" "com.nianticlabs.pokemongo" "com.nianticlabs.platform.launcher.NianticUnityPlayerActivity" "gr.nikolasspyr.integritycheck")
+    for package in "${packages[@]}"; do
+        magisk --sqlite "REPLACE INTO denylist (package_name, process) VALUES ('$package', '$package');"
+    done
+    # Überprüfung und Meldung bei Änderungen in der Denylist
+    denylist_count_now=$(magisk --sqlite 'select count(*) from denylist' | awk -F= '{ print $2 }')
+    if [ "$denylist_count" -ne "$denylist_count_now" ]; then
+        log 'Die Magisk-Datenbank wurde für Zygisk, die su-Richtlinie und die Denylist aktualisiert.'
+        touch $initdir/magisk_settings_done
+    fi
+}
+
+install_magisk_modules() {
+    if [ -n "$url_playintegrityfix" -a ! -f /sdcard/Download/playintegrityfix.zip ]; then
+        log 'Download des PlayIntegrityFix Modul'
+        download "$url_playintegrityfix" /sdcard/Download/playintegrityfix.zip
+        sleep 5
+    else
+        log 'PlayIntegrityFix Download schon vorhanden, oder fehlgeschlagen.'
+    fi
+    if [ -f /sdcard/Download/playintegrityfix.zip -a ! -f /data/adb/modules/playintegrityfix ]; then
+        log 'Installiere das PlayIntegrityFix Modul'
+        su -c 'magisk --install-module /sdcard/Download/playintegrityfix.zip'
+        sleep 15
+        touch $initdir/playintegrityfix_done
+    else
+        log 'PlayIntegrityFix Zip fehlt, oder Modul schon vorhanden.'
+        log 'Überspringe PlayIntegrityFix installation.'
+    fi
+    if [ -f /system/media/SmaliPatcherModule.zip -a ! -f /data/adb/modules/fomey.smalipatcher ]; then
+        log 'Installiere das SmaliPatcher Modul'
+        su -c 'magisk --install-module /system/media/SmaliPatcherModule.zip'
+        sleep 15
+        touch $initdir/smalipatcher_done
+    else
+        log 'SmaliPatcher Zip fehlt, oder Modul schon vorhanden.'
+        log 'Überspringe SmaliPatcher installation.'
+    fi
+}
+
+repackage_magisk() {
+    ver=`dumpsys package com.topjohnwu.magisk | grep versionName | sed -e 's/ //g' | awk -F= '{ print $2 }'`
+    if [ -n "$ver" ]; then
+        log 'Magisk-Paket gefunden. Versuche, es zu verstecken und neu zu verpacken...'
+        # allow Magisk App to install unknown apps
+        appops set com.topjohnwu.magisk REQUEST_INSTALL_PACKAGES allow
+        log 'Magisk App hat das Recht bekommen, unbekannte Apps installieren.'
+        pm disable-user com.google.android.gms
+        log 'Google Play Services wird für den Repack deaktiviert.'
+        sleep 2
+        output=`am start com.topjohnwu.magisk/.ui.MainActivity 2>&1`
+        echo $output
+        sleep 10
+        # Drücke "Pfeil nach unten"
+        input keyevent 61
+        sleep 1
+        # Drücke "Pfeil nach rechts"
+        input keyevent 22
+        sleep 2
+        # Drücke "Enter"
+        input keyevent 66
+        am force-stop com.topjohnwu.magisk
+        am start com.topjohnwu.magisk/.ui.MainActivity
+        sleep 5
+        # Gehe zum Startbildschirm:
+        input tap 39 42
+        sleep 2
+        # Berühre Einstellungen:
+        input tap 1875 100
+        sleep 2
+        # Tab nach unten
+        for i in $(seq 1 9); do
+            input keyevent 61
+            sleep 1
+        done
+        # Berühre 'Hide the Magisk app'
+        input keyevent 66
+        sleep 2
+        # down
+        for i in $(seq 1 3); do
+            input keyevent 61
+            sleep 1
+        done
+        # Berühre OK -> Magisk App hide start
+        input keyevent 66
+        # Dies dauert eine Weile und die App wird dann neu gestartet
+        sleep 2
+        while pidof com.topjohnwu.magisk > /dev/null; do
+            sleep 2
+        done
+        sleep 5
+        # und fragt, ob Sie eine Verknüpfung auf dem Startbildschirm möchten.
+        # Berühre 'OK', um die Verknüpfung hinzuzufügen.
+        input keyevent 61
+        sleep 1
+        input keyevent 61
+        sleep 1
+        # Berühre OK
+        input keyevent 66
+        sleep 3
+        # Zustimmung zur Platzierung der Verknüpfung auf dem Startbildschirm
+        for i in $(seq 1 3); do
+            input keyevent 61
+            sleep 2
+        done
+        # Berühre OK
+        input keyevent 66
+        sleep 2
+        pm enable com.google.android.gms
+        log 'Google Play Services wird wieder aktiviert.'
+        sleep 10
+        # Verlassen der Magisk-App
+        input keyevent BACK
+        sleep 2
+        log 'Magisk wurde erfolgreich versteckt und neu verpackt.'
+        sleep 4
+        # erstelle Installation abgeschlossen File
+        touch $initdir/init_done
+        # Das war's.
+    fi
+}
+
+########## Execution ##########
+
+if [ ! -f $initdir/init_done ]; then
+    log 'ATV Booted.'
+    log 'Start System preparations for mapping.'
+
+    log 'Warten auf Netzwerk...'
+    wait_for_network
+    log 'Warten auf Netzwerk: Abgeschlossen'
+    sleep 10
+    log 'Warten auf initiale Einrichtung und Magisk-Installation.'
+    if [ ! -f "$magisk" ]; then
+        log 'Magisk fehlt! Warte weitere 30 Sekunden.'
+        sleep 30
+    fi
+    if [ -f "$magisk" -a ! -f /data/adb/magisk.db ]; then
+        am start com.topjohnwu.magisk/.ui.MainActivity
+        # Warten auf das Popup, das besagt, dass ein Neustart erforderlich ist
+        sleep 10
+        input tap 1850 540
+        # Sollte automatisch neu starten
+        sleep 10
+    fi
+    log 'Stellen Sie sicher, dass keine Pop-ups angezeigt werden...'
+    do_settings
+fi
+
+if [ -f /data/adb/magisk.db -a ! -f $initdir/init_done -a ! -f $initdir/magisk_settings_done ]; then
+    setup_magisk_settings
+    sleep 5
+fi
+if [ -f /data/adb/magisk.db -a ! -f $initdir/init_done -a ! -f $initdir/playintegrityfix_done -a -f $initdir/magisk_settings_done ]; then
+    install_magisk_modules
+    sleep 5
+fi
+if [ -f /data/adb/magisk.db -a ! -f $initdir/init_done -a -f $initdir/playintegrityfix_done -a -f $initdir/magisk_settings_done ]; then
+    repackage_magisk
+    sleep 2
+    sqlite3 /data/data/com.android.launcher3/databases/launcher.db 'UPDATE favorites SET "screen" = 0 WHERE title = "Magisk"'
+    sleep 2
+    log 'Rom init abgeschlossen!'
+    reboot
+fi
+
+exit 0

@@ -1,0 +1,16 @@
+version: '2.4'
+services:
+  vmconfwr:
+    container_name: vmconfwr
+    build:
+      context: ./vmc_whreceiver
+    restart: always
+    tty: true
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - ./vmc_whreceiver/config.ini:/usr/src/app/config.ini
+    networks:
+      - default
+    ports:
+      - "7215:7215"

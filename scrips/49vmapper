@@ -1,0 +1,318 @@
+#!/system/bin/sh
+# version 1.6.1
+# rom version
+romver="2.0.17"
+logfile="/sdcard/vm.log"
+initdir="/sdcard/initrom"
+useragent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0"
+vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
+lastResort="/data/local/vm_last_resort"
+customConfig="/data/local/vm_custom_config"
+
+#Create logfile
+if [ ! -e /sdcard/vm.log ] ;then
+  touch /sdcard/vm.log
+fi
+echo "" >> /sdcard/vm.log
+echo "`date +%Y-%m-%d_%T` Device rebooted" >> /sdcard/vm.log
+
+# stderr to logfile
+exec 2>> $logfile
+
+download(){
+until /system/bin/curl -s -k -L -A "$useragent" -o "$2" "$1" ;do
+    sleep 15
+done
+}
+
+########## Functions
+
+log_msg() {
+# $1 = severity
+# $2 = msg
+if [[ "$session_id" ]] ;then
+  echo "$msg"
+  /system/bin/curl -s -k -L -d "$1,$2" --user "$auth" -H 'Content-Type: text/html' "${server}/autoconfig/${session_id}/log"
+fi
+}
+
+wait_for_network() {
+until ping -c1 8.8.8.8 >/dev/null 2>/dev/null || ping -c1 1.1.1.1 >/dev/null 2>/dev/null; do
+  sleep 20
+done
+ip="$(ifconfig 'eth0'|awk '/inet addr/{print $2}'|cut -d ':' -f 2)"
+}
+
+case "$(uname -m)" in
+  aarch64) arch="arm64-v8a";;
+  armv8l)  arch="armeabi-v7a";;
+esac
+
+set_mac(){
+echo 1 > /sys/class/unifykeys/lock
+echo mac > /sys/class/unifykeys/name
+echo "$1" >/sys/class/unifykeys/write
+cat /sys/class/unifykeys/read
+echo 0 > /sys/class/unifykeys/lock
+}
+
+getmadminmac(){
+all_macs="$(/system/bin/curl -s -k -L --user "$auth" -H "origin: $origin" "${server}/autoconfig/mymac")"
+interface="$(sed -n 1p <<< "$all_macs")"
+mac="$(sed -n 2p <<< "$all_macs")"
+}
+
+setmadminmac(){
+if [[ "$current_mac" == "00:15:18:01:81:31" ]] ;then
+  current_mac=$(xxd -l 6 -p /dev/urandom |sed 's/../&:/g;s/:$//')
+  ifconfig eth0 down
+  until ifconfig eth0 hw ether "$current_mac" 2>/dev/null; do
+    current_mac=$(xxd -l 6 -p /dev/urandom |sed 's/../&:/g;s/:$//')
+  done
+  ifconfig eth0 up
+  sleep 3
+fi
+/system/bin/curl -s -k -L --user "$auth" -H 'Content-Type: text/html' -H "origin: $origin" "${server}/autoconfig/mymac" -d "$current_mac"
+getmadminmac
+while [[ "$mac" == "" ]] ;do
+  # if that mac was not accepted
+  current_mac=$(xxd -l 6 -p /dev/urandom |sed 's/../&:/g;s/:$//')
+  ifconfig eth0 down
+  until ifconfig eth0 hw ether "$current_mac" 2>/dev/null; do
+    current_mac=$(xxd -l 6 -p /dev/urandom |sed 's/../&:/g;s/:$//')
+  done
+  ifconfig eth0 up
+  sleep 3
+  # set a new one
+  /system/bin/curl -s -k -L --user "$auth" -H 'Content-Type: text/html' -H "origin: $origin" "${server}/autoconfig/mymac" -d "$current_mac"
+  # check again
+  getmadminmac
+done
+}
+
+checkmac(){
+if [[ "$(/system/bin/curl -s -k -L -o /dev/null -w "%{http_code}" --user "$auth" -H "origin: $origin" "${server}/autoconfig/mymac")" == "200" ]] ;then
+  if ifconfig|grep -A5 wlan0|grep -q inet ;then
+    current_mac=$(ifconfig wlan0|awk '/HWaddr/{print $5}')
+  elif ifconfig|grep -A5 eth0|grep -q inet ;then
+    current_mac=$(ifconfig eth0|awk '/HWaddr/{print $5}')
+    getmadminmac
+    echo "MAD-assigned MAC: \"$mac\""
+    echo "Current MAC: \"$current_mac\""
+    if [[ "$mac" == "" ]] ;then
+      # use our current mac for now on
+      setmadminmac
+      set_mac "$current_mac"
+    elif [[ "$mac" != "$current_mac" ]] ;then
+      #use the mac suppplied from madmin
+      set_mac "$mac"
+    fi
+  fi
+else
+  echo "`date +%Y-%m-%d_%T` 49vmapper: could not find $origin in madmin, this should not happen" >> /sdcard/vm.log
+fi
+}
+
+test_session(){
+[[ "$session_id" ]] || return 5
+case "$(/system/bin/curl -s -k -L -o /dev/null -w "%{http_code}" --user "$auth" "${server}/autoconfig/${session_id}/status")" in
+ 406) sleep 15 && test_session
+   ;;
+ 40*) return 3
+   ;;
+ 200) return 0
+   ;;
+  "") return 2
+   ;;
+   *) echo "unexpected status $(/system/bin/curl -s -k -L -o /dev/null -w "%{http_code}" --user "$auth" "${server}/autoconfig/${session_id}/status") from madmin" && return 4
+   ;;
+esac
+}
+
+make_session(){
+until test_session ;do
+  echo "`date +%Y-%m-%d_%T` 49vmapper: Trying to register session" >> /sdcard/vm.log
+  session_id=$(/system/bin/curl -s -k -L -X POST --user "$auth" "${server}/autoconfig/register")
+  sleep 15
+done
+echo "$session_id" > /sdcard/reg_session
+}
+
+check_session(){
+if ! [[ -f /sdcard/reg_session ]] ;then
+  make_session
+else
+  session_id="$(cat /sdcard/reg_session)"
+  if ! test_session ;then
+    rm -f /sdcard/reg_session
+    make_session
+  fi
+fi
+}
+
+
+########## start Execution
+if [ -f $initdir/init_done ]; then
+  log_msg 2 "Checking network"
+  wait_for_network
+  log_msg 2 "Got network, starting execution"
+  echo "$romver" > /sdcard/madversion
+  echo "`date +%Y-%m-%d_%T` 49vmapper: Internet connection available, starting execution" >> $logfile
+  sleep 20 # in case mounting /sdcard and usb takes awhile
+  mount -o remount,rw /
+
+  if [ -f "$vmconf" ] && [ ! -z $(grep -w 'postdest' $vmconf | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/') ] ; then
+    server=$(grep -w 'postdest' $vmconf | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/')
+    authuser=$(grep -w 'authuser' $vmconf | sed -e 's/    <string name="authuser">\(.*\)<\/string>/\1/')
+    authpassword=$(grep -w 'authpassword' $vmconf | sed -e 's/    <string name="authpassword">\(.*\)<\/string>/\1/')
+    auth="$authuser:$authpassword"
+    origin=$(grep -w 'origin' $vmconf | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/')
+    [[ -f /sdcard/reg_session ]] && check_session
+    echo "`date +%Y-%m-%d_%T` 49vmapper: Using vahrmap.vmapper settings" >> $logfile
+  elif [ -f "$lastResort" ]; then
+    server=$(awk '{print $1}' "$lastResort")
+    authuser=$(awk '{print $2}' "$lastResort")
+    authpassword=$(awk '{print $3}' "$lastResort")
+    auth="$authuser:$authpassword"
+    [[ -f /sdcard/reg_session ]] && check_session
+    origin=$(awk '{print $4}' "$lastResort")
+    echo "`date +%Y-%m-%d_%T` 49vmapper: Using settings stored in /sdcard/vm_last_resort"  >> $logfile
+  elif [[ -f /data/local/vmconf ]] ;then
+    server=$(grep -w 'postdest' /data/local/vmconf | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/')
+    authuser=$(grep -w 'authuser' /data/local/vmconf | sed -e 's/    <string name="authuser">\(.*\)<\/string>/\1/')
+    authpassword=$(grep -w 'authpassword' /data/local/vmconf | sed -e 's/    <string name="authpassword">\(.*\)<\/string>/\1/')
+    auth="$authuser:$authpassword"
+    origin=$(grep -w 'origin' /data/local/vmconf | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/')
+    check_session
+    echo "`date +%Y-%m-%d_%T` 49vmapper: Using settings stored in /data/local/vmconf"  >> $logfile
+  else
+    usbfile="$(find /mnt/media_rw/ -name mad_autoconf.txt|head -n1)"
+    if [[ "$usbfile" ]] || [ -f "$customConfig" ] ;then
+      [ ! -z $(find /mnt/media_rw/ -name useVMCdevelop.txt|head -n1) ] && touch /sdcard/useVMCdevelop
+      if [[ "$usbfile" ]] ;then
+        echo "`date +%Y-%m-%d_%T` 49vmapper: No madmin settings found on device but have usbfile, assuming new install"  >> $logfile
+        server="$(awk 'NR==1{print $1}' "$usbfile")"
+        auth="$(awk 'NR==2{print $1}' "$usbfile")"
+      else
+        echo "`date +%Y-%m-%d_%T` 49vmapper: No madmin settings found on device but have vm_custom_config file, assuming new install"  >> $logfile
+        server=$(awk '{print $1}' "$customConfig")
+        authuser=$(awk '{print $2}' "$customConfig")
+        authpassword=$(awk '{print $3}' "$customConfig")
+        proxy=$(awk '{print $4}' "$customConfig")
+        if [[ "$proxy" ]] ;then
+          echo "`date +%Y-%m-%d_%T` 49vmapper: Found custom proxy setting - copying to settings global "  >> $logfile
+          settings put global http_proxy "$proxy"
+          echo "`date +%Y-%m-%d_%T` 49vmapper: Copied custom proxy setting $proxy"  >> $logfile
+        fi
+        auth="$authuser:$authpassword"
+      fi
+
+      check_session
+      origin=$(/system/bin/curl -s -k -L --user "$auth" "${server}/autoconfig/${session_id}/origin")
+      log_msg 2 "Starting new install for $origin! IP is $ip"
+
+      until /system/bin/curl -k -s -L --fail --show-error -o /data/local/vmconf -u $auth -H "origin: $origin" "$server/vm_conf" || { echo "`date +%Y-%m-%d_%T` Download config.xml failed for origin=$origin, auth=$auth, server=$server from ip=$ip. Exit script" >> $logfile ; exit 1; } ;do
+        sleep 2
+      done
+      log_msg 2 "VMapper configuration downloaded to /data/local/vmconf"
+      echo "`date +%Y-%m-%d_%T` 49vmapper: VMapper configuration downloaded to /data/local/vmconf"  >> $logfile
+
+      checkmac
+      wait_for_network
+      log_msg 2 "Check MAC adress change completed, IP is $ip"
+      echo "`date +%Y-%m-%d_%T` 49vmapper: MAC checked, ip is $ip"  >> $logfile
+
+      log_msg 2 "Starting install of PoGo, vmapper.sh and ATVdetailsSender.sh"
+      if [ -f /sdcard/useVMCdevelop ] ;then
+        until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/vmapper.sh || { echo "`date +%Y-%m-%d_%T` 49vmapper: Download vmapper.sh failed for origin=$origin, auth=$auth, server=$server from ip=$ip. Exit script" >> $logfile ; exit 1; } ;do
+          sleep 2
+        done
+        chmod +x /system/bin/vmapper.sh
+        log_msg 2 "vmapper.sh downloaded"
+        echo "`date +%Y-%m-%d_%T` 49vmapper: Installed vmapper.sh, from vmconf develop !!"  >> $logfile
+      else
+        until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper.sh https://raw.githubusercontent.com/ReuschelCGN/aconf/vconf/scrips/vmapper.sh || { echo "`date +%Y-%m-%d_%T` 49vmapper: Download vmapper.sh failed for origin=$origin, auth=$auth, server=$server from ip=$ip. Exit script" >> $logfile ; exit 1; } ;do
+          sleep 2
+        done
+        chmod +x /system/bin/vmapper.sh
+        log_msg 2 "vmapper.sh downloaded"
+        echo "`date +%Y-%m-%d_%T` 49vmapper: Installed vmapper.sh"  >> $logfile
+      fi
+
+      pogowizardversion="$(/system/bin/curl -s -k -L -u $auth -H "origin: $origin" "$server/mad_apk/pogo/$arch")"
+      usbpogo="$(find /mnt/media_rw/ -iname *pokemongo*$arch*.apk 2>/dev/null)"
+      if [ -z $usbpogo ] ;then
+        log_msg 2 "Downloading PoGo from wizard"
+        echo "`date +%Y-%m-%d_%T` 49vmapper: Downloading PoGo from wizard"  >> $logfile
+        until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/pogo.apk -u $auth -H "origin: $origin" "$server/mad_apk/pogo/$arch/download" || { echo "`date +%Y-%m-%d_%T` 49vmapper: Download PoGo failed for origin=$origin, auth=$auth, server=$server from ip=$ip. Exit script" >> $logfile ; exit 1; } ;do
+          sleep 2
+        done
+      else
+        log_msg 2 "Copy PoGo from usb"
+        echo "`date +%Y-%m-%d_%T` 49vmapper: Copy PoGo from usb"  >> $logfile
+        cp $usbpogo /sdcard/Download/pogo.apk
+      fi
+      /system/bin/pm install -r /sdcard/Download/pogo.apk
+      /system/bin/rm -f /sdcard/Download/pogo.apk
+      echo "`date +%Y-%m-%d_%T` 49vmapper: Installed PoGo"  >> $logfile
+
+      if [ -f /sdcard/useVMCdevelop ] ;then
+        until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/ATVdetailsSender.sh https://raw.githubusercontent.com/v-mapper/vmconf/develop/ATVdetailsSender.sh || { echo "`date +%Y-%m-%d_%T` 49vmapper: Download ATVdetailsSender.sh failed for origin=$origin, auth=$auth, server=$server from ip=$ip. Exit script" >> $logfile ; exit 1; } ;do
+          sleep 2
+        done
+        chmod +x /system/bin/ATVdetailsSender.sh
+        log_msg 2 "ATVdetailsSender.sh downloaded"
+        echo "`date +%Y-%m-%d_%T` 49vmapper: Installed ATVdetailsSender.sh, from vmconf develop !!"  >> $logfile
+      else
+        until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/ATVdetailsSender.sh https://raw.githubusercontent.com/ReuschelCGN/aconf/vconf/scrips/ATVdetailsSender.sh || { echo "`date +%Y-%m-%d_%T` 49vmapper: Download ATVdetailsSender.sh failed for origin=$origin, auth=$auth, server=$server from ip=$ip. Exit script" >> $logfile ; exit 1; } ;do
+          sleep 2
+        done
+        chmod +x /system/bin/ATVdetailsSender.sh
+        log_msg 2 "ATVdetailsSender.sh downloaded"
+        echo "`date +%Y-%m-%d_%T` 49vmapper: Installed ATVdetailsSender.sh"  >> $logfile
+      fi
+    fi
+  fi
+
+  usbWebhookSender="$(find /mnt/media_rw/ -iname ATVdetailsWebhook.txt 2>/dev/null)"
+  if [ ! -z $usbWebhookSender ] ;then
+    cp $usbWebhookSender /data/local/ATVdetailsWebhook.config
+    touch /sdcard/sendwebhook
+    log_msg 2 "ATVdetailsSender configurtion copied and enabled"
+    echo "`date +%Y-%m-%d_%T` 49vmapper: ATVdetailsSender configurtion copied and enabled"  >> $logfile
+  fi
+
+  # Check pogo settings
+  log_msg 2 "Checking PoGo settings"
+  if [[ "$(pm list packages com.nianticlabs.pokemongo)" ]] && ! dumpsys package com.nianticlabs.pokemongo|grep ACCESS_FINE_LOCATION|grep granted|grep -q 'granted=true'; then
+    pm grant com.nianticlabs.pokemongo android.permission.ACCESS_FINE_LOCATION
+    pm grant com.nianticlabs.pokemongo android.permission.ACCESS_COARSE_LOCATION
+    pm grant com.nianticlabs.pokemongo android.permission.CAMERA
+    pm grant com.nianticlabs.pokemongo android.permission.GET_ACCOUNTS
+    echo "`date +%Y-%m-%d_%T` 49vmapper: PoGo settings adjusted" >> /sdcard/vm.log
+  fi
+
+  # Install VMapper
+  if ! [[ -f "$vmconf" ]] && [[ "$session_id" ]] ;then
+    log_msg 2 "Install and configure vmapper"
+    echo "`date +%Y-%m-%d_%T` 49vmapper: Starting install of vmapper" >> /sdcard/vm.log
+    /system/bin/vmapper.sh -nrc -ivw
+  fi
+
+  # Enable PlayStore for validate play integrity accounts
+  log_msg 2 "Enable PlayStore for validate play integrity"
+  echo "`date +%Y-%m-%d_%T` 49vmapper: Enable PlayStore for validate play integrity" >> /sdcard/vm.log
+  pm enable com.android.vending
+
+  # Close autoconfig session
+  if [[ -f /sdcard/reg_session ]] && [[ -f "$vmconf" ]] ;then
+    /system/bin/curl -s -k -L -X DELETE --user "$auth" "${server}/autoconfig/${session_id}/complete"
+    rm -f /sdcard/reg_session
+    rm -f /data/local/vmconf
+    echo "`date +%Y-%m-%d_%T` 49vmapper: autoconfig session closed" >> /sdcard/vm.log
+  fi
+
+  mount -o remount,ro /
+  # check for updates / execute vmapper.sh
+  /system/bin/vmapper.sh -ua
+fi

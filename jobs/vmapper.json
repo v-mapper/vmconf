@@ -1,0 +1,42 @@
+[
+  {
+    "id": "sendLog",
+    "description": "send all logs to discord channel",
+    "exec": "su -c '/system/bin/vmapper.sh -sl https://discord.com/api/webhooks/0987654321/1234567890'"
+  },
+  {
+    "id": "updateAll",
+    "description": "update all apps",
+    "exec": "su -c '/system/bin/vmapper.sh -ua'"
+  },
+  {
+    "id": "updateVmapper",
+    "description": "update vmapper",
+    "exec": "su -c '/system/bin/vmapper.sh -ur'"
+  },
+  {
+    "id": "downgradeVmapper",
+    "description": "downgrade vmapper",
+    "exec": "su -c '/system/bin/vmapper.sh -dr'"
+  },
+  {
+    "id": "updateXML",
+    "description": "update vmapper config.xml",
+    "exec": "su -c '/system/bin/vmapper.sh -ux'"
+  },
+  {
+    "id": "updateWHsender",
+    "description": "update webhook sender",
+    "exec": "su -c '/system/bin/vmapper.sh'"
+  },
+  {
+    "id": "reboot_device",
+    "description": "reboot device",
+    "exec": "su -c 'echo '[`date '+%-m/%-d/%y %-I:%M %p'`] restart by rotom job' >> /sdcard/vmapper.log && reboot'"
+  },
+  {
+    "id": "restart_vmapper",
+    "description": "restart vmapper",
+    "exec": "su -c 'echo '[`date '+%-m/%-d/%y %-I:%M %p'`] Vmapper restart by rotom job' >> /sdcard/vmapper.log && am force-stop de.vahrmap.vmapper && am broadcast -n de.vahrmap.vmapper/.RestartService'"
+  }
+]

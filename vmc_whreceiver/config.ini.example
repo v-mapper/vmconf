@@ -1,0 +1,10 @@
+[socketserver]
+host = 0.0.0.0
+port = 7215
+
+[mysql]
+mysqlhost = localhost
+mysqlport = 3306
+mysqldb = statsdatabase
+mysqluser = dbuser
+mysqlpass = dbpassword

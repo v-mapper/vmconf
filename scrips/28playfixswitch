@@ -1,9 +1,9 @@
 #!/system/bin/sh
-# version 1.0.2
+# version 1.0.3
 
 useragent='Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0'
 initdir='/sdcard/initrom'
-pifnewver="13.0"
+pifnewver="13.1"
 pifver=$([ -f /data/adb/modules/playintegrityfix/module.prop ] && head -3 /data/adb/modules/playintegrityfix/module.prop | grep 'version=' | cut -c 10-13 || echo '12.0')
 url_playintegrityfix="https://github.com/ReuschelCGN/aconf/releases/download/v2/PlayIntegrityFix.zip"
 logfile=$initdir/rom_install.log

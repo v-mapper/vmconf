@@ -3,7 +3,7 @@
 #
 __author__ = "GhostTalker and Apple314"
 __copyright__ = "Copyright 2022, The GhostTalker project"
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 __status__ = "DEV"
 
 import os
@@ -24,7 +24,7 @@ _config = configparser.ConfigParser()
 _rootdir = os.path.dirname(os.path.abspath('config.ini'))
 _config.read(_rootdir + "/config.ini")
 _host = _config.get("socketserver", "host", fallback='0.0.0.0')
-_port = _config.get("socketserver", "port", fallback='7215')
+_port = _config.get("socketserver", "port", fallback='5050')
 _mysqlhost = _config.get("mysql", "mysqlhost", fallback='127.0.0.1')
 _mysqlport = _config.get("mysql", "mysqlport", fallback='3306')
 _mysqldb = _config.get("mysql", "mysqldb")
@@ -119,6 +119,7 @@ def webhook():
         temperature = validate_string(request.json["temperature"])
         magisk = validate_string(request.json["magisk"])
         magisk_modules = validate_string(request.json["magisk_modules"])
+        pifversion = validate_string(request.json["pifversion"])
         macw = validate_string(request.json["macw"])
         mace = validate_string(request.json["mace"])
         ip = validate_string(request.json["ip"])
@@ -200,6 +201,7 @@ def webhook():
                 temperature, \
                 magisk, \
                 magisk_modules, \
+                pifversion, \
                 macw, \
                 mace, \
                 ip, \
@@ -230,7 +232,7 @@ def webhook():
                 lon, \
                 overlay, \
                 numPogo, \
-                vmc_reboot) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) \
+                vmc_reboot) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) \
             ON DUPLICATE KEY UPDATE \
                 timestamp = VALUES(timestamp), \
                 deviceName = VALUES(deviceName), \
@@ -252,6 +254,7 @@ def webhook():
                 temperature = VALUES(temperature), \
                 magisk = VALUES(magisk), \
                 magisk_modules = VALUES(magisk_modules), \
+                pifversion = VALUES(pifversion), \
                 macw = VALUES(macw), \
                 mace = VALUES(mace), \
                 ip = VALUES(ip), \
@@ -284,7 +287,7 @@ def webhook():
                 numPogo = VALUES(numPogo), \
                 vmc_reboot = VALUES(vmc_reboot)"
 
-        data1 = (str(timestamp), str(deviceName), str(arch), str(productmodel), str(android_version), str(vmapperSh), str(vmapper49), str(vmwatchdog56), str(whversion), str(pogo), str(vmapper), str(pogoupdate), str(vmupdate), str(playstoreenabled), str(playstore), str(proxyinfo), str(whenabled), str(temperature), str(magisk), str(magisk_modules), str(macw), str(mace), str(ip), str(ext_ip), str(hostname), str(diskSysPct), str(diskDataPct), str(bootdelay), str(gzip), str(betamode), str(selinux), str(daemon), str(authpassword), str(authuser), str(authid), str(postdest), str(fridastarted), str(patchedpid), str(openlucky), str(rebootminutes), str(deviceid), str(websocketurl), str(catchPokemon), str(catchRare), str(launcherver), str(rawpostdest), str(lat), str(lon), str(overlay), str(numPogo), str(vmc_reboot) )
+        data1 = (str(timestamp), str(deviceName), str(arch), str(productmodel), str(android_version), str(vmapperSh), str(vmapper49), str(vmwatchdog56), str(whversion), str(pogo), str(vmapper), str(pogoupdate), str(vmupdate), str(playstoreenabled), str(playstore), str(proxyinfo), str(whenabled), str(temperature), str(magisk), str(magisk_modules), str(pifversion), str(macw), str(mace), str(ip), str(ext_ip), str(hostname), str(diskSysPct), str(diskDataPct), str(bootdelay), str(gzip), str(betamode), str(selinux), str(daemon), str(authpassword), str(authuser), str(authid), str(postdest), str(fridastarted), str(patchedpid), str(openlucky), str(rebootminutes), str(deviceid), str(websocketurl), str(catchPokemon), str(catchRare), str(launcherver), str(rawpostdest), str(lat), str(lon), str(overlay), str(numPogo), str(vmc_reboot) )
 
         insert_stmt2 = (
             "INSERT INTO ATVstats (timestamp, RPL, deviceName, temperature, memTot, memFree, memAv, memPogo, memVM, cpuSys, cpuUser, cpuL5, cpuL10, cpuLavg, cpuPogoPct, cpuVmPct, diskSysPct, diskDataPct)"

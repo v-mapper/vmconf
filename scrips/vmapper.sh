@@ -4,7 +4,7 @@
 #Version checks
 Ver49vmapper="1.6.0"
 Ver56vmwatchdog="1.3.9"
-VerATVwebhook="2.1.1"
+VerATVwebhook="2.1.2"
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then

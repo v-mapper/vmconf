@@ -7,7 +7,7 @@
   {
     "id": "vmconf_enable_ATVsender",
     "description": "vmconf - enable ATVsender",
-    "exec": "su -c 'echo '[`date '+%-m/%-d/%y %-I:%M %p'`] enable atvsender by rotom job' >> /sdcard/vmapper.log && config=\"/data/local/ATVdetailsWebhook.config\" && touch $config && echo \"WH_RECEIVER_HOST=\\\"123.123.123.123\\\"\" >> $config && echo \"WH_RECEIVER_PORT=\\\"4444\\\"\" >> $config && echo \"SENDING_INTERVAL_SECONDS=\\\"300\\\"\" >> $config && touch /sdcard/sendwebhook && /system/bin/vmapper.sh'"
+    "exec": "su -c 'echo '[`date '+%-m/%-d/%y %-I:%M %p'`] enable atvsender by rotom job' >> /sdcard/vmapper.log && touch /data/local/ATVdetailsWebhook.config && echo \"WH_RECEIVER_HOST=\\\"123.123.123.123\\\"\" >> /data/local/ATVdetailsWebhook.config && echo \"WH_RECEIVER_PORT=\\\"4444\\\"\" >> /data/local/ATVdetailsWebhook.config && echo \"SENDING_INTERVAL_SECONDS=\\\"300\\\"\" >> /data/local/ATVdetailsWebhook.config && touch /sdcard/sendwebhook && /system/bin/ATVdetailsSender.sh'"
   },
   {
     "id": "vmconf_disable_ATVsender",

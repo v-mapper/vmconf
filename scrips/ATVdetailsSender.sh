@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 2.1.1
+# version 2.1.2
 
 source /data/local/ATVdetailsWebhook.config
 logfile="/sdcard/vm.log"
@@ -40,6 +40,7 @@ while true
     temperature=$(cat /sys/class/thermal/thermal_zone0/temp | cut -c -2)
     magisk=$(magisk -c | sed 's/:.*//')
     magisk_modules=$(ls -1 /data/adb/modules/ | xargs | sed -e 's/ /, /g' 2>/dev/null)
+    pifversion=$([ -f /data/adb/modules/playintegrityfix/module.prop ] && head -3 /data/adb/modules/playintegrityfix/module.prop | grep 'version=' | cut -c 10-13 || echo 'na')
     macw=$([ -d /sys/class/net/wlan0 ] && ifconfig wlan0 |grep 'HWaddr' |cut -c 39-55 || echo 'na')
     mace=$(ifconfig eth0 |grep 'HWaddr' |cut -c 39-55)
     ip=$(ifconfig wlan0 |grep 'inet addr' |cut -d ':' -f2 |cut -d ' ' -f1 && ifconfig eth0 |grep 'inet addr' |cut -d ':' -f2 |cut -d ' ' -f1)
@@ -135,6 +136,7 @@ while true
     "temperature": "${temperature}",
     "magisk": "${magisk}",
     "magisk_modules": "${magisk_modules}",
+    "pifversion": "${pifversion}",
     "macw": "${macw}",
     "mace": "${mace}",
     "ip": "${ip}",

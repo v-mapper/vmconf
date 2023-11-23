@@ -12,16 +12,16 @@
   {
     "id": "vmapper_worker_3",
     "description": "set VM Worker to 3",
-    "exec": "su -c \"echo '[`date '+%-m/%-d/%y %-I:%M %p'`] set worker to 3 by rotom job' >> /sdcard/vmapper.log sed -i -e 's|<int name=\\\"workers\\\" value=\\\"[0-9]*\\\"|<int name=\\\"workers\\\" value=\\\"3\\\"|' /data/data/de.vahrmap.vmapper/shared_prefs/config.xml && am force-stop com.nianticlabs.pokemongo && am force-stop de.vahrmap.vmapper && am broadcast -n de.vahrmap.vmapper/.RestartService && sleep 5 && monkey -p com.nianticlabs.pokemongo -c android.intent.category.LAUNCHER 1\""
+    "exec": "su -c \"echo '[`date '+%-m/%-d/%y %-I:%M %p'`] set worker to 3 by rotom job' >> /sdcard/vmapper.log && sed -i -e 's|<int name=\\\"workers\\\" value=\\\"[0-9]*\\\"|<int name=\\\"workers\\\" value=\\\"3\\\"|' /data/data/de.vahrmap.vmapper/shared_prefs/config.xml && am force-stop com.nianticlabs.pokemongo && am force-stop de.vahrmap.vmapper && am broadcast -n de.vahrmap.vmapper/.RestartService && sleep 5 && monkey -p com.nianticlabs.pokemongo -c android.intent.category.LAUNCHER 1\""
   },
   {
     "id": "vmapper_worker_2",
     "description": "set VM Worker to 2",
-    "exec": "su -c \"echo '[`date '+%-m/%-d/%y %-I:%M %p'`] set worker to 2 by rotom job' >> /sdcard/vmapper.log sed -i -e 's|<int name=\\\"workers\\\" value=\\\"[0-9]*\\\"|<int name=\\\"workers\\\" value=\\\"2\\\"|' /data/data/de.vahrmap.vmapper/shared_prefs/config.xml && am force-stop com.nianticlabs.pokemongo && am force-stop de.vahrmap.vmapper && am broadcast -n de.vahrmap.vmapper/.RestartService && sleep 5 && monkey -p com.nianticlabs.pokemongo -c android.intent.category.LAUNCHER 1\""
+    "exec": "su -c \"echo '[`date '+%-m/%-d/%y %-I:%M %p'`] set worker to 2 by rotom job' >> /sdcard/vmapper.log && sed -i -e 's|<int name=\\\"workers\\\" value=\\\"[0-9]*\\\"|<int name=\\\"workers\\\" value=\\\"2\\\"|' /data/data/de.vahrmap.vmapper/shared_prefs/config.xml && am force-stop com.nianticlabs.pokemongo && am force-stop de.vahrmap.vmapper && am broadcast -n de.vahrmap.vmapper/.RestartService && sleep 5 && monkey -p com.nianticlabs.pokemongo -c android.intent.category.LAUNCHER 1\""
   },
   {
     "id": "vmapper_worker_1",
     "description": "set VM Worker to 1",
-    "exec": "su -c \"echo '[`date '+%-m/%-d/%y %-I:%M %p'`] set worker to 1 by rotom job' >> /sdcard/vmapper.log sed -i -e 's|<int name=\\\"workers\\\" value=\\\"[0-9]*\\\"|<int name=\\\"workers\\\" value=\\\"1\\\"|' /data/data/de.vahrmap.vmapper/shared_prefs/config.xml && am force-stop com.nianticlabs.pokemongo && am force-stop de.vahrmap.vmapper && am broadcast -n de.vahrmap.vmapper/.RestartService && sleep 5 && monkey -p com.nianticlabs.pokemongo -c android.intent.category.LAUNCHER 1\""
+    "exec": "su -c \"echo '[`date '+%-m/%-d/%y %-I:%M %p'`] set worker to 1 by rotom job' >> /sdcard/vmapper.log && sed -i -e 's|<int name=\\\"workers\\\" value=\\\"[0-9]*\\\"|<int name=\\\"workers\\\" value=\\\"1\\\"|' /data/data/de.vahrmap.vmapper/shared_prefs/config.xml && am force-stop com.nianticlabs.pokemongo && am force-stop de.vahrmap.vmapper && am broadcast -n de.vahrmap.vmapper/.RestartService && sleep 5 && monkey -p com.nianticlabs.pokemongo -c android.intent.category.LAUNCHER 1\""
   }
 ]

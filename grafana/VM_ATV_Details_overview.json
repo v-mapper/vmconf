@@ -477,7 +477,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 116
+                "value": 92
               },
               {
                 "id": "custom.displayMode",
@@ -517,7 +517,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 277
+                "value": 260
               }
             ]
           },
@@ -530,6 +530,18 @@
               {
                 "id": "custom.width",
                 "value": 106
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "PIF Ver."
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 79
               }
             ]
           }
@@ -564,7 +576,7 @@
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT\nifnull(magisk,'no_data') as 'Magisk',\nifnull(magisk_modules,'no_data') as 'Modules loaded',\ncount(deviceName) as '#devices'\nfrom ATVsummary\nwhere timestamp > now() - interval 1 day\nGROUP BY magisk, magisk_modules\n",
+          "rawSql": "SELECT\nifnull(magisk,'no_data') as 'Magisk',\nifnull(magisk_modules,'no_data') as 'Modules loaded',\nifnull(pifversion,'no_data') as 'PIF Ver.',\ncount(deviceName) as '#devices'\nfrom ATVsummary\nwhere timestamp > now() - interval 1 day\nGROUP BY magisk, magisk_modules\n",
           "refId": "A",
           "select": [
             [
@@ -1947,6 +1959,6 @@
   "timezone": "",
   "title": "VM ATV Details overview",
   "uid": "YBmfNzFGzsfds",
-  "version": 31,
+  "version": 32,
   "weekStart": ""
 }

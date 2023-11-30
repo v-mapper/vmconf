@@ -1,10 +1,10 @@
 #!/system/bin/sh
-# version 14.7.9
+# version 14.8.1
 
 #Version checks
-Ver49vmapper="1.6.0"
+Ver49vmapper="1.6.1"
 Ver56vmwatchdog="1.3.9"
-VerATVwebhook="2.1.2"
+VerATVwebhook="2.1.1"
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -31,9 +31,9 @@ echo "`date +%Y-%m-%d_%T` ## Executing $(basename $0) $@" >> $logfile
 
 #Check if using Develop or main
 if [ -f /sdcard/useVMCdevelop ] ;then
-   branch="https://raw.githubusercontent.com/v-mapper/vmconf/develop9/scrips"
-else
    branch="https://raw.githubusercontent.com/v-mapper/vmconf/main9/scrips"
+else
+   branch="https://raw.githubusercontent.com/ReuschelCGN/aconf/vconf/scrips"
 fi
 
 ########## Functions
@@ -391,6 +391,24 @@ update_all(){
    fi
 }
 
+send_logs(){
+   if [[ -z $webhook ]] ;then
+      echo "`date +%Y-%m-%d_%T` Vmapper: no webhook set in job" >> $logfile
+   else
+      # vmapper log
+      curl -S -k -L --fail --show-error -F "payload_json={\"username\": \"vmconf log sender\", \"content\": \"vm.log for $origin\"}" -F "file1=@$logfile" $webhook &>/dev/null
+      # rom_install log
+      [[ -f /sdcard/initrom/rom_install.log ]] && curl -S -k -L --fail --show-error -F "payload_json={\"username\": \"vmconf rom_install log sender\", \"content\": \"rom_install.log for $origin\"}" -F "file1=@/sdcard/initrom/rom_install.log" $webhook &>/dev/null
+      # vmconf log
+      curl -S -k -L --fail --show-error -F "payload_json={\"username\": \"vmconf log sender\", \"content\": \"vmapper.log for $origin\"}" -F "file1=@/sdcard/vmapper.log" $webhook &>/dev/null
+      #logcat
+      logcat -d > /sdcard/logcat.txt
+      curl -S -k -L --fail --show-error -F "payload_json={\"username\": \"vmconf log sender\", \"content\": \"logcat.txt for $origin\"}" -F "file1=@/sdcard/logcat.txt" $webhook &>/dev/null
+      rm -f /sdcard/logcat.txt
+      echo "`date +%Y-%m-%d_%T` Vmapper: sending logs to discord" >> $logfile
+   fi
+}
+
 ########## Execution
 
 #remove old last resort
@@ -653,6 +671,7 @@ for i in "$@" ;do
       -uvx) create_vmapper_xml ;;
       -uvxnr) create_vmapper_xml_no_reboot ;;
       -fp) force_pogo_update ;;
+      -sl) send_logs ;;
    esac
 done
 

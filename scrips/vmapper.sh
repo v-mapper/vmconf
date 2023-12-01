@@ -31,9 +31,9 @@ echo "`date +%Y-%m-%d_%T` ## Executing $(basename $0) $@" >> $logfile
 
 #Check if using Develop or main
 if [ -f /sdcard/useVMCdevelop ] ;then
-   branch="https://raw.githubusercontent.com/v-mapper/vmconf/main9/scrips"
+   branch="https://raw.githubusercontent.com/v-mapper/vmconf/develop9/scrips"
 else
-   branch="https://raw.githubusercontent.com/ReuschelCGN/aconf/vconf/scrips"
+   branch="https://raw.githubusercontent.com/v-mapper/vmconf/main9/scrips"
 fi
 
 ########## Functions

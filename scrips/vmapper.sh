@@ -1,10 +1,10 @@
 #!/system/bin/sh
-# version 14.8.1
+# version 14.8.2
 
 #Version checks
 Ver49vmapper="1.6.1"
 Ver56vmwatchdog="1.3.9"
-VerATVwebhook="2.1.1"
+VerATVwebhook="2.1.2"
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -640,6 +640,11 @@ else
       sed -i -e "s/^net.hostname=.*/net.hostname=$origin/g" /system/build.prop
       mount -o remount,ro /
    fi
+fi
+
+# check for webhook
+if [[ $2 == https://* ]] ;then
+  webhook=$2
 fi
 
 # enable ATVdetails webhook sender or restart

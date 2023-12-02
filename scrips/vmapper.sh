@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 14.8.2
+# version 14.8.5
 
 #Version checks
 Ver49vmapper="1.6.1"
@@ -69,7 +69,7 @@ checkupdate(){
 install_vmapper_wizard(){
    # we first download vmapper
    /system/bin/rm -f /sdcard/Download/vmapper.apk
-   until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download" || { echo "`date +%Y-%m-%d_%T` Download vmapper failed, exit" >> $logfile ; exit 1; } ;do
+   until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/apk/vmapperd/download" || { echo "`date +%Y-%m-%d_%T` Download vmapper failed, exit" >> $logfile ; exit 1; } ;do
       sleep 2
    done
 
@@ -150,19 +150,18 @@ install_vmapper_wizard(){
 
 vmapper_wizard(){
    #check update vmapper and download from wizard
-
-   newver="$(/system/bin/curl -s -k -L -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/noarch" | awk '{print $1 }')"
+   newver="$(/system/bin/curl -s -k -L -u $authuser:$authpassword -H "origin: $origin" "$server/get_apk_versions_info"| awk '/vmapper/ { gsub(/"/, ""); print $2 }')"
    installedver="$(dumpsys package de.vahrmap.vmapper | grep versionName | head -n1 | sed 's/ *versionName=//')"
 
    if [ "$newver" = "" ] ;then
       vm_install="skip"
-      echo "`date +%Y-%m-%d_%T` Vmapper not found in MADmin, skipping version check" >> $logfile
+      echo "`date +%Y-%m-%d_%T` Vmapper not found in Genesect, skipping version check" >> $logfile
    else
       checkupdate "$installedver" "$newver"
       if [ $need_update -eq 1 ]; then
         echo "`date +%Y-%m-%d_%T` New vmapper version detected in wizard, updating $installedver=>$newver" >> $logfile
         /system/bin/rm -f /sdcard/Download/vmapper.apk
-        until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download" || { echo "`date +%Y-%m-%d_%T` Download vmapper failed, exit" >> $logfile ; exit 1; } ;do
+        until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/apk/vmapperd/download" || { echo "`date +%Y-%m-%d_%T` Download vmapper failed, exit" >> $logfile ; exit 1; } ;do
            sleep 2
         done
 
@@ -190,7 +189,7 @@ update_vmapper_wizard(){
 downgrade_vmapper_wizard(){
    # we download first
    /system/bin/rm -f /sdcard/Download/vmapper.apk
-   until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/vm/download" || { echo "`date +%Y-%m-%d_%T` Download vmapper failed, exit" >> $logfile ; exit 1; } ;do
+   until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/apk/vmapperd/download" || { echo "`date +%Y-%m-%d_%T` Download vmapper failed, exit" >> $logfile ; exit 1; } ;do
       sleep 2
    done
    # remove vmapper
@@ -223,7 +222,7 @@ pogo_wizard(){
    #check pogo and download from wizard
 
    if [ -z ${force_pogo_update+x} ] ;then
-      newver="$(/system/bin/curl -s -k -L -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/pogo/$arch")"
+      newver="$(/system/bin/curl -s -k -L -u $authuser:$authpassword -H "origin: $origin" "$server/get_apk_versions_info"| awk '/pogo/ { gsub(/"/, ""); print $2 }')"
    else
       newver="1.599.1"
    fi
@@ -233,7 +232,7 @@ pogo_wizard(){
    if [ $need_update -eq 1 ]; then
       echo "`date +%Y-%m-%d_%T` New pogo version detected in wizard, updating $installedver=>$newver" >> $logfile
       /system/bin/rm -f /sdcard/Download/pogo.apk
-      until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/pogo.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/pogo/$arch/download" || { echo "`date +%Y-%m-%d_%T` Download pogo failed, exit" >> $logfile ; exit 1; } ;do
+      until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/pogo.apk -u $authuser:$authpassword -H "origin: $origin" "$server/apk/pogo/download" || { echo "`date +%Y-%m-%d_%T` Download pogo failed, exit" >> $logfile ; exit 1; } ;do
          sleep 2
       done
 
@@ -259,7 +258,7 @@ update_pogo_wizard(){
 
 downgrade_pogo_wizard_no_reboot(){
    /system/bin/rm -f /sdcard/Download/pogo.apk
-   until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/pogo.apk -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/pogo/$arch/download" || { echo "`date +%Y-%m-%d_%T` Download pogo failed, exit" >> $logfile ; exit 1; } ;do
+   until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/pogo.apk -u $authuser:$authpassword -H "origin: $origin" "$server/apk/pogo/download" || { echo "`date +%Y-%m-%d_%T` Download pogo failed, exit" >> $logfile ; exit 1; } ;do
       sleep 2
    done
    echo "`date +%Y-%m-%d_%T` PoGo downgrade: pogo downloaded from wizard" >> $logfile
@@ -272,50 +271,11 @@ downgrade_pogo_wizard_no_reboot(){
    echo "`date +%Y-%m-%d_%T` PoGo downgrade: pogo started" >> $logfile
 }
 
-rgc_wizard(){
-   #check update rgc and download from wizard
-
-   if [ -f "$rgcconf" ] ;then
-
-      newver="$(curl -s -k -L -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/rgc/noarch")"
-      installedver="$(dumpsys package de.grennith.rgc.remotegpscontroller 2>/dev/null|awk -F'=' '/versionName/{print $2}'|head -n1)"
-
-      if checkupdate "$newver" "$installedver" ;then
-        echo "`date +%Y-%m-%d_%T` New rgc version detected in wizard, updating $installedver=>$newver" >> $logfile
-        rm -f /sdcard/Download/RemoteGpsController.apk
-        until /system/bin/curl -o /sdcard/Download/RemoteGpsController.apk  -s -k -L --fail --show-error -u $authuser:$authpassword -H "origin: $origin" "$server/mad_apk/rgc/download" || { echo "`date +%Y-%m-%d_%T` Download rgc failed, exit" >> $logfile ; exit 1; } ;do
-           sleep 2
-        done
-
-        # set rgc to be installed
-        rgc_install="install"
-
-      else
-         rgc_install="skip"
-         echo "`date +%Y-%m-%d_%T` RGC already on latest version" >> $logfile
-      fi
-   else
-      rgc_install="skip"
-      echo "`date +%Y-%m-%d_%T` RGC not installed, skipping update" >> $logfile
-   fi
-}
-
-update_rgc_wizard(){
-   rgc_wizard
-   if [ "$rgc_install" = "install" ] ;then
-      echo "`date +%Y-%m-%d_%T` Installing rgc" >> $logfile
-      # install rgc
-      /system/bin/pm install -r /sdcard/Download/RemoteGpsController.apk
-      /system/bin/rm -f /sdcard/Download/RemoteGpsController.apk
-      reboot=1
-   fi
-}
-
 vmapper_xml(){
    vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
    vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
 
-   until /system/bin/curl -k -s -L --fail --show-error -o $vmconf -u $authuser:$authpassword -H "origin: $origin" "$server/vm_conf" || { echo "`date +%Y-%m-%d_%T` Download config.xml failed, exit" >> $logfile ; exit 1; } ;do
+   until /system/bin/curl -k -s -L --fail --show-error -o $vmconf -u $authuser:$authpassword -H "origin: $origin" "$server/vm_conf"|| { echo "`date +%Y-%m-%d_%T` Download config.xml failed, exit" >> $logfile ; exit 1; } ;do
       sleep 2
    done
 
@@ -537,30 +497,6 @@ if [ -f $vmconf ] && [ -f $pdconf ] && [[ $vm_origin != $pd_origin || $vm_dest !
    chown $puser:$puser $pdconf
 fi
 
-# check rgc status, websocket fallback
-if [ -f "$rgcconf" ] ;then
-   if [ -f "$vmconf" ] && [ ! -z $(grep -w 'websocketurl' $vmconf | sed -e 's/    <string name="websocketurl">\(.*\)<\/string>/\1/') ] ;then
-      if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "true" ]] ;then
-        sed -i 's,\"autostart_services\" value=\"true\",\"autostart_services\" value=\"false\",g' $rgcconf
-        sed -i 's,\"boot_startup\" value=\"true\",\"boot_startup\" value=\"false\",g' $rgcconf
-        chmod 660 $rgcconf
-        chown $ruser:$ruser $rgcconf
-        am force-stop de.grennith.rgc.remotegpscontroller
-        echo "`date +%Y-%m-%d_%T` VMconf check: rgc activated and vmapper installed, disabled rgc" >> $logfile
-      fi
-   else
-      if [[ $(grep -w 'boot_startup' $rgcconf | awk -F "\"" '{print tolower($4)}') == "false" ]] ;then
-        sed -i 's,\"autostart_services\" value=\"false\",\"autostart_services\" value=\"true\",g' $rgcconf
-        sed -i 's,\"boot_startup\" value=\"false\",\"boot_startup\" value=\"true\",g' $rgcconf
-        chmod 660 $rgcconf
-        chown $ruser:$ruser $rgcconf
-        monkey -p de.grennith.rgc.remotegpscontroller 1
-        reboot=1
-        echo "`date +%Y-%m-%d_%T` VMconf check: rgc deactivated and either vmapper not installed or websocket was empty, started rgc" >> $logfile
-      fi
-   fi
-fi
-
 # check owner of vmapper config.xml
 [ -f $vmconf ] && vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
 [ -f $vmconf ] && vmconfiguser=$(ls -la /data/data/de.vahrmap.vmapper/shared_prefs/config.xml |head -n2|tail -n1|awk '{print $3}')
@@ -600,16 +536,17 @@ elif [[ -f /data/local/vmconf ]] ;then
    #pm disable-user com.android.vending
    echo "`date +%Y-%m-%d_%T` Using settings stored in /data/local/vmconf"  >> $logfile
 else
-   echo "`date +%Y-%m-%d_%T` No settings found to connect to MADmin, exiting vmapper.sh" >> $logfile
-   echo "No settings found to connect to MADmin, exiting vmapper.sh"
+   echo "`date +%Y-%m-%d_%T` No settings found to connect to Genesect, exiting vmapper.sh" >> $logfile
+   echo "No settings found to connect to Genesect, exiting vmapper.sh"
    exit 1
 fi
 
 # verify endpoint and store settings as last resort
-statuscode=$(/system/bin/curl -k -s -L --fail --show-error -o /dev/null -u $authuser:$authpassword -H "origin: $origin" "$server/vm_conf" -w '%{http_code}')
+#statuscode=$(/system/bin/curl -k -s -L --fail --show-error -o /dev/null -u $authuser:$authpassword -H "origin: $origin" "$server/vm_conf" -w '%{http_code}')
+statuscode=200
 if [ $statuscode != 200 ] ;then
-   echo "Unable to reach MADmin endpoint, status code $statuscode, exit vmapper.sh"
-   echo "`date +%Y-%m-%d_%T` Unable to reach MADmin endpoint, status code $statuscode, exiting vmapper.sh" >> $logfile
+   echo "Unable to reach Genesect endpoint, status code $statuscode, exit vmapper.sh"
+   echo "`date +%Y-%m-%d_%T` Unable to reach Genesect endpoint, status code $statuscode, exiting vmapper.sh" >> $logfile
    exit 1
 else
    /system/bin/rm -f "$lastResort"

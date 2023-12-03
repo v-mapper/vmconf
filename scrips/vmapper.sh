@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 14.8.5
+# version 14.8.6
 
 #Version checks
 Ver49vmapper="1.6.1"
@@ -15,12 +15,10 @@ fi
 rm -f /sdcard/vmapper_conf
 
 logfile="/sdcard/vm.log"
-[[ -d /data/data/com.mad.pogodroid ]] && puser=$(ls -la /data/data/com.mad.pogodroid/ | head -n2 | tail -n1 | awk '{print $3}')
-pdconf="/data/data/com.mad.pogodroid/shared_prefs/com.mad.pogodroid_preferences.xml"
-[[ -d /data/data/de.grennith.rgc.remotegpscontroller ]] && ruser=$(ls -la /data/data/de.grennith.rgc.remotegpscontroller/ |head -n2 | tail -n1 | awk '{print $3}')
-rgcconf="/data/data/de.grennith.rgc.remotegpscontroller/shared_prefs/de.grennith.rgc.remotegpscontroller_preferences.xml"
 vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
 lastResort="/data/local/vm_last_resort"
+current_mac=$(ifconfig eth0 | awk '/HWaddr/{print $5}')
+current_mac_encoded=$(echo $current_mac | sed 's/:/%3A/g') # URL-kodiere die MAC-Adresse
 
 # stderr to logfile
 exec 2>> $logfile
@@ -73,17 +71,6 @@ install_vmapper_wizard(){
       sleep 2
    done
 
-   ## pogodroid disable full daemon + stop pogodroid
-   if [ -f "$pdconf" ] ;then
-      sed -i 's,\"full_daemon\" value=\"true\",\"full_daemon\" value=\"false\",g' $pdconf
-      chmod 660 $pdconf
-      chown $puser:$puser $pdconf
-      am force-stop com.mad.pogodroid
-      echo "`date +%Y-%m-%d_%T` VM install: pogodroid disabled" >> $logfile
-      # disable pd autoupdate
-      touch /sdcard/disableautopogodroidupdate
-   fi
-
    # let us kill pogo as well
    am force-stop com.nianticlabs.pokemongo
 
@@ -111,20 +98,7 @@ install_vmapper_wizard(){
    am broadcast -n de.vahrmap.vmapper/.RestartService
    sleep 5
 
-   # disable rgc
-   if [ -f "$rgcconf" ] ;then
-      sed -i 's,\"autostart_services\" value=\"true\",\"autostart_services\" value=\"false\",g' $rgcconf
-      sed -i 's,\"boot_startup\" value=\"true\",\"boot_startup\" value=\"false\",g' $rgcconf
-      chmod 660 $rgcconf
-      chown $ruser:$ruser $rgcconf
-      # disable rgc autoupdate
-      touch /sdcard/disableautorgcupdate
-      # kill rgc
-      am force-stop de.grennith.rgc.remotegpscontroller
-      echo "`date +%Y-%m-%d_%T` VM install: rgc disabled" >> $logfile
-   fi
-
-   # add 56vmwatchdog for new install on MADrom
+   # add 56vmwatchdog for new install on PoGoRom
    if [ ! -f /system/etc/init.d/56vmwatchdog ] ;then
       mount -o remount,rw /
       until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/56vmwatchdog $branch/56vmwatchdog || { echo "`date +%Y-%m-%d_%T` VM install: download 56vmwatchdog failed, exit" >> $logfile ; exit 1; } ;do
@@ -275,7 +249,7 @@ vmapper_xml(){
    vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
    vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
 
-   until /system/bin/curl -k -s -L --fail --show-error -o $vmconf -u $authuser:$authpassword -H "origin: $origin" "$server/vm_conf"|| { echo "`date +%Y-%m-%d_%T` Download config.xml failed, exit" >> $logfile ; exit 1; } ;do
+   until /system/bin/curl -k -s -L --fail --show-error -o $vmconf -u $authuser:$authpassword -H "origin: $origin" "$server/vm_conf?mac=$current_mac_encoded"|| { echo "`date +%Y-%m-%d_%T` Download config.xml failed, exit" >> $logfile ; exit 1; } ;do
       sleep 2
    done
 
@@ -472,30 +446,10 @@ if [ -d /data/data/de.vahrmap.vmapper/ ] ;then
    fi
 fi
 
-# allign rgc/pd settings with vm
+# allign settings with vm
 [ -f $vmconf ] && vm_origin=$(grep -w 'origin' $vmconf | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/')
-[ -f $rgcconf ] && rgc_origin=$(grep -w 'websocket_origin' $rgcconf | sed -e 's/    <string name="websocket_origin">\(.*\)<\/string>/\1/')
-[ -f $pdconf ] && pd_origin=$(grep -w 'post_origin' $pdconf | sed -e 's/    <string name="post_origin">\(.*\)<\/string>/\1/')
 [ -f $vmconf ] && vm_ws=$(grep -w 'websocketurl' $vmconf | sed -e 's/    <string name="websocketurl">\(.*\)<\/string>/\1/')
-[ -f $rgcconf ] && rgc_ws=$(grep -w 'websocket_uri' $rgcconf | sed -e 's/    <string name="websocket_uri">\(.*\)<\/string>/\1/')
 [ -f $vmconf ] && vm_dest=$(grep -w 'postdest' $vmconf | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/')
-[ -f $pdconf ] && pd_dest=$(grep -w 'post_destination' $pdconf | sed -e 's/    <string name="post_destination">\(.*\)<\/string>/\1/')
-#Check rgc
-if [ -f $vmconf ] && [ -f $rgcconf ] && [[ $vm_origin != $rgc_origin || $vm_ws != $rgc_ws ]] ;then
-   echo "`date +%Y-%m-%d_%T` VMconf check: rgc settings differ from vmapper, adjusting rgc" >> $logfile
-   sed -i 's,\"websocket_origin\">.*<,\"websocket_origin\">'"$vm_origin"'<,g' $rgcconf
-   sed -i 's,\"websocket_uri\">.*<,\"websocket_uri\">'"$vm_ws"'<,g' $rgcconf
-   chmod 660 $rgcconf
-   chown $ruser:$ruser $rgcconf
-fi
-#Check pd
-if [ -f $vmconf ] && [ -f $pdconf ] && [[ $vm_origin != $pd_origin || $vm_dest != $pd_dest ]] ;then
-   echo "`date +%Y-%m-%d_%T` VMconf check: pd settings differ from vmapper, adjusting pd" >> $logfile
-   sed -i 's,\"post_origin\">.*<,\"post_origin\">'"$vm_origin"'<,g' $pdconf
-   sed -i 's,\"post_destination\">.*<,\"post_destination\">'"$vm_dest"'<,g' $pdconf
-   chmod 660 $pdconf
-   chown $puser:$puser $pdconf
-fi
 
 # check owner of vmapper config.xml
 [ -f $vmconf ] && vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
@@ -508,19 +462,13 @@ if [ -f "$vmconf" ] && [[ $vmuser != $vmconfiguser ]] ;then
    echo "`date +%Y-%m-%d_%T` VMconf check: vmapper config.xml user incorrect, changed it and restarted vmapper" >> $logfile
 fi
 
-# Get MADmin credentials and origin
+# Get Genesect credentials and origin
 if [ -f "$vmconf" ] && [ ! -z $(grep -w 'postdest' $vmconf | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/') ] ;then
    server=$(grep -w 'postdest' $vmconf | sed -e 's/    <string name="postdest">\(.*\)<\/string>/\1/')
    authuser=$(grep -w 'authuser' $vmconf | sed -e 's/    <string name="authuser">\(.*\)<\/string>/\1/')
    authpassword=$(grep -w 'authpassword' $vmconf | sed -e 's/    <string name="authpassword">\(.*\)<\/string>/\1/')
    origin=$(grep -w 'origin' $vmconf | sed -e 's/    <string name="origin">\(.*\)<\/string>/\1/')
    echo "`date +%Y-%m-%d_%T` Using vahrmap.vmapper settings" >> $logfile
-elif [ -f "$pdconf" ] && [ ! -z $(grep -w 'post_origin' $pdconf | sed -e 's/    <string name="post_origin">\(.*\)<\/string>/\1/') ] ;then
-   server=$(grep -w 'post_destination' $pdconf | sed -e 's/    <string name="post_destination">\(.*\)<\/string>/\1/')
-   authuser=$(grep -w 'auth_username' $pdconf | sed -e 's/    <string name="auth_username">\(.*\)<\/string>/\1/')
-   authpassword=$(grep -w 'auth_password' $pdconf | sed -e 's/    <string name="auth_password">\(.*\)<\/string>/\1/')
-   origin=$(grep -w 'post_origin' $pdconf | sed -e 's/    <string name="post_origin">\(.*\)<\/string>/\1/')
-   echo "`date +%Y-%m-%d_%T` Using pogodroid settings" >> $logfile
 elif [ -f "$lastResort" ] ;then
    server=$(awk '{print $1}' "$lastResort")
    authuser=$(awk '{print $2}' "$lastResort")
@@ -542,8 +490,7 @@ else
 fi
 
 # verify endpoint and store settings as last resort
-#statuscode=$(/system/bin/curl -k -s -L --fail --show-error -o /dev/null -u $authuser:$authpassword -H "origin: $origin" "$server/vm_conf" -w '%{http_code}')
-statuscode=200
+statuscode=$(/system/bin/curl -k -s -L --fail --show-error -o /dev/null -u $authuser:$authpassword -H "origin: $origin" "$server/vm_conf?mac=$current_mac_encoded" -w '%{http_code}')
 if [ $statuscode != 200 ] ;then
    echo "Unable to reach Genesect endpoint, status code $statuscode, exit vmapper.sh"
    echo "`date +%Y-%m-%d_%T` Unable to reach Genesect endpoint, status code $statuscode, exiting vmapper.sh" >> $logfile
@@ -608,7 +555,6 @@ for i in "$@" ;do
       -dvw) downgrade_vmapper_wizard ;;
       -upw) update_pogo_wizard ;;
       -dpwnr) downgrade_pogo_wizard_no_reboot ;;
-      -urw) update_rgc_wizard ;;
       -ua) update_all ;;
       -uvx) create_vmapper_xml ;;
       -uvxnr) create_vmapper_xml_no_reboot ;;

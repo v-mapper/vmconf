@@ -1,67 +1,77 @@
 [
   {
-    "id": "sendLog",
-    "description": "send all logs to discord channel",
-    "exec": "su -c '/system/bin/vmapper.sh -sl https://discord.com/api/webhooks/0987654321/1234567890'"
+    "id": "vmapper_sendLog",
+    "description": "vmapper - send all logs to discord channel",
+    "exec": "su -c 'echo '[`date '+%-m/%-d/%y %-I:%M %p'`] send all logs to discord by rotom job' >> /sdcard/vmapper.log && /system/bin/vmapper.sh -sl https://discord.com/api/webhooks/0987654321/1234567890'"
   },
   {
-    "id": "updateAll",
-    "description": "update all apps",
-    "exec": "su -c '/system/bin/vmapper.sh -ua'"
+    "id": "clean_Vmapper_logs",
+    "description": "vmapper - clean Vmapper Logs",
+    "exec": "su -c 'echo '[`date '+%-m/%-d/%y %-I:%M %p'`] clear vmapper logs by rotom job' >> /sdcard/vmapper.log && rm sdcard/VMHistory.log && rm sdcard/vm.log && sdcard/vmapper.log && sleep 2 && reboot"
   },
   {
-    "id": "updateVmapper",
-    "description": "update vmapper",
-    "exec": "su -c '/system/bin/vmapper.sh -uvw'"
+    "id": "vmapper_updateAll",
+    "description": "vmapper - update all apps",
+    "exec": "su -c 'echo '[`date '+%-m/%-d/%y %-I:%M %p'`] update all apps by rotom job' >> /sdcard/vmapper.log && /system/bin/vmapper.sh -ua'"
   },
   {
-    "id": "downgradeVmapper",
-    "description": "downgrade vmapper",
-    "exec": "su -c '/system/bin/vmapper.sh -dvw'"
+    "id": "vmapper_updateVmapper",
+    "description": "vmapper - update vmapper",
+    "exec": "su -c 'echo '[`date '+%-m/%-d/%y %-I:%M %p'`] upgrade vmapper by rotom job' >> /sdcard/vmapper.log && /system/bin/vmapper.sh -uvw'"
   },
   {
-    "id": "installVmapper",
-    "description": "install vmapper",
-    "exec": "su -c '/system/bin/vmapper.sh -ivw'"
+    "id": "vmapper_downgradeVmapper",
+    "description": "vmapper - downgrade vmapper",
+    "exec": "su -c 'echo '[`date '+%-m/%-d/%y %-I:%M %p'`] downgrade vmapper by rotom job' >> /sdcard/vmapper.log && /system/bin/vmapper.sh -dvw'"
+  },
+  {
+    "id": "vmapper_installVmapper",
+    "description": "vmapper - install vmapper",
+    "exec": "su -c 'echo '[`date '+%-m/%-d/%y %-I:%M %p'`] install vmapper by rotom job' >> /sdcard/vmapper.log && /system/bin/vmapper.sh -ivw'"
   },  
   {
-    "id": "updatePogo",
-    "description": "update pogo",
-    "exec": "su -c '/system/bin/vmapper.sh -upw'"
+    "id": "vmapper_updatePogo",
+    "description": "vmapper - update pogo",
+    "exec": "su -c 'echo '[`date '+%-m/%-d/%y %-I:%M %p'`] update Pogo by rotom job' >> /sdcard/vmapper.log && /system/bin/vmapper.sh -upw'"
   },  
   {
-    "id": "downgradePogo",
-    "description": "downgrade pogo",
-    "exec": "su -c '/system/bin/vmapper.sh -dpwnr'"
+    "id": "vmapper_downgradePogo",
+    "description": "vmapper - downgrade pogo",
+    "exec": "su -c 'echo '[`date '+%-m/%-d/%y %-I:%M %p'`] downgrade Pogo by rotom job' >> /sdcard/vmapper.log && /system/bin/vmapper.sh -dpwnr'"
   },   
   {
-    "id": "forceUpgradePogo",
-    "description": "force upgrade pogo",
-    "exec": "su -c '/system/bin/vmapper.sh -fp'"
+    "id": "vmapper_forceUpgradePogo",
+    "description": "vmapper - force upgrade pogo",
+    "exec": "su -c 'echo '[`date '+%-m/%-d/%y %-I:%M %p'`] force update Pogo by rotom job' >> /sdcard/vmapper.log && /system/bin/vmapper.sh -fp'"
   },  
   {
-    "id": "updateXML",
-    "description": "update vmapper config.xml",
-    "exec": "su -c '/system/bin/vmapper.sh -uvx'"
+    "id": "vmapper_updateXML",
+    "description": "vmapper - update vmapper config.xml",
+    "exec": "su -c 'echo '[`date '+%-m/%-d/%y %-I:%M %p'`] update config.xml with reboot by rotom job' >> /sdcard/vmapper.log && /system/bin/vmapper.sh -uvx'"
   },
   {
-    "id": "updateXMLnoreboot",
-    "description": "update vmapper config.xml without reboot",
-    "exec": "su -c '/system/bin/vmapper.sh -uvxnr'"
+    "id": "vmapper_updateXMLnoreboot",
+    "description": "vmapper - update vmapper config.xml without reboot",
+    "exec": "su -c 'echo '[`date '+%-m/%-d/%y %-I:%M %p'`] update config.xml without reboot by rotom job' >> /sdcard/vmapper.log && /system/bin/vmapper.sh -uvxnr'"
   },
   {
-    "id": "updateWHsender",
-    "description": "update webhook sender",
-    "exec": "su -c '/system/bin/vmapper.sh'"
+    "id": "vmapper_updateROM",
+    "description": "vmapper - update ROM",
+    "exec": "su -c 'echo '[`date '+%-m/%-d/%y %-I:%M %p'`] update ROM by rotom job' >> /sdcard/vmapper.log && /system/bin/vmapper.sh -urom'"
   },
   {
-    "id": "reboot_device",
-    "description": "reboot device",
+    "id": "vmapper_updateVmapperSH",
+    "description": "vmapper - update vmapper.sh",
+    "exec": "su -c 'echo '[`date '+%-m/%-d/%y %-I:%M %p'`] update vmapper.sh by rotom job' >> /sdcard/vmapper.log && mount -o remount,rw / && /system/bin/curl -s -k -L --fail --show-error -o /system/bin/vmapper.sh https://raw.githubusercontent.com/v-mapper/vmconf/main9/scrips/vmapper.sh && chmod +x /system/bin/vmapper.sh && mount -o remount,ro /'"
+  },
+  {
+    "id": "vmapper_reboot_device",
+    "description": "vmapper - reboot device",
     "exec": "su -c 'echo '[`date '+%-m/%-d/%y %-I:%M %p'`] restart by rotom job' >> /sdcard/vmapper.log && reboot'"
   },
   {
-    "id": "restart_vmapper",
-    "description": "restart vmapper",
+    "id": "vmapper_restart_vmapper",
+    "description": "vmapper - restart vmapper",
     "exec": "su -c 'echo '[`date '+%-m/%-d/%y %-I:%M %p'`] Vmapper restart by rotom job' >> /sdcard/vmapper.log && am force-stop de.vahrmap.vmapper && am broadcast -n de.vahrmap.vmapper/.RestartService'"
   }
 ]

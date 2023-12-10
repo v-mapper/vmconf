@@ -1,10 +1,10 @@
 #!/system/bin/sh
-# version 14.8.6
+# version 14.8.7
 
 #Version checks
-Ver49vmapper="1.6.1"
+Ver49vmapper="1.7.0"
 Ver56vmwatchdog="1.3.9"
-VerATVwebhook="2.1.1"
+VerATVwebhook="2.1.2"
 
 #Create logfile
 if [ ! -e /sdcard/vm.log ] ;then
@@ -343,6 +343,42 @@ send_logs(){
    fi
 }
 
+update_a9_rom(){
+   mount -o remount,rw /
+
+   # update 56vmwatchdog
+   until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/56vmwatchdog $branch/56vmwatchdog || { echo "`date +%Y-%m-%d_%T` VM install: download 56vmwatchdog failed, exit" >> $logfile ; exit 1; } ;do
+       sleep 2
+   done
+   chmod +x /system/etc/init.d/56vmwatchdog
+   echo "`date +%Y-%m-%d_%T` VM install: 56vmwatchdog updated" >> $logfile
+
+   # update webhooksender
+   until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/ATVdetailsSender.sh $branch/ATVdetailsSender.sh || { echo "`date +%Y-%m-%d_%T` VM install: download ATVdetailsSender.sh failed, exit" >> $logfile ; exit 1; } ;do
+      sleep 2
+   done
+   chmod +x /system/bin/ATVdetailsSender.sh
+   echo "`date +%Y-%m-%d_%T` VM install: webhook sender updated" >> $logfile
+
+   # update 49vmapper
+   until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/49vmapper $branch/49vmapper || { echo "`date +%Y-%m-%d_%T` VM install: download 49vmapper failed, exit" >> $logfile ; exit 1; } ;do
+      sleep 2
+   done
+   chmod +x /system/etc/init.d/49vmapper
+   echo "`date +%Y-%m-%d_%T` VM install: 49vmapper updated" >> $logfile
+
+   # update 28playfixswitch
+   until /system/bin/curl -s -k -L --fail --show-error -o /system/etc/init.d/28playfixswitch $branch/28playfixswitch || { echo "`date +%Y-%m-%d_%T` VM install: download 28playfixswitch failed, exit" >> $logfile ; exit 1; } ;do
+      sleep 2
+   done
+   chmod +x /system/etc/init.d/28playfixswitch
+   echo "`date +%Y-%m-%d_%T` VM install: 28playfixswitch updated" >> $logfile
+
+   mount -o remount,ro / 
+}
+
+
+
 ########## Execution
 
 #remove old last resort
@@ -560,6 +596,7 @@ for i in "$@" ;do
       -uvxnr) create_vmapper_xml_no_reboot ;;
       -fp) force_pogo_update ;;
       -sl) send_logs ;;
+      -urom) update_a9_rom;;
    esac
 done
 

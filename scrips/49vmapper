@@ -10,6 +10,12 @@ useragent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Fir
 vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
 customConfig="/etc/vm_custom_config"
 
+# Check if customConfig exists on USB
+if [ ! -f "$customConfig" ]; then
+    # If not found on USB, use the one in /etc
+    customConfig="/etc/vm_custom_config"
+fi
+
 # Create logfile
 if [ ! -e /sdcard/vm.log ]; then
   touch /sdcard/vm.log

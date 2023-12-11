@@ -2,7 +2,7 @@
 # version 14.8.7
 
 #Version checks
-Ver49vmapper="1.7.0"
+Ver49vmapper="1.7.1"
 Ver56vmwatchdog="1.3.9"
 VerATVwebhook="2.1.2"
 

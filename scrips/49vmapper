@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# Version 1.7.0
+# Version 1.7.1
 # ROM Version
 romver="2.0.17"
 logfile="/sdcard/vm.log"

@@ -8,7 +8,7 @@ initfile2="$scriptdir/init_done"
 initdir="/sdcard/initrom"
 useragent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0"
 vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
-customConfig="/etc/vm_custom_config"
+customConfig="/mnt/media_rw/vm_custom_config"
 
 # Check if customConfig exists on USB
 if [ ! -f "$customConfig" ]; then

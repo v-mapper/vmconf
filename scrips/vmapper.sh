@@ -124,8 +124,8 @@ install_vmapper_wizard(){
 
 vmapper_wizard(){
    #check update vmapper and download from wizard
-   newver="$(/system/bin/curl -s -k -L -u $authuser:$authpassword -H "origin: $origin" "$server/get_apk_versions_info"| awk '/vmapper/ { gsub(/"/, ""); print $2 }')"
-   installedver="$(dumpsys package de.vahrmap.vmapper | grep versionName | head -n1 | sed 's/ *versionName=//')"
+   newver="$(/system/bin/curl -s -k -L -u $authuser:$authpassword -H "origin: $origin" "$server/get_apk_versions_info"| jq -r '.["vmapperd.apk"]' | sed 's/^V//;s/D$//')"
+   installedver="$(dumpsys package de.vahrmap.vmapper | grep versionName | head -n1 | sed 's/ *versionName=//' | sed 's/^V//;s/D$//')"
 
    if [ "$newver" = "" ] ;then
       vm_install="skip"

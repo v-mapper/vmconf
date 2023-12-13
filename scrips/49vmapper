@@ -1,10 +1,11 @@
 #!/system/bin/sh
-# Version 1.7.1
+
+# __author__ = "Andy"
+# __version__ = "2.0.0"
+
 # ROM Version
 romver="2.0.17"
 logfile="/sdcard/vm.log"
-scriptdir=$(dirname "$0")
-initfile2="$scriptdir/init_done"
 initdir="/sdcard/initrom"
 useragent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0"
 vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
@@ -109,7 +110,7 @@ check_and_set_mac() {
 
     # Log: Step 1 - Deactivate the network interface
     ifconfig eth0 down
-    sleep 2  # Short pause after deactivation
+    sleep 2 
 
     # Set the new MAC address
     until ifconfig eth0 hw ether "${new_mac}" 2>/dev/null; do
@@ -132,7 +133,7 @@ check_and_set_mac() {
 mount -o remount,rw /
 
 if [ -f $initdir/init_done ]; then
-    if [ -f "$initfile2" ]; then
+    if [ -f "$initdir/init_done_49vmapper" ]; then
         echo "Initialization already completed, script will not be re-executed."
         mount -o remount,ro /
 	check_and_set_mac
@@ -183,7 +184,7 @@ echo "$(date +%Y-%m-%d_%T) 49vmapper: Installed vmapper.sh"  >> $logfile
 # Check for PoGo APK on USB, download if not found
 usbpogo="$(find /mnt/media_rw/ -iname *pokemongo*.apk 2>/dev/null)"
 if [ -z $usbpogo ] ;then
-    echo "$(date +%Y-%m-%d_%T) 49vmapper: Downloading PoGo from gensect"  >> $logfile
+    echo "$(date +%Y-%m-%d_%T) 49vmapper: Downloading PoGo from Genesect"  >> $logfile
     until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/pogo.apk -u $auth -H "origin: $origin" "$server/apk/pogo/download" || { echo "$(date +%Y-%m-%d_%T) 49vmapper: Download PoGo failed for origin=$origin, auth=$auth, server=$server from ip=$ip. Exit script" >> $logfile ; exit 1; } ;do
         sleep 2
     done
@@ -196,8 +197,8 @@ fi
 echo "$(date +%Y-%m-%d_%T) 49vmapper: Installed PoGo"  >> $logfile
 
 # Download and install ATVdetailsSender.sh
-until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/ATVdetailsSender.sh https://raw.githubusercontent.com/v-mapper/vmconf/main9/scrips/ATVdetailsSender.sh || { echo "`date +%Y-%m-%d_%T` 49vmapper: Download ATVdetailsSender.sh failed for origin=$origin, auth=$auth, server=$server from ip=$ip. Exit script" >> $logfile ; exit 1; } ;do
-    sleep 2
+until /system/bin/curl -s -k -L --fail --show-error -o /system/bin/ATVdetailsSender.sh -u $auth -H "origin: $origin" "$server/script/ATVdetailsSender/download" || { echo "`date +%Y-%m-%d_%T` 49vmapper: Download ATVdetailsSender.sh failed for origin=$origin, auth=$auth, server=$server from ip=$ip. Exit script" >> $logfile ; exit 1; } ;do
+sleep 2
 done
 chmod +x /system/bin/ATVdetailsSender.sh
 echo "`date +%Y-%m-%d_%T` 49vmapper: Installed ATVdetailsSender.sh"  >> $logfile
@@ -220,10 +221,11 @@ fi
 
 # Enable PlayStore for validating play integrity accounts
 echo "`date +%Y-%m-%d_%T` 49vmapper: Enable PlayStore for validate play integrity" >> $logfile
-dpm enable com.android.vending
+pm enable com.android.vending
 
 # Create the init_done file at the end of your script
-echo "Initialization successfully completed." > "$initfile2"
+  touch $initdir/init_done_49vmapper
+  echo  "`date +%Y-%m-%d_%T` 49vmapper initial finish " >> $logfile
 
 # Install and configure VMapper
 echo "`date +%Y-%m-%d_%T` 49vmapper: Starting install of vmapper" >> $logfile

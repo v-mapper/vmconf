@@ -196,7 +196,7 @@ pogo_wizard(){
    #check pogo and download from wizard
 
    if [ -z ${force_pogo_update+x} ] ;then
-      newver="$(/system/bin/curl -s -k -L -u $authuser:$authpassword -H "origin: $origin" "$server/get_apk_versions_info"| awk '/pogo/ { gsub(/"/, ""); print $2 }')"
+      newver="$(/system/bin/curl -s -k -L -u $authuser:$authpassword -H "origin: $origin" "$server/get_apk_versions_info" | jq -r '.["pogo.apk"]')"
    else
       newver="1.599.1"
    fi

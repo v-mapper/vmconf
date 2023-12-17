@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# version 14.8.7
+# version 14.8.8
 
 #Version checks
 Ver49vmapper="1.7.1"
@@ -67,7 +67,7 @@ checkupdate(){
 install_vmapper_wizard(){
    # we first download vmapper
    /system/bin/rm -f /sdcard/Download/vmapper.apk
-   until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/apk/vmapperd/download" || { echo "`date +%Y-%m-%d_%T` Download vmapper failed, exit" >> $logfile ; exit 1; } ;do
+   until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword "$server/apk/vmapperd/download" || { echo "`date +%Y-%m-%d_%T` Download vmapper failed, exit" >> $logfile ; exit 1; } ;do
       sleep 2
    done
 
@@ -124,7 +124,7 @@ install_vmapper_wizard(){
 
 vmapper_wizard(){
    #check update vmapper and download from wizard
-   newver="$(/system/bin/curl -s -k -L -u $authuser:$authpassword -H "origin: $origin" "$server/get_apk_versions_info"| jq -r '.["vmapperd.apk"]' | sed 's/^V//;s/D$//')"
+   newver="$(/system/bin/curl -s -k -L -u $authuser:$authpassword   "$server/get_apk_versions_info"| jq -r '.["vmapperd.apk"]' | sed 's/^V//;s/D$//')"
    installedver="$(dumpsys package de.vahrmap.vmapper | grep versionName | head -n1 | sed 's/ *versionName=//' | sed 's/^V//;s/D$//')"
 
    if [ "$newver" = "" ] ;then
@@ -135,7 +135,7 @@ vmapper_wizard(){
       if [ $need_update -eq 1 ]; then
         echo "`date +%Y-%m-%d_%T` New vmapper version detected in wizard, updating $installedver=>$newver" >> $logfile
         /system/bin/rm -f /sdcard/Download/vmapper.apk
-        until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/apk/vmapperd/download" || { echo "`date +%Y-%m-%d_%T` Download vmapper failed, exit" >> $logfile ; exit 1; } ;do
+        until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword "$server/apk/vmapperd/download" || { echo "`date +%Y-%m-%d_%T` Download vmapper failed, exit" >> $logfile ; exit 1; } ;do
            sleep 2
         done
 
@@ -163,7 +163,7 @@ update_vmapper_wizard(){
 downgrade_vmapper_wizard(){
    # we download first
    /system/bin/rm -f /sdcard/Download/vmapper.apk
-   until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword -H "origin: $origin" "$server/apk/vmapperd/download" || { echo "`date +%Y-%m-%d_%T` Download vmapper failed, exit" >> $logfile ; exit 1; } ;do
+   until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/vmapper.apk -u $authuser:$authpassword   "$server/apk/vmapperd/download" || { echo "`date +%Y-%m-%d_%T` Download vmapper failed, exit" >> $logfile ; exit 1; } ;do
       sleep 2
    done
    # remove vmapper
@@ -196,7 +196,7 @@ pogo_wizard(){
    #check pogo and download from wizard
 
    if [ -z ${force_pogo_update+x} ] ;then
-      newver="$(/system/bin/curl -s -k -L -u $authuser:$authpassword -H "origin: $origin" "$server/get_apk_versions_info" | jq -r '.["pogo.apk"]')"
+      newver="$(/system/bin/curl -s -k -L -u $authuser:$authpassword   "$server/get_apk_versions_info" | jq -r '.["pogo.apk"]')"
    else
       newver="1.599.1"
    fi
@@ -206,7 +206,7 @@ pogo_wizard(){
    if [ $need_update -eq 1 ]; then
       echo "`date +%Y-%m-%d_%T` New pogo version detected in wizard, updating $installedver=>$newver" >> $logfile
       /system/bin/rm -f /sdcard/Download/pogo.apk
-      until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/pogo.apk -u $authuser:$authpassword -H "origin: $origin" "$server/apk/pogo/download" || { echo "`date +%Y-%m-%d_%T` Download pogo failed, exit" >> $logfile ; exit 1; } ;do
+      until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/pogo.apk -u $authuser:$authpassword   "$server/apk/pogo/download" || { echo "`date +%Y-%m-%d_%T` Download pogo failed, exit" >> $logfile ; exit 1; } ;do
          sleep 2
       done
 
@@ -232,7 +232,7 @@ update_pogo_wizard(){
 
 downgrade_pogo_wizard_no_reboot(){
    /system/bin/rm -f /sdcard/Download/pogo.apk
-   until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/pogo.apk -u $authuser:$authpassword -H "origin: $origin" "$server/apk/pogo/download" || { echo "`date +%Y-%m-%d_%T` Download pogo failed, exit" >> $logfile ; exit 1; } ;do
+   until /system/bin/curl -k -s -L --fail --show-error -o /sdcard/Download/pogo.apk -u $authuser:$authpassword   "$server/apk/pogo/download" || { echo "`date +%Y-%m-%d_%T` Download pogo failed, exit" >> $logfile ; exit 1; } ;do
       sleep 2
    done
    echo "`date +%Y-%m-%d_%T` PoGo downgrade: pogo downloaded from wizard" >> $logfile
@@ -249,7 +249,7 @@ vmapper_xml(){
    vmconf="/data/data/de.vahrmap.vmapper/shared_prefs/config.xml"
    vmuser=$(ls -la /data/data/de.vahrmap.vmapper/|head -n2|tail -n1|awk '{print $3}')
 
-   until /system/bin/curl -k -s -L --fail --show-error -o $vmconf -u $authuser:$authpassword -H "origin: $origin" "$server/vm_conf?mac=$current_mac_encoded"|| { echo "`date +%Y-%m-%d_%T` Download config.xml failed, exit" >> $logfile ; exit 1; } ;do
+   until /system/bin/curl -k -s -L --fail --show-error -o $vmconf -u $authuser:$authpassword   "$server/vm_conf?mac=$current_mac_encoded"|| { echo "`date +%Y-%m-%d_%T` Download config.xml failed, exit" >> $logfile ; exit 1; } ;do
       sleep 2
    done
 
@@ -526,7 +526,7 @@ else
 fi
 
 # verify endpoint and store settings as last resort
-statuscode=$(/system/bin/curl -k -s -L --fail --show-error -o /dev/null -u $authuser:$authpassword -H "origin: $origin" "$server/vm_conf?mac=$current_mac_encoded" -w '%{http_code}')
+statuscode=$(/system/bin/curl -k -s -L --fail --show-error -o /dev/null -u $authuser:$authpassword "$server/vm_conf?mac=$current_mac_encoded" -w '%{http_code}')
 if [ $statuscode != 200 ] ;then
    echo "Unable to reach Genesect endpoint, status code $statuscode, exit vmapper.sh"
    echo "`date +%Y-%m-%d_%T` Unable to reach Genesect endpoint, status code $statuscode, exiting vmapper.sh" >> $logfile
